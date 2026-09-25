@@ -1,0 +1,78 @@
+name: Сборка APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Подготовка веб-части
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp icon-*.png www/ 2>/dev/null || true
+          [ -f manifest.webmanifest ] && cp manifest.webmanifest www/ || true
+
+      - name: Установка Capacitor
+        run: |
+          npm init -y > /dev/null
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6
+          npx cap init "Барометр неба" ru.barometr.neba --web-dir=www
+          npx cap add android
+          npx cap sync android
+
+      - name: Разрешения, цвета, иконка
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>|' $M
+          ST=android/app/src/main/res/values/styles.xml
+          sed -i 's|<item name="windowActionBar">false</item>|<item name="windowActionBar">false</item>\n        <item name="android:statusBarColor">#0d1726</item>\n        <item name="android:navigationBarColor">#0d1726</item>\n        <item name="android:windowBackground">@color/barometr_bg</item>|' $ST
+          sed -i 's|@drawable/splash|@color/barometr_bg|g' $ST
+          C=android/app/src/main/res/values/barometr_colors.xml
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="barometr_bg">#0d1726</color></resources>\n' > $C
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-anydpi-v26
+          for d in $RES/mipmap-*; do
+            cp icon-192.png $d/ic_launcher.png
+            cp icon-192.png $d/ic_launcher_round.png
+            cp icon-192.png $d/ic_launcher_foreground.png
+          done
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
+
+      - name: Сборка
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../barometr.apk
+
+      - name: Файл для скачивания (Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: barometr-apk
+          path: barometr.apk
+
+      - name: Публикация в Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Барометр неба, сборка ${{ github.run_number }}
+          files: barometr.apk
+          make_latest: true
