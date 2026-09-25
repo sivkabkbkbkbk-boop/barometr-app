@@ -40,7 +40,7 @@ jobs:
       - name: Разрешения, цвета, иконка
         run: |
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
           ST=android/app/src/main/res/values/styles.xml
           sed -i 's|<item name="windowActionBar">false</item>|<item name="windowActionBar">false</item>\n        <item name="android:statusBarColor">#0d1726</item>\n        <item name="android:navigationBarColor">#0d1726</item>\n        <item name="android:windowBackground">@color/barometr_bg</item>|' $ST
@@ -48,6 +48,8 @@ jobs:
           C=android/app/src/main/res/values/barometr_colors.xml
           printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="barometr_bg">#0d1726</color></resources>\n' > $C
           RES=android/app/src/main/res
+          mkdir -p $RES/drawable
+          printf '<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">\n  <path android:fillColor="#FFFFFFFF" android:pathData="M12,4C6.5,4 2,8.5 2,14h2.2c0,-4.3 3.5,-7.8 7.8,-7.8s7.8,3.5 7.8,7.8H22C22,8.5 17.5,4 12,4z"/>\n  <path android:fillColor="#FFFFFFFF" android:pathData="M16.6,8.1l-5.1,4.7c-0.8,0.3 -1.3,1.1 -1.1,2c0.2,1 1.2,1.6 2.2,1.4c0.9,-0.2 1.5,-1 1.4,-1.9z"/>\n</vector>\n' > $RES/drawable/ic_stat_barometr.xml
           rm -rf $RES/mipmap-anydpi-v26
           for d in $RES/mipmap-*; do
             cp icon-192.png $d/ic_launcher.png
