@@ -272,6 +272,28 @@ footer a{color:var(--muted)}
 .ysync ol b{color:var(--ink)}
 .ysync a{color:var(--press)}
 .ysync .btn{align-self:auto}
+/* mood popup and chip */
+.mpop{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));background:rgba(3,8,15,.55);opacity:0;transition:opacity .25s}
+.mpop.open{opacity:1}
+.mpop .mcard{width:100%;max-width:440px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:22px;padding:18px 16px 12px;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:14px;transform:translateY(30px) scale(.96);transition:transform .35s cubic-bezier(.2,1.2,.3,1);transform-origin:center}
+.mpop.open .mcard{transform:none}
+.mpop .mq{font-family:var(--f-disp);font-weight:500;font-size:18px;text-align:center;width:100%}
+.mpop .mhead{justify-content:center}
+.mpop .mbtn{padding:14px 4px 10px}
+.mpop .mbtn .e{font-size:40px}
+.mfoot{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mfoot .mlink{font-size:13px}
+#moodLater{color:var(--muted)}
+.mcard.fly{transition:transform .5s cubic-bezier(.5,0,.2,1), opacity .5s ease-in!important}
+.mchip{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:12;width:56px;height:56px;border-radius:50%;border:1px solid var(--glass-line);background:var(--sheet);box-shadow:0 8px 24px rgba(0,0,0,.45);display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0}
+.mchip .e{font-size:30px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.mchip.ask{border-color:var(--press)}
+.mchip.ask::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--press);animation:ping 2s ease-out infinite}
+.mchip.land{animation:land .5s cubic-bezier(.3,1.8,.5,1)}
+@keyframes land{0%{transform:scale(.4)}60%{transform:scale(1.18)}100%{transform:none}}
+.mchip:active{transform:scale(.93)}
+.mchip:focus-visible{outline:2px solid var(--press);outline-offset:3px}
+footer{padding-bottom:64px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:40;background:var(--ink);color:#0d1726;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:500;max-width:calc(100% - 48px);transition:all .3s;pointer-events:none}
 .toast.show{transform:translate(-50%,0);opacity:1}
 [hidden]{display:none!important}
@@ -315,19 +337,6 @@ footer a{color:var(--muted)}
     <div class="cond"><div class="icon" id="cicon"></div><div class="txt" id="ctext"></div></div>
   </section>
 
-  <section class="card mood fade" id="moodCard" style="animation-delay:.04s" aria-label="Самочувствие">
-    <div class="mhead"><div class="mq">Как вы себя чувствуете сегодня?</div><div class="mnote" id="mstreak"></div></div>
-    <div class="mbtns" id="mbtns">
-      <button class="mbtn" data-mood="3" style="--mc:#8be38f" aria-pressed="false"><span class="e">😊</span><span class="l">Хорошо</span></button>
-      <button class="mbtn" data-mood="2" style="--mc:#f2c94c" aria-pressed="false"><span class="e">😐</span><span class="l">Так себе</span></button>
-      <button class="mbtn" data-mood="1" style="--mc:#ff7a6b" aria-pressed="false"><span class="e">😣</span><span class="l">Плохо</span></button>
-    </div>
-    <div class="remind" id="remind" hidden>
-      <label class="rsw"><input type="checkbox" id="remOn"><span class="knob" aria-hidden="true"></span>🔔 Напоминать каждый день в</label>
-      <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
-    </div>
-    <button class="mlink" id="moodOpen">Самочувствие и погода ›</button>
-  </section>
 
   <div class="grid2">
     <section class="card fade tap" style="animation-delay:.08s" role="button" tabindex="0" data-metric="press" aria-label="Давление: открыть историю">
@@ -371,6 +380,19 @@ footer a{color:var(--muted)}
   <footer><button class="btn ghost" id="installBtn" hidden>Установить приложение</button><div>Погода и архив: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Kp: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA</a>, <a href="https://kp.gfz.de/" target="_blank" rel="noopener">GFZ</a></div></footer>
 </main>
 
+<div class="mpop" id="moodPop" hidden>
+  <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
+    <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете сегодня?</div></div>
+    <div class="mbtns" id="mbtns">
+      <button class="mbtn" data-mood="3" style="--mc:#8be38f" aria-pressed="false"><span class="e">😊</span><span class="l">Хорошо</span></button>
+      <button class="mbtn" data-mood="2" style="--mc:#f2c94c" aria-pressed="false"><span class="e">😐</span><span class="l">Так себе</span></button>
+      <button class="mbtn" data-mood="1" style="--mc:#ff7a6b" aria-pressed="false"><span class="e">😣</span><span class="l">Плохо</span></button>
+    </div>
+    <div class="mfoot"><button class="mlink" id="moodLater">Позже</button><span class="mnote" id="mstreak"></span><button class="mlink" id="moodOpen">Самочувствие и погода ›</button></div>
+  </div>
+</div>
+<button class="mchip" id="moodChip" hidden aria-label="Самочувствие сегодня"><span class="e" id="moodChipE">🙂</span></button>
+
 <div class="scrim" id="scrim" hidden></div>
 
 <section class="sheet" id="hist" role="dialog" aria-modal="true" aria-labelledby="histTitle" hidden>
@@ -408,6 +430,10 @@ footer a{color:var(--muted)}
     <div class="days" id="mdays"></div>
     <div class="picker" id="mpicker" hidden></div>
     <div class="gap" id="mgap" hidden></div>
+    <div class="remind" id="remind" hidden>
+      <label class="rsw"><input type="checkbox" id="remOn"><span class="knob" aria-hidden="true"></span>🔔 Напоминать в шторке в</label>
+      <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
+    </div>
     <div class="ysync" id="ysync"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
     <div class="facs" id="mfacs"></div>
@@ -1347,7 +1373,7 @@ function saveMood(date, v){
   const at=new Date().toISOString();
   if(v){ S.mood[date]={v, city:S.slug, at}; delete S.moodDel[date]; } else { delete S.mood[date]; S.moodDel[date]=at; }
   store.set("mood", JSON.stringify(S.mood)); store.set("moodDel", JSON.stringify(S.moodDel));
-  ySyncSoon();
+  ySyncSoon(); if(typeof scheduleReminders==="function") scheduleReminders();
   renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); if(!$("hist").hidden) drawHistory();
 }
 function renderMood(){
@@ -1355,16 +1381,45 @@ function renderMood(){
   const box=$("mbtns"); box.classList.toggle("chosen",!!rec);
   box.querySelectorAll(".mbtn").forEach(b=>b.setAttribute("aria-pressed", String(!!rec && +b.dataset.mood===rec.v)));
   const n=Object.keys(S.mood).length;
-  $("mstreak").textContent = rec ? "записано" : n ? `отмечено дней: ${n}` : "";
+  $("mstreak").textContent = n ? `дней: ${n}` : "";
+  const chip=$("moodChip");
+  $("moodChipE").textContent = rec ? MOOD[rec.v].e : "🙂";
+  chip.classList.toggle("ask", !rec);
+  chip.setAttribute("aria-label", rec ? `Сегодня: ${MOOD[rec.v].l}. Открыть «Самочувствие и погода»` : "Отметить самочувствие");
+  if($("moodPop").hidden) chip.hidden=false;
+}
+/* the question pops up; after a tap it folds into the round chip in the corner */
+function showMoodPop(){
+  const pop=$("moodPop"); if(!pop.hidden) return;
+  if(openSheet) hideSheet(true);
+  renderMood(); $("moodChip").hidden=true;
+  const card=$("moodCardPop"); card.classList.remove("fly"); card.style.transform=""; card.style.opacity="";
+  pop.hidden=false; requestAnimationFrame(()=>pop.classList.add("open"));
+}
+function foldMoodPop(){
+  const pop=$("moodPop"), card=$("moodCardPop"), chip=$("moodChip");
+  if(pop.hidden) return;
+  chip.hidden=false; chip.style.visibility="hidden";
+  const a=card.getBoundingClientRect(), c=chip.getBoundingClientRect();
+  const dx=(c.left+c.width/2)-(a.left+a.width/2), dy=(c.top+c.height/2)-(a.top+a.height/2), sc=c.width/a.width;
+  card.classList.add("fly");
+  card.style.transform=`translate(${dx}px,${dy}px) scale(${sc})`; card.style.opacity="0";
+  pop.classList.remove("open");
+  setTimeout(()=>{ pop.hidden=true; card.classList.remove("fly"); card.style.transform=""; card.style.opacity="";
+    chip.style.visibility=""; chip.classList.remove("land"); void chip.offsetWidth; chip.classList.add("land"); }, reduce?0:480);
 }
 $("mbtns").addEventListener("click",e=>{
   const b=e.target.closest(".mbtn"); if(!b) return;
   const today=isoDay(new Date()), v=+b.dataset.mood;
   b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-  saveMood(today, S.mood[today]?.v===v ? null : v);
-  if(S.mood[today]) toast(`${MOOD[v].e} Записано на сегодня`);
+  saveMood(today, v);
+  setTimeout(foldMoodPop, 380);
 });
-$("moodOpen").addEventListener("click",()=>{ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderMoodSheet(); showSheet("moodSheet"); });
+$("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
+$("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
+$("moodChip").addEventListener("click",()=>{ const today=isoDay(new Date()); if(!S.mood[today]) showMoodPop(); else openMoodSheet(); });
+function openMoodSheet(){ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderMoodSheet(); showSheet("moodSheet"); }
+$("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
 /* per-day weather features for a date (Moscow day) */
 function dayFeatures(date, slug){
@@ -1595,7 +1650,7 @@ function scrollableParent(el, stop){ for(let n=el; n&&n!==stop; n=n.parentElemen
 addEventListener("touchstart",e=>{
   if(e.touches.length>1){ G.mode=null; return; }
   const t=e.touches[0]; G.y0=t.clientY; G.x0=t.clientX; G.t0=performance.now(); G.dy=0; G.mode=null; G.sheet=null;
-  if(e.target.closest(".rmap,.rctl")) return;
+  if(e.target.closest(".rmap,.rctl") || !$("moodPop").hidden) return;
   if(openSheet){
     if(e.target.closest("#chart,input,.tabs,.chips")) return;
     const sc=scrollableParent(e.target, openSheet);
@@ -1643,27 +1698,52 @@ document.addEventListener("keydown",e=>{
   e.preventDefault(); openHistory(t.dataset.metric||"temp");
 });
 
-/* ---------- native app (Android build): daily reminder ---------- */
+/* ---------- native app (Android build): reminder in the notification shade ---------- */
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const LN = NATIVE ? window.Capacitor.Plugins?.LocalNotifications : null;
+const REM_DAYS = 30;                                      // scheduled ahead; renewed every time the app opens
+async function scheduleReminders(){
+  if(!LN) return;
+  const r=loadJSON("remind",{on:false,time:"20:00"});
+  try{ const pend=await LN.getPending(); if(pend.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}
+  if(!r.on) return;
+  const [hh,mm]=(r.time||"20:00").split(":").map(Number), now=new Date(), list=[];
+  for(let i=0;i<REM_DAYS;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,hh,mm,0);
+    if(d<=now) continue;
+    if(i===0 && S.mood[isoDay(now)]) continue;             // already marked today: no reminder
+    list.push({id:100+i, title:"Как вы себя чувствуете сегодня?", body:"Нажмите на смайлик — отметка сохранится.",
+      schedule:{at:d, allowWhileIdle:true}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr", iconColor:"#7fd6c8", extra:{kind:"mood"}});
+  }
+  if(list.length) try{ await LN.schedule({notifications:list}); }catch(e){}
+}
 if(LN){
   $("remind").hidden=false;
   const r=loadJSON("remind",{on:false,time:"20:00"});
   $("remOn").checked=!!r.on; $("remTime").value=r.time||"20:00";
+  LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Ежедневный вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
+  LN.registerActionTypes({types:[{id:"MOOD", actions:[{id:"m3",title:"😊 Хорошо"},{id:"m2",title:"😐 Так себе"},{id:"m1",title:"😣 Плохо"}]}]}).catch(()=>{});
+  // a smiley pressed in the notification shade: save it and put the app back
+  LN.addListener("localNotificationActionPerformed", ev=>{
+    const a=ev.actionId||"";
+    if(/^m[123]$/.test(a)){
+      const v=+a[1]; saveMood(isoDay(new Date()), v); $("moodPop").hidden=true;
+      toast(`${MOOD[v].e} Записано на сегодня`);
+      setTimeout(()=>window.Capacitor.Plugins?.App?.minimizeApp?.(), 1300);
+    } else setTimeout(showMoodPop, 300);                    // the notification itself was tapped
+  });
   async function applyReminder(){
-    const on=$("remOn").checked, time=$("remTime").value||"20:00", [hh,mm]=time.split(":").map(Number);
+    const on=$("remOn").checked, time=$("remTime").value||"20:00";
     store.set("remind",JSON.stringify({on,time}));
-    try{ await LN.cancel({notifications:[{id:1}]}); }catch(e){}
-    if(!on) return;
-    try{
-      let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
-      if(p.display!=="granted"){ $("remOn").checked=false; store.set("remind",JSON.stringify({on:false,time})); toast("Разрешите уведомления для «Барометра» в настройках Android."); return; }
-      await LN.schedule({notifications:[{id:1,title:"Барометр неба",body:"Как вы себя чувствуете сегодня? Отметьте одним касанием.",schedule:{on:{hour:hh,minute:mm}}}]});
-      toast(`Напомню каждый день в ${time}`);
-    }catch(e){ toast("Не удалось включить напоминание."); }
+    if(on){
+      try{ let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
+        if(p.display!=="granted"){ $("remOn").checked=false; store.set("remind",JSON.stringify({on:false,time})); toast("Разрешите уведомления для «Барометра» в настройках Android."); return; } }catch(e){}
+    }
+    await scheduleReminders();
+    if(on) toast(`Напомню в шторке каждый день в ${time}`);
   }
   $("remOn").addEventListener("change",applyReminder);
-  $("remTime").addEventListener("change",()=>{ if($("remOn").checked) applyReminder(); else store.set("remind",JSON.stringify({on:false,time:$("remTime").value})); });
+  $("remTime").addEventListener("change",()=>{ store.set("remind",JSON.stringify({on:$("remOn").checked,time:$("remTime").value})); scheduleReminders(); });
 }
 
 /* ---------- Android Back button (native app) ---------- */
@@ -1672,6 +1752,7 @@ if(LN){
   if(AppP){
     let lastBack=0;
     AppP.addListener("backButton", ()=>{
+      if(!$("moodPop").hidden){ foldMoodPop(); return; }                                  // the question is open: fold it
       if(openSheet){ if(openSheet.id==="mapSheet") stopPlay(); hideSheet(); return; }   // a window is open: close it
       const now=Date.now();
       if(now-lastBack<2000){ AppP.exitApp(); return; }                                    // second press: leave
@@ -1723,6 +1804,9 @@ render();
   refreshNow(true);
   if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); }
   if(Y.token) setTimeout(()=>ySync(false), 1500);
+  scheduleReminders();
+  renderMood();
+  if(!S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
 })();
 setInterval(render, 10*60*1000);
 setInterval(()=>{ if(!document.hidden) refreshNow(true); }, 30*60*1000);
