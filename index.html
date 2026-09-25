@@ -1457,9 +1457,9 @@ renderMood();
 
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
-const Y_CLIENT_ID = "64765b84b3e24379b4c44b1ec8a301a3";   // «Барометр неба» on oauth.yandex.ru (access: app folder on Disk only)
+const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Барометр неба» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
 const Y = Object.assign({clientId:"", token:"", last:"", err:""}, loadJSON("yandex",{})||{});
-if(!Y.clientId) Y.clientId=Y_CLIENT_ID;
+Y.clientId=Y_CLIENT_ID;   // always the built-in app (tokens issued earlier keep working)
 const saveY=()=>store.set("yandex",JSON.stringify({clientId:Y.clientId,token:Y.token,last:Y.last}));
 // native app: requests go through Android (no browser CORS limits); browser: ordinary fetch
 async function yReq(method, url, body, auth=true){
@@ -1520,7 +1520,25 @@ async function ySync(loud){
     if(loud) toast(Y.err);
   }finally{ ySyncing=false; renderY(); }
 }
-function yAuthUrl(){ return `https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(Y.clientId)}&force_confirm=yes`; }
+const Y_REDIRECT = "https://sivkabkbkbkbk-boop.github.io/barometr/auth.html";
+function yAuthUrl(manual){
+  const base=`https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(Y.clientId)}`;
+  return manual ? base+"&redirect_uri="+encodeURIComponent("https://oauth.yandex.ru/verification_code")
+                : base+"&redirect_uri="+encodeURIComponent(Y_REDIRECT)+"&state="+(PREF?"app":"web");
+}
+// the login page sends the user back with barometr://auth?access_token=…
+function yTakeToken(url){
+  const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
+  Y.token=decodeURIComponent(m[1]); Y.err=""; saveY();
+  toast("Яндекс Диск подключён"); renderY(); ySync(true); return true;
+}
+{
+  const AppU = PREF ? window.Capacitor.Plugins?.App : null;
+  if(AppU){
+    AppU.addListener("appUrlOpen", e=>yTakeToken(e.url));
+    AppU.getLaunchUrl?.().then(r=>{ if(r&&r.url) yTakeToken(r.url); }).catch(()=>{});
+  }
+}
 function renderY(state){
   const box=$("ysync"); if(!box) return;
   const head=(sub,cls)=>`<div class="yh"><div class="ylogo">Я</div><div><div class="yt">Яндекс Диск</div><div class="ys ${cls||""}">${sub}</div></div></div>`;
@@ -1539,10 +1557,11 @@ function renderY(state){
     return;
   }
   box.innerHTML=head(Y.err||"отметки и города будут храниться в папке приложения на вашем Диске и появятся на любом телефоне после входа", Y.err?"bad":"")+
-  `<ol><li><a href="${yAuthUrl()}" target="_blank" rel="noopener"><b>Войти через Яндекс ›</b></a> — откроется браузер, разрешите доступ.</li>
-  <li>Яндекс покажет код доступа — скопируйте его и вставьте сюда (можно вставить и весь адрес страницы):</li></ol>
-  <div class="row"><input id="yToken" placeholder="код доступа" autocomplete="off" aria-label="Код доступа Яндекса"><button class="btn" data-y="token">Подключить</button></div>
-  `;
+  `<a class="btn" href="${yAuthUrl(false)}" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Войти через Яндекс</a>
+  <details><summary class="ys" style="cursor:pointer">Не вернулось в приложение? Вставить код вручную</summary>
+    <ol style="margin-top:8px"><li><a href="${yAuthUrl(true)}" target="_blank" rel="noopener">Открыть вход с кодом ›</a> — разрешите доступ, Яндекс покажет код.</li><li>Скопируйте код и вставьте сюда:</li></ol>
+    <div class="row" style="margin-top:6px"><input id="yToken" placeholder="код доступа" autocomplete="off" aria-label="Код доступа Яндекса"><button class="btn" data-y="token">Подключить</button></div>
+  </details>`;
 }
 $("ysync").addEventListener("click",async e=>{
   const b=e.target.closest("[data-y]"); if(!b) return;
