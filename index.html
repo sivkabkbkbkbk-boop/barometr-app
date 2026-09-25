@@ -389,6 +389,28 @@ footer{padding-bottom:64px}
 .stv{display:flex;flex-direction:column;gap:2px;font-size:13px}
 .stv .mono{font-family:var(--f-mono);font-size:17px}
 .stl{font-weight:600}
+/* new friend popup */
+.frpop{position:fixed;inset:0;z-index:45;background:rgba(3,8,15,.6);display:flex;align-items:center;justify-content:center;padding:24px}
+.frcard{position:relative;width:100%;max-width:340px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:24px;padding:26px 20px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:frIn .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes frIn{from{transform:scale(.7);opacity:0}}
+.frconf{position:absolute;top:-26px;font-size:46px;animation:frC 1.2s ease-out}
+@keyframes frC{0%{transform:scale(.3) rotate(-30deg)}60%{transform:scale(1.25) rotate(10deg)}100%{transform:none}}
+.frav{display:flex;align-items:center;gap:0;margin-top:14px}
+.frav .av{width:58px;height:58px;font-size:24px;border:3px solid var(--sheet)}
+.frav .av+.av{margin-left:-12px}
+.frcard h3{margin:6px 0 0;font-size:19px;font-family:var(--f-disp);font-weight:500}
+.frcard p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.4}
+.frbtn{display:flex;gap:8px;margin-top:10px;width:100%}.frbtn .btn{flex:1}
+/* one combined chart */
+.seg3.mini{width:auto;grid-template-columns:auto auto;padding:2px}
+.seg3.mini button{padding:5px 10px;font-size:12px}
+.rpan.one{padding:8px 4px 4px}
+.olg{display:flex;flex-direction:column;gap:3px;padding:6px 8px 4px}
+.oli{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;font-size:12.5px}
+.oli i{width:14px;height:4px;border-radius:2px}
+.oli b{font-family:var(--f-mono);font-size:12.5px;font-weight:600}
+.oli small{color:var(--muted);font-size:10.5px}
+.oli.dim{opacity:.5}
 /* bottom tabs */
 .bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(9,16,27,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
 .bnav button{position:relative;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -698,7 +720,7 @@ header{min-width:0}
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
-  <div class="card"><div class="label">Что показать на графиках</div><div class="rselw" id="repSel" style="margin-top:8px"></div></div>
+  <div class="card"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
   <div class="rpanels" id="repPanels"></div>
   <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — подсказка, а не диагноз.</div>
@@ -716,6 +738,11 @@ header{min-width:0}
   <button data-tab="friends"><b>👥</b>Друзья<i id="navN"></i></button>
 </nav>
 
+<div class="frpop" id="frPop" hidden><div class="frcard" role="dialog" aria-modal="true" aria-labelledby="frT">
+  <div class="frconf" aria-hidden="true">🎉</div><div class="frav" id="frAv"></div>
+  <h3 id="frT"></h3><p id="frP"></p>
+  <div class="frbtn"><button class="btn" id="frChat">💬 Написать</button><button class="btn ghost" id="frOk">Отлично</button></div>
+</div></div>
 <div class="mpop" id="moodPop" hidden>
   <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
     <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете?</div></div>
@@ -2156,7 +2183,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 7 (вкладки и общий чат)";
+const APP_VER="26.09 · сборка 8 (общий график, новые друзья)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2511,9 +2538,9 @@ renderHealth();
 let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
 
 /* ---------- report: any combination of indicators on one time axis ---------- */
-const REP_SERIES=[["bp","А/Д","#ff8a7a"],["pulse","Пульс","#c9b6ff"],["glu","Сахар","#f2c94c"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#7fd6c8"],["temp","Температура","#ffb86b"],["kp","Магнитный фон","#8be38f"],["rain","Осадки","#78adff"]];
+const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
-const REP={sel:loadJSON("repSel",null)||["bp","glu","mood","press"], per:"30", from:null, to:null, data:{}};
+const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:store.get("repMode")||"one"};
 function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
   return [REP.from, REP.to];
@@ -2602,7 +2629,9 @@ function drawReport(){
     panels.push(`<div class="rpan" data-pk="${k}"><div class="rph"><span class="rpt" style="color:${col}">${label}</span><span class="rpv" id="rpv-${k}"></span></div><div class="rps">${stat}</div>
       <svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-hidden="true">${axis(Hh,B)}${g}<line class="rcur" x1="0" x2="0" y1="4" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/></svg></div>`);
   }
-  $("repPanels").innerHTML=panels.length?panels.join(""):`<div class="src" style="text-align:center">Выберите хотя бы один показатель выше.</div>`;
+  document.querySelectorAll("#repMode [data-rm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rm===REP.mode));
+  if(REP.mode==="one"&&REP.sel.length) $("repPanels").innerHTML=drawOverlay(from,to,loading);
+  else $("repPanels").innerHTML=panels.length?panels.join(""):`<div class="src" style="text-align:center">Выберите хотя бы один показатель выше.</div>`;
   repSummary(from,to);
 }
 /* key numbers, plain-language findings and a calendar of smileys */
@@ -2656,11 +2685,79 @@ function repSummary(from,to){
     c+=`<i class="${d===today?"td":""}" style="${r?`background:${r.v>=2.5?"rgba(139,227,143,.16)":r.v>=1.9?"rgba(242,201,76,.16)":"rgba(255,122,107,.18)"}`:""}"><em>${+d.slice(8)}</em>${r?r.e:""}${b?`<small style="color:${bpCat(b.sys,b.dia).c}">${b.sys}</small>`:""}</i>`; }
   $("repCal").innerHTML=c; $("repCalT").textContent="Последние 5 недель: самочувствие и А/Д";
 }
+
+/* all chosen indicators on ONE chart: each line is scaled to its own range (no second axis); values are read with the finger */
+function drawOverlay(from,to,loading){
+  const x0=+from, x1=+to, W=360, Hh=270, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
+  const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
+  const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
+  const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain"), barH=bars.length?44:0;
+  const lineTop=T, lineBot=Hh-B-barH-(bars.length?6:0);
+  let g="", legend=[], ends=[];
+  REP.data={};
+  for(const [t,l] of repTicks(x0,x1)) g+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T-4}" y2="${Hh-B}" stroke="rgba(238,243,248,.06)"/><text x="${Math.min(W-R-12,Math.max(L+14,X(t)))}" y="${Hh-4}" text-anchor="middle" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">${l}</text>`;
+  const scaleOf=(vs,pad)=>{ let lo=Math.min(...vs), hi=Math.max(...vs); const p=(hi-lo)*(pad||.12)||1; return [lo-p,hi+p]; };
+  const lineSeries=(k,pts,fmt,opts={})=>{
+    if(!pts.length){ legend.push({k,txt:`${lab(k)}: нет данных`,c:col(k),dim:1}); return; }
+    const vs=pts.map(p=>p.v).concat(opts.extra||[]), [lo,hi]=opts.range||scaleOf(vs), Y=v=>lineTop+(1-(v-lo)/(hi-lo))*(lineBot-lineTop);
+    if(pts.length>1) g+=`<path d="${pts.map((p,i)=>`${i?"L":"M"}${X(p.t).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col(k)}" stroke-width="${opts.w||2}" stroke-linejoin="round" ${opts.dash?`stroke-dasharray="${opts.dash}"`:""} opacity="${opts.op||1}"/>`;
+    if(opts.dots) for(const p of pts) g+=`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="3" fill="${p.c||col(k)}" stroke="#172538" stroke-width="1.5"/>`;
+    const lp=pts[pts.length-1]; if(!opts.noEnd) ends.push({y:Y(lp.v),k,txt:fmt(lp.v)});
+    return Y;
+  };
+  // health
+  const bp=HM.list.filter(m=>m.type==="bp"&&inR(m.t)), gl=HM.list.filter(m=>m.type==="glu"&&inR(m.t));
+  if(REP.sel.includes("bp")){
+    if(bp.length){ const all=bp.flatMap(m=>[m.sys,m.dia]), rg=scaleOf(all,.08);
+      lineSeries("bp",bp.map(m=>({t:m.t,v:m.sys,c:bpCat(m.sys,m.dia).c})),v=>Math.round(v),{range:rg,dots:1});
+      lineSeries("bp",bp.map(m=>({t:m.t,v:m.dia})),v=>Math.round(v),{range:rg,dash:"4 3",w:1.6,noEnd:1});
+      const as=Math.round(bp.reduce((a,m)=>a+m.sys,0)/bp.length), ad=Math.round(bp.reduce((a,m)=>a+m.dia,0)/bp.length);
+      legend.push({k:"bp",txt:`А/Д ${Math.min(...bp.map(m=>m.dia))}–${Math.max(...bp.map(m=>m.sys))}, ср. ${as}/${ad}`,c:col("bp"),note:"сплошная — верхнее, пунктир — нижнее"});
+    } else legend.push({k:"bp",txt:"А/Д: нет данных",c:col("bp"),dim:1});
+    REP.data.bp={pts:bp.map(m=>({t:+new Date(m.t),txt:`${m.sys}/${m.dia}`}))};
+  }
+  if(REP.sel.includes("pulse")){ const pp=bp.filter(m=>m.pulse); lineSeries("pulse",pp.map(m=>({t:m.t,v:m.pulse})),v=>Math.round(v),{dots:1});
+    if(pp.length) legend.push({k:"pulse",txt:`Пульс ${Math.min(...pp.map(m=>m.pulse))}–${Math.max(...pp.map(m=>m.pulse))}`,c:col("pulse")}); REP.data.pulse={pts:pp.map(m=>({t:+new Date(m.t),txt:`${m.pulse}`}))}; }
+  if(REP.sel.includes("glu")){ lineSeries("glu",gl.map(m=>({t:m.t,v:m.v,c:gluCat(m.v,m.ctx).c})),v=>fmtNum(v),{dots:1});
+    if(gl.length) legend.push({k:"glu",txt:`Сахар ${fmtNum(Math.min(...gl.map(m=>m.v)))}–${fmtNum(Math.max(...gl.map(m=>m.v)))}`,c:col("glu")}); REP.data.glu={pts:gl.map(m=>({t:+new Date(m.t),txt:`${fmtNum(m.v)} ммоль`}))}; }
+  // weather lines
+  for(const k of ["press","temp"]){ if(!REP.sel.includes(k)) continue;
+    const P=seriesFor(k,from,to).pts.filter(p=>p.v!=null), u=METRICS[k].unit, d=k==="temp"?1:0;
+    lineSeries(k,P.map(p=>({t:p.t,v:p.v})),v=>fmtNum(v,0),{w:1.8,op:.9});
+    if(P.length) legend.push({k,txt:`${lab(k)} ${fmtNum(Math.min(...P.map(p=>p.v)),0)}–${fmtNum(Math.max(...P.map(p=>p.v)),0)} ${u}`,c:col(k)});
+    else if(loading) legend[legend.length-1].txt=`${lab(k)}: загружаю…`;
+    REP.data[k]={pts:P.map(p=>({t:+p.t,txt:`${fmtNum(p.v,d)} ${u}`}))}; }
+  // bars along the bottom
+  bars.forEach((k,bi)=>{
+    const sr=seriesFor(k,from,to), P=sr.pts.filter(p=>p.v!=null), slot=sr.type==="barsDay"?DAY:3*H, bw=Math.max(1.2,slot/(x1-x0)*iw-1);
+    const top=Hh-B-barH+bi*(barH/bars.length), h=barH/bars.length-3, hi=Math.max(k==="kp"?6:1,...P.map(p=>p.v));
+    g+=`<text x="${W-R+4}" y="${top+h/2+3}" font-size="8.5" fill="${col(k)}">${k==="kp"?"Kp":"мм"}</text>`;
+    for(const p of P){ const hh=Math.max(.8,p.v/hi*h); g+=`<rect x="${X(p.t).toFixed(1)}" y="${(top+h-hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="1" fill="${k==="kp"&&p.v>=5?"#e66767":col(k)}" opacity=".85"/>`; }
+    legend.push({k,txt:P.length?(k==="kp"?`Kp до ${fmtNum(Math.max(...P.map(p=>p.v)))}${P.some(p=>p.v>=5)?" · были бури":""}`:`Осадки ${fmtNum(P.reduce((a,p)=>a+p.v,0),0)} ${S.rainMode==="hours"?"ч":"мм"}`):`${lab(k)}: ${loading?"загружаю…":"нет данных"}`,c:col(k),dim:!P.length});
+    REP.data[k]={pts:P.map(p=>({t:+p.t+slot/2,txt:k==="kp"?`${fmtNum(p.v)}`:`${fmtNum(p.v)} ${S.rainMode==="hours"?"ч":"мм"}`}))};
+  });
+  if(hasMood){ g+=markEmojis(X,x0,x1,4,lineBot-4,W-R);
+    const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&inR(m.t)); REP.data.mood={pts:ms.map(m=>({t:+new Date(m.t),txt:KIND[m.k].e}))};
+    if((x1-x0)/DAY>62){ const days=Object.entries(S.mood).filter(([d])=>inR(d+"T12:00:00")).sort(); lineSeries("mood",days.map(([d,r])=>({t:d+"T12:00:00",v:r.v})),v=>v>=2.5?"😊":v>=1.9?"😐":"😣",{range:[.8,3.2],w:1.4,op:.7}); }
+    legend.push({k:"mood",txt:`Самочувствие: ${ms.length} отметок`,c:"#eef3f8"}); }
+  // direct labels at the right edge (spread so they don't collide)
+  ends.sort((a,b)=>a.y-b.y); for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<11) ends[i].y=ends[i-1].y+11;
+  for(const e of ends) g+=`<text x="${W-R+4}" y="${e.y+3.5}" font-size="10" font-weight="700" fill="${col(e.k)}" font-family="JetBrains Mono,monospace">${e.txt}</text>`;
+  g+=`<line class="rcur" x1="0" x2="0" y1="${T-6}" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/>`;
+  return `<div class="rpan one" data-pk="one"><svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-label="Общий график выбранных показателей">${g}</svg>
+    <div class="olg">${legend.map(l=>`<div class="oli${l.dim?" dim":""}"><i style="background:${l.c}"></i><span>${l.txt}${l.note?` <small>${l.note}</small>`:""}</span><b id="rpv-${l.k}"></b></div>`).join("")}</div>
+    <div class="fhm" style="padding:2px 8px 6px">Каждая линия в своём масштабе — смотрите на совпадения подъёмов и спадов. Точные значения — проведите пальцем.</div></div>`;
+}
 function repCursor(e){
   const svg=e.target.closest(".rpan svg"); if(!svg) return;
   const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), vx=(e.clientX-r.left)/r.width*360;
   const [from,to]=[+REP.from,+REP.to], t=from+(vx-L)/iw*(to-from); if(t<from||t>to) return;
   const win=(to-from)/40;
+  const one=document.querySelector("#repPanels .rpan.one");
+  if(one){ const cur=one.querySelector(".rcur"); cur.setAttribute("x1",vx); cur.setAttribute("x2",vx); cur.setAttribute("opacity",".5");
+    for(const k of Object.keys(REP.data)){ const el=$("rpv-"+k); if(!el) continue; let best=null,bd=Infinity; for(const q of REP.data[k].pts){ const d=Math.abs(q.t-t); if(d<bd){bd=d;best=q;} }
+      el.textContent = best&&bd<=Math.max(win,k==="mood"?6*H:2*H) ? best.txt : "—"; }
+    $("repCurT")&&($("repCurT").textContent=`${fmtDM(new Date(t))} ${fmtHM(new Date(t))}`); return; }
   document.querySelectorAll("#repPanels .rpan").forEach(p=>{
     const k=p.dataset.pk, cur=p.querySelector(".rcur"); cur.setAttribute("x1",vx); cur.setAttribute("x2",vx); cur.setAttribute("opacity",".5");
     const pts=REP.data[k]?.pts||[]; let best=null,bd=Infinity; for(const q of pts){ const d=Math.abs(q.t-t); if(d<bd){bd=d;best=q;} }
@@ -2685,6 +2782,7 @@ async function shareText(title, text){
   try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
 }
 $("pgRep").addEventListener("click",e=>{
+  const md=e.target.closest("[data-rm]"); if(md){ REP.mode=md.dataset.rm; store.set("repMode",REP.mode); drawReport(); return; }
   const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
   const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
   if(e.target.closest("#repShare")) shareText("Отчёт о самочувствии", reportText());
@@ -2793,6 +2891,27 @@ $("hBody").addEventListener("click",e=>{
   if(a.dataset.hact==="diary") openMoodSheet();
   if(a.dataset.hact==="rep"){ REP.per="30"; openReport(HSEG==="bp"?["bp","pulse","mood","press"]:["glu","mood"]); }
 });
+
+/* ---------- "you are friends now": shown on both phones ---------- */
+const FRQ=[];
+function friendWelcome(f, how){
+  FRQ.push([f,how]); if(FRQ.length>1) return; showFriendPop();
+}
+function showFriendPop(){
+  const [f,how]=FRQ[0]; const nm=esc(f.name||"Друг");
+  $("frAv").innerHTML=`<span class="av" style="background:${colorOf(SH.key||"me")}">${esc((SH.name||"Я")[0].toUpperCase())}</span><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}</span>`;
+  $("frT").innerHTML = how==="accepted" ? `${nm} принял(а) ваше приглашение!` : `Вы и ${nm} теперь друзья!`;
+  $("frP").innerHTML = how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
+    : how==="wait" ? `${nm} увидит вас сразу, как только откроет приложение — ему придёт такое же оповещение.` : `Теперь вы видите состояние друг друга и можете переписываться.`;
+  $("frChat").hidden=!f.s; $("frPop").hidden=false;
+  try{ navigator.vibrate&&navigator.vibrate([30,60,30]); }catch(e){}
+  const ln=window.Capacitor?.Plugins?.LocalNotifications;
+  if(document.hidden&&ln) ln.schedule({notifications:[{id:900+Math.floor(Math.random()*90),title:"Метеодневник",body:$("frT").textContent,channelId:"mood"}]}).catch(()=>{});
+}
+function closeFriendPop(){ $("frPop").hidden=true; FRQ.shift(); if(FRQ.length) setTimeout(showFriendPop,300); }
+$("frOk").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); if(f){ FSEG="friends"; showTab("friends"); } });
+$("frChat").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); if(f){ FSEG="chats"; showTab("friends"); setTimeout(()=>openChat(f.k),250); } });
+$("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPop(); });
 
 /* ---------- bottom tabs ---------- */
 let TAB="today";
@@ -2975,9 +3094,9 @@ async function shareStart(){
     const info=await yReq("GET", `${YD}?path=${encodeURIComponent("app:/share")}&fields=public_key,public_url`);
     if(!info.data?.public_key) throw new Error("net");
     SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
-    let told=0; for(const f of Object.values(FR.list)) if(f.s&&!f.notified&&!f.acked){ if(await notifyInviter(f).catch(()=>false)) told++; }
+    let told=0; for(const f of Object.values(FR.list)) if(f.s&&!f.notified&&!f.acked){ if(await notifyInviter(f).catch(()=>false)){ told++; friendWelcome(f,"wait"); } }
     await shareUpload().catch(()=>{});
-    if(FR.replyTo){ if(told) toast(`Готово! ${FR.replyTo} увидит вас автоматически, как только откроет приложение.`); else shareSend(true); }
+    if(FR.replyTo){ if(!told) shareSend(true); }
     else shareSend();
     FR.replyTo=null; renderFriends(); pollHello();
   }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
@@ -3019,7 +3138,7 @@ async function addFriendFromLink(url){
   // the inviter adds us automatically: a short encrypted note through a free relay (ntfy.sh); the old reply link is the fallback
   if(SH.on){
     const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
-    if(ok) toast(`🎉 ${nm} теперь в друзьях! У ${nm} вы появитесь сами, как только он(а) откроет приложение.`);
+    if(ok) friendWelcome(FR.list[f.k],"wait");
     else { toast(`${nm} теперь в друзьях. Не удалось связаться автоматически — отправьте ответное приглашение.`); setTimeout(()=>shareSend(true), 1600); }
   } else {
     FR.replyTo=nm; renderFriends();
@@ -3168,13 +3287,13 @@ async function pollHello(){
     saveShare();
     if(added.length){
       saveFriends(); await Promise.all(added.map(fetchFriend)); saveFriends(); shareUpload().catch(()=>{}); ySyncSoon();
-      toast(`🎉 ${added.map(f=>f.name).join(", ")} ${added.length>1?"приняли":"принял(а)"} ваше приглашение — теперь вы друзья!`);
+      for(const f of added) friendWelcome(f,"accepted");
       renderChatBadge(); if(TAB==="friends") renderFriends();
     }
   }catch(e){} finally{ helloBusy=false; }
 }
 setTimeout(pollHello, 3000);
-setInterval(()=>{ if(!document.hidden) pollHello(); }, 2*60*1000);
+setInterval(()=>{ if(!document.hidden) pollHello(); }, 40*1000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(pollHello,800); });
 async function seal(f, obj){ const key=await pairKey(f), iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
 async function unseal(f, m){ const key=await pairKey(f); const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
