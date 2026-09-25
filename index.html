@@ -240,6 +240,7 @@ footer a{color:var(--muted)}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
+.rmap .tiles img.osm{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6)!important}
 .rmap .labels{z-index:1}
 .rmap .pin{z-index:1}
 .rmap canvas{width:100%;height:100%;pointer-events:none}
@@ -530,7 +531,33 @@ const saveCities=()=>store.set("cities",JSON.stringify(S.cities));
 /* ---- sources ---- */
 const OM="https://api.open-meteo.com/v1/forecast", OMA="https://archive-api.open-meteo.com/v1/archive", GEO="https://geocoding-api.open-meteo.com/v1/search";
 const HOURLY="temperature_2m,relative_humidity_2m,surface_pressure,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,is_day";
-async function getJSON(url){ const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
+async function getJSON(url, ms=15000){
+  const ac=new AbortController(), to=setTimeout(()=>ac.abort(), ms);
+  try{ const r=await fetch(url,{cache:"no-store",signal:ac.signal}); if(!r.ok) throw new Error("HTTP "+r.status); return await r.json(); }
+  finally{ clearTimeout(to); }
+}
+/* Some hosts are blocked by providers (in Russia api.open-meteo.com just hangs).
+   Each kind of request has several mirrors: the last one that worked goes first,
+   the next one starts if the first is silent for 2.5 s, the first good answer wins. */
+const MIRRORS = {
+  forecast: ["https://api.open-meteo.com/v1/forecast", "https://historical-forecast-api.open-meteo.com/v1/forecast"],
+  archive:  ["https://archive-api.open-meteo.com/v1/archive", "https://historical-forecast-api.open-meteo.com/v1/forecast"],
+  geocode:  ["https://geocoding-api.open-meteo.com/v1/search"]
+};
+function mirrorOrder(kind){ const good=store.get("mirror:"+kind); const list=MIRRORS[kind].slice(); if(good&&list.includes(good)){ list.splice(list.indexOf(good),1); list.unshift(good); } return list; }
+function getMirror(kind, query, ms=20000){
+  const list=mirrorOrder(kind);
+  return new Promise((resolve,reject)=>{
+    let done=false, failed=0, started=0;
+    const start=i=>{
+      if(done||i>=list.length) return; started++;
+      getJSON(list[i]+"?"+query, ms).then(j=>{ if(done) return; if(j&&j.error) throw new Error(j.reason||"error"); done=true; store.set("mirror:"+kind,list[i]); resolve(j); })
+        .catch(e=>{ failed++; if(!done){ start(i+1); if(failed>=list.length) reject(e); } });
+    };
+    start(0);
+    for(let i=1;i<list.length;i++) setTimeout(()=>{ if(!done&&started<=i) start(i); }, 2500*i);
+  });
+}
 function wmoSym(code,isDay){
   const d=isDay?"_day":"_night";
   if(code===0) return "clearsky"+d; if(code===1) return "fair"+d; if(code===2) return "partlycloudy"+d; if(code===3) return "cloudy";
@@ -599,7 +626,8 @@ const cityOf = id => S.cities[id] || {name:id, status:"ready"};
 /* ---- loaders ---- */
 async function loadForecast(id){
   const c=cityOf(id);
-  const j=await getJSON(`${OM}?latitude=${c.lat}&longitude=${c.lon}&hourly=${HOURLY}&past_days=2&forecast_days=3&timezone=GMT&wind_speed_unit=ms`);
+  const d0=isoDay(new Date(Date.now()-2*DAY)), d1=isoDay(new Date(Date.now()+2*DAY));
+  const j=await getMirror("forecast", `latitude=${c.lat}&longitude=${c.lon}&hourly=${HOURLY}&start_date=${d0}&end_date=${d1}&timezone=GMT&wind_speed_unit=ms`);
   const rows=hourlyRows(j), now=Date.now();
   const hours=rows.map(r=>({t:r.t,p:r.Po,temp:r.T,hum:Math.round(r.f),wind:r.w,wdir:r.wdir,cloud:r.cl,sym:wmoSym(r.code,r.day),pr:r.pr||0}));
   S.feed[id]={fetched:new Date().toISOString(), hours};
@@ -638,10 +666,10 @@ async function loadHistRange(id, from, to){
   const c=cityOf(id), today=isoDay(new Date());
   const recentFrom=isoDay(new Date(Date.now()-6*DAY));
   const parts=[];
-  if(from<recentFrom) parts.push([OMA, from, to<recentFrom?to:isoDay(new Date(+new Date(recentFrom+"T12:00:00")-DAY))]);
-  if(to>=recentFrom) parts.push([OM, from>recentFrom?from:recentFrom, to]);
-  for(const [base,a,b] of parts){
-    const j=await getJSON(`${base}?latitude=${c.lat}&longitude=${c.lon}&start_date=${a}&end_date=${b}&hourly=${HOURLY}&timezone=GMT&wind_speed_unit=ms`);
+  if(from<recentFrom) parts.push(["archive", from, to<recentFrom?to:isoDay(new Date(+new Date(recentFrom+"T12:00:00")-DAY))]);
+  if(to>=recentFrom) parts.push(["forecast", from>recentFrom?from:recentFrom, to]);
+  for(const [kind,a,b] of parts){
+    const j=await getMirror(kind, `latitude=${c.lat}&longitude=${c.lon}&start_date=${a}&end_date=${b}&hourly=${HOURLY}&timezone=GMT&wind_speed_unit=ms`, 30000);
     const rows=hourlyRows(j).filter(r=>+new Date(r.t)<=Date.now());
     const full=[]; for(let t=+new Date(a+"T12:00:00"); t<=+new Date(b+"T12:00:00"); t+=DAY){ const d=isoDay(new Date(t)); if(d<today) full.push(d); }
     addHist(id, rows, full);
@@ -683,6 +711,8 @@ function render(){
   let ki=kp.findIndex(x=>{const t=new Date(x.t);return now>=t && now<new Date(+t+3*H)});
   if(ki<0) ki=nearestIdx(kp,now);
   const kc=kp[ki]||{kp:0};
+  if(!kp.length){ $("kpval").innerHTML=`—<small>Kp</small>`; const pl=$("kppill"); pl.textContent="нет данных"; pl.style.color="var(--muted)"; pl.style.background="rgba(238,243,248,.08)"; $("kpbars").innerHTML=""; $("aurora").style.opacity=0; }
+  else {
   const [ktext,kcol]=kpInfo(kc.kp);
   $("kpval").innerHTML=`${(+kc.kp).toFixed(kc.kp%1?1:0)}<small>Kp</small>`;
   const pill=$("kppill"); pill.textContent=ktext; pill.style.color=kcol; pill.style.background="color-mix(in srgb, currentColor 16%, transparent)";
@@ -696,6 +726,7 @@ function render(){
   au.style.setProperty("--aur1", kc.kp>=5?"rgba(255,122,107,.55)":"rgba(139,227,143,.45)");
   au.style.setProperty("--aur2", "rgba(180,140,242,.45)");
   au.style.opacity = Math.min(1, Math.max(kc.kp,maxNext)/7).toFixed(2);
+  }
 
   const pr=hrs.slice(i,i+24), mx=Math.max(0.5,...pr.map(x=>x.pr));
   $("prbars").innerHTML=pr.map((x,n)=>`<i class="${x.pr>0?"":"zero"}" style="height:${x.pr>0?Math.max(8,x.pr/mx*100):4}%;animation-delay:${n*25}ms"></i>`).join("");
@@ -766,16 +797,19 @@ const sky=(()=>{
 
 /* ---------- sheets ---------- */
 let openSheet=null, lastFocus=null;
+/* each open window is a step in history: the phone's Back button closes it instead of leaving the app */
 function showSheet(id){
-  if(openSheet) hideSheet(true);
+  const switching=!!openSheet;
+  if(openSheet) closeSheetView(true);
   lastFocus=document.activeElement;
   const sc=$("scrim"), sh=$(id);
   sc.hidden=false; sh.hidden=false;
   requestAnimationFrame(()=>{sc.classList.add("open");sh.classList.add("open");});
   openSheet=sh;
+  try{ if(switching&&history.state&&history.state.sheet) history.replaceState({sheet:id},""); else history.pushState({sheet:id},""); }catch(e){}
   setTimeout(()=>{const f=sh.querySelector(".search")||sh.querySelector(".xbtn"); f&&f.focus({preventScroll:true});},300);
 }
-function hideSheet(instant){
+function closeSheetView(instant){
   if(!openSheet) return;
   const sh=openSheet, sc=$("scrim"); openSheet=null;
   sh.style.transform=""; sh.classList.remove("open"); sc.classList.remove("open");
@@ -783,6 +817,17 @@ function hideSheet(instant){
   instant||reduce?done():setTimeout(done,320);
   lastFocus&&lastFocus.focus&&lastFocus.focus({preventScroll:true});
 }
+function hideSheet(instant){
+  if(!openSheet) return;
+  closeSheetView(instant);
+  // closed by ×, swipe or tap outside: drop the history step we added
+  try{ if(history.state&&history.state.sheet){ ignorePop=true; history.back(); } }catch(e){}
+}
+let ignorePop=false;
+addEventListener("popstate",()=>{
+  if(ignorePop){ ignorePop=false; return; }
+  if(openSheet){ if(typeof stopPlay==="function"&&openSheet.id==="mapSheet") stopPlay(); closeSheetView(); }   // Back button
+});
 $("scrim").addEventListener("click",()=>hideSheet());
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>hideSheet()));
 addEventListener("keydown",e=>{if(e.key==="Escape") hideSheet();});
@@ -1036,8 +1081,13 @@ function renderCities(){
 async function geoSearch(raw){
   const q=norm(raw);
   try{
-    const j=await getJSON(`${GEO}?name=${encodeURIComponent(raw)}&count=15&language=ru&format=json`);
-    geoResults=(j.results||[]).map(r=>({name:r.name, lat:+r.latitude.toFixed(3), lon:+r.longitude.toFixed(3), region:[r.admin1,r.country].filter(Boolean).join(", ")}));
+    try{
+      const j=await getMirror("geocode", `name=${encodeURIComponent(raw)}&count=15&language=ru&format=json`, 8000);
+      geoResults=(j.results||[]).map(r=>({name:r.name, lat:+r.latitude.toFixed(3), lon:+r.longitude.toFixed(3), region:[r.admin1,r.country].filter(Boolean).join(", ")}));
+    }catch(e){
+      const j=await getJSON(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(raw)}&format=jsonv2&accept-language=ru&limit=12&featureType=settlement`, 10000);
+      geoResults=j.map(r=>({name:(r.name||r.display_name.split(",")[0]), lat:+(+r.lat).toFixed(3), lon:+(+r.lon).toFixed(3), region:r.display_name.split(",").slice(1,3).join(",").trim()}));
+    }
   }catch(e){ geoResults=[]; }
   geoQ=q; if(norm($("csearch").value)===q) renderCities();
 }
@@ -1061,7 +1111,8 @@ function locate(){
   navigator.geolocation.getCurrentPosition(async pos=>{
     const lat=+pos.coords.latitude.toFixed(3), lon=+pos.coords.longitude.toFixed(3);
     let name="Моё место", region="";
-    try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }catch(e){}
+    try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
+    catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
     selectCity(id); hideSheet();
   }, err=>{
@@ -1079,21 +1130,26 @@ $("citybtn").addEventListener("click",()=>{$("csearch").value="";renderCities();
 
 /* ---------- precipitation map: model grid around the city, time slider ---------- */
 const RAD={id:null,times:[],lats:[],lons:[],P:null,C:null,t:0,playing:false,raf:0,maps:[]};
-const RN=11, RSTEP=0.2;   // 11×11 points, 0.2° apart (≈ 22 km)
+const RN=9, RSTEP=0.25;   // 9×9 points, 0.25° apart (≈ 28 km)
 async function loadRadar(id){
+  if(RAD.id===id && RAD.loaded && Date.now()-RAD.loaded<20*60*1000 && RAD.times.length) return;
   const c=cityOf(id), dLon=RSTEP/Math.cos(c.lat*Math.PI/180);
   const lats=[],lons=[],qa=[],qo=[];
   for(let i=0;i<RN;i++) lats.push(+(c.lat+(i-(RN-1)/2)*RSTEP).toFixed(3));
   for(let j=0;j<RN;j++) lons.push(+(c.lon+(j-(RN-1)/2)*dLon).toFixed(3));
   for(const la of lats) for(const lo of lons){ qa.push(la); qo.push(lo); }
-  const j=await getJSON(`${OM}?latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover&past_hours=3&forecast_hours=13&timezone=GMT`);
+  const d0=isoDay(new Date(Date.now()-DAY)), d1=isoDay(new Date(Date.now()+DAY));
+  const j=await getMirror("forecast", `latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover&start_date=${d0}&end_date=${d1}&timezone=GMT`, 30000);
   const arr=Array.isArray(j)?j:[j];
-  const times=arr[0].hourly.time.map(t=>+new Date(t+":00Z"));
-  const P=times.map((_,k)=>arr.map(a=>a.hourly.precipitation[k]??0));
-  const C=times.map((_,k)=>arr.map(a=>a.hourly.cloud_cover[k]??0));
+  const all=arr[0].hourly.time.map(t=>+new Date(t+":00Z")), tNow=Date.now();
+  const keep=all.map((t,k)=>[t,k]).filter(([t])=>t>=tNow-3*H-H&&t<=tNow+12*H+H);   // from 3 hours ago to 12 hours ahead
+  const times=keep.map(([t])=>t);
+  const P=keep.map(([,k])=>arr.map(a=>a.hourly.precipitation[k]??0));
+  const C=keep.map(([,k])=>arr.map(a=>a.hourly.cloud_cover[k]??0));
+  RAD.loaded=Date.now();
   Object.assign(RAD,{id,times,lats,lons,P,C});
   const now=Date.now(); RAD.t=Math.min(Math.max(now,times[0]),times[times.length-1]);
-  try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C})); }catch(e){}
+  try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C,loaded:RAD.loaded})); }catch(e){}
   setupControls(); drawRadar();
 }
 function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,r,{id}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
@@ -1127,7 +1183,9 @@ function paintField(fld){
     } }
   ctx.putImageData(img,0,0);
 }
-/* tiny slippy map (no library) */
+/* tiny slippy map (no library); tiles from Esri, OpenStreetMap if Esri is unreachable */
+const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null};
+function tilesToOsm(){ if(TILES.osm) return; TILES.osm=true; store.set("tiles","osm"); RAD.maps.forEach(mm=>{ mm.pool.forEach(i=>i.remove()); mm.pool.clear(); mm.lpool.forEach(i=>i.remove()); mm.lpool.clear(); mm.el.querySelector(".attr").textContent="© OpenStreetMap"; mm.draw(); }); }
 const lon2x=(lo,z)=>(lo+180)/360*256*2**z, lat2y=(la,z)=>{const r=la*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*2**z;};
 function MiniMap(el, interactive){
   const tiles=document.createElement("div"); tiles.className="tiles"; el.prepend(tiles);
@@ -1135,7 +1193,7 @@ function MiniMap(el, interactive){
   const pin=document.createElement("div"); pin.className="pin"; el.appendChild(pin);
   const st=document.createElement("div"); st.className="rstat"; el.appendChild(st);
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
-  const at=document.createElement("div"); at.className="attr"; at.textContent="© Esri, HERE, Garmin, © OpenStreetMap"; el.appendChild(at);
+  const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, HERE, Garmin, © OpenStreetMap"; el.appendChild(at);
   const m={el,center:null,z:7,pool:new Map(),lpool:new Map(),home:null};
   const ESRI="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
   m.setHome=(lat,lon)=>{ m.home=[lat,lon]; m.center=[lat,lon]; m.draw(); };
@@ -1149,7 +1207,15 @@ function MiniMap(el, interactive){
       const tf=`translate(${Math.round(tx*256-x0)}px,${Math.round(ty*256-y0)}px)`;
       for(const [pool,box,layer] of [[m.pool,tiles,"World_Dark_Gray_Base"],[m.lpool,labels,"World_Dark_Gray_Reference"]]){
         let img=pool.get(key+"@"+tx);
-        if(!img){ img=new Image(); img.alt=""; img.decoding="async"; img.onerror=()=>{img.style.visibility="hidden";}; img.src=`${ESRI}${layer}/MapServer/tile/${z}/${ty}/${wx}`; box.appendChild(img); pool.set(key+"@"+tx,img); }
+        if(TILES.osm && layer.endsWith("Reference")) continue;
+        if(!img){ img=new Image(); img.alt=""; img.decoding="async";
+          img.onerror=()=>{ img.style.visibility="hidden"; if(!TILES.osm && ++TILES.fails>=3) tilesToOsm(); };
+          img.onload=()=>{ TILES.ok++; };
+          // a blocked host never answers: if no Esri tile arrives within 7 s, use OpenStreetMap
+          if(!TILES.osm && !TILES.timer) TILES.timer=setTimeout(()=>{ if(!TILES.ok) tilesToOsm(); }, 7000);
+          img.src = TILES.osm ? `https://tile.openstreetmap.org/${z}/${wx}/${ty}.png` : `${ESRI}${layer}/MapServer/tile/${z}/${ty}/${wx}`;
+          if(TILES.osm) img.className="osm";
+          box.appendChild(img); pool.set(key+"@"+tx,img); }
         img.style.transform=tf;
       }
     }
@@ -1177,6 +1243,7 @@ function MiniMap(el, interactive){
   new ResizeObserver(()=>m.draw()).observe(el);
   RAD.maps.push(m); return m;
 }
+function mapNote(t){ document.querySelectorAll(".rmap .rstat").forEach(e=>{ e.hidden=false; e.textContent=t; }); }
 const mapSmall=MiniMap($("rmapSmall"), false);
 let mapBig=null;
 function drawRadar(){
@@ -1233,13 +1300,17 @@ async function refreshNow(quiet){
   const id=S.slug, my=++T.seq;              // a newer refresh (another city) makes this one irrelevant
   setTracker("busy","обновляю…");
   try{
-    await Promise.all([loadForecast(id), loadKpNow().catch(()=>{}), loadRadar(id).catch(()=>{})]);
+    loadKpNow().then(()=>{ if(my===T.seq) render(); }).catch(()=>{});
+    loadRadar(id).catch(()=>{ if(my===T.seq) mapNote("Карта осадков не загрузилась. Потяните экран вниз, чтобы повторить."); });
+    await loadForecast(id);
     if(my!==T.seq) return;
     render(); setTracker("done","Готово");
     return true;
   }catch(e){
     if(my!==T.seq) return;
-    setTracker("error","Нет связи"); if(!quiet) toast("Не удалось обновить: нет связи с сервером погоды. Показаны сохранённые данные.");
+    setTracker("error","Нет связи");
+    if(!S.feed[id]){ const pn=$("pendingNote"); pn.hidden=false; pn.innerHTML=`<b>${esc(cityOf(id).name)}</b>: сервер погоды не отвечает. Проверьте интернет и потяните экран вниз, чтобы повторить.`; }
+    else if(!quiet) toast("Не удалось обновить: нет связи с сервером погоды. Показаны сохранённые данные.");
     return false;
   }
 }
