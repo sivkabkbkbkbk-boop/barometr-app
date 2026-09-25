@@ -32,7 +32,7 @@ jobs:
       - name: Установка Capacitor
         run: |
           npm init -y > /dev/null
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6 @capacitor/preferences@6
           npx cap init "Барометр неба" ru.barometr.neba --web-dir=www
           npx cap add android
           npx cap sync android
