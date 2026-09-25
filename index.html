@@ -260,6 +260,18 @@ footer a{color:var(--muted)}
 .rtime b{color:var(--press);font-weight:500}
 .rleg{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted);margin-top:6px}
 .rleg .lg{flex:1;height:6px;border-radius:6px;background:linear-gradient(90deg,rgba(210,220,235,.35),#8fd3ff,#3d8bff,#2f5bff,#f2c94c,#ff7a6b)}
+.ysync{background:var(--sheet-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ysync .yh{display:flex;align-items:center;gap:10px}
+.ysync .ylogo{width:28px;height:28px;border-radius:8px;background:#fc3f1d;color:#fff;font-weight:700;display:grid;place-items:center;font-size:17px;flex:none;font-family:Arial,sans-serif}
+.ysync .yt{font-weight:600;font-size:14px}
+.ysync .ys{font-size:12px;color:var(--muted)}
+.ysync .ys.ok{color:#8be38f}.ysync .ys.bad{color:var(--kp-hi)}
+.ysync .row{display:flex;gap:8px;flex-wrap:wrap}
+.ysync input{flex:1;min-width:0;background:var(--sheet);border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;color:var(--ink);font-family:var(--f-mono);font-size:12.5px}
+.ysync ol{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.ysync ol b{color:var(--ink)}
+.ysync a{color:var(--press)}
+.ysync .btn{align-self:auto}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:40;background:var(--ink);color:#0d1726;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:500;max-width:calc(100% - 48px);transition:all .3s;pointer-events:none}
 .toast.show{transform:translate(-50%,0);opacity:1}
 [hidden]{display:none!important}
@@ -396,9 +408,10 @@ footer a{color:var(--muted)}
     <div class="days" id="mdays"></div>
     <div class="picker" id="mpicker" hidden></div>
     <div class="gap" id="mgap" hidden></div>
+    <div class="ysync" id="ysync"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
     <div class="facs" id="mfacs"></div>
-    <div class="src" id="backupNote" hidden>☁ Отметки хранятся на телефоне и попадают в резервную копию Android в вашем аккаунте Google. Проверить, что она включена: Настройки → Google → Резервное копирование. После переустановки приложения или на новом телефоне с тем же аккаунтом отметки вернутся сами.</div>
+    <div class="src" id="backupNote" hidden>Отметки также попадают в резервную копию Android (если она включена в настройках телефона).</div>
     <div class="src">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>
   </div>
 </section>
@@ -451,7 +464,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["mood","cities","city","remind","gpsDone"];
+const BACKUP_KEYS = ["mood","moodDel","cities","city","remind","gpsDone","yandex"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -534,7 +547,7 @@ const S = {
 };
 for(const c of Object.values(S.cities)) c.status="ready";
 if(!S.cities[S.slug]) S.slug=Object.keys(S.cities)[0];
-const saveCities=()=>store.set("cities",JSON.stringify(S.cities));
+const saveCities=()=>{ store.set("cities",JSON.stringify(S.cities)); if(typeof ySyncSoon==="function") ySyncSoon(); };
 
 /* ---- sources ---- */
 const OM="https://api.open-meteo.com/v1/forecast", OMA="https://archive-api.open-meteo.com/v1/archive", GEO="https://geocoding-api.open-meteo.com/v1/search";
@@ -1327,12 +1340,14 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ const f
 
 /* ---------- mood: daily check-in, kept on this phone ---------- */
 const MOOD={3:{e:"😊",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
-S.mood={}; S.moodRef=null;
+S.mood={}; S.moodRef=null; S.moodDel=loadJSON("moodDel",{})||{};
 try{ S.mood=JSON.parse(store.get("mood")||"{}")||{}; }catch(e){ S.mood={}; }
 let moodChain=Promise.resolve();
 function saveMood(date, v){
-  if(v) S.mood[date]={v, city:S.slug, at:new Date().toISOString()}; else delete S.mood[date];
-  store.set("mood", JSON.stringify(S.mood));
+  const at=new Date().toISOString();
+  if(v){ S.mood[date]={v, city:S.slug, at}; delete S.moodDel[date]; } else { delete S.mood[date]; S.moodDel[date]=at; }
+  store.set("mood", JSON.stringify(S.mood)); store.set("moodDel", JSON.stringify(S.moodDel));
+  ySyncSoon();
   renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); if(!$("hist").hidden) drawHistory();
 }
 function renderMood(){
@@ -1349,7 +1364,7 @@ $("mbtns").addEventListener("click",e=>{
   saveMood(today, S.mood[today]?.v===v ? null : v);
   if(S.mood[today]) toast(`${MOOD[v].e} Записано на сегодня`);
 });
-$("moodOpen").addEventListener("click",()=>{ MS.sel=null; $("backupNote").hidden=!PREF; renderMoodSheet(); showSheet("moodSheet"); });
+$("moodOpen").addEventListener("click",()=>{ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderMoodSheet(); showSheet("moodSheet"); });
 
 /* per-day weather features for a date (Moscow day) */
 function dayFeatures(date, slug){
@@ -1439,6 +1454,106 @@ function moodLoadArchive(rows){
   Promise.all(todo.map(j=>ensure(...j))).then(()=>{ if(!$("moodSheet").hidden) renderMoodSheet(); });
 }
 renderMood();
+
+/* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
+const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
+const Y_CLIENT_ID = "64765b84b3e24379b4c44b1ec8a301a3";   // «Барометр неба» on oauth.yandex.ru (access: app folder on Disk only)
+const Y = Object.assign({clientId:"", token:"", last:"", err:""}, loadJSON("yandex",{})||{});
+if(!Y.clientId) Y.clientId=Y_CLIENT_ID;
+const saveY=()=>store.set("yandex",JSON.stringify({clientId:Y.clientId,token:Y.token,last:Y.last}));
+// native app: requests go through Android (no browser CORS limits); browser: ordinary fetch
+async function yReq(method, url, body, auth=true){
+  const headers={}; if(auth) headers.Authorization="OAuth "+Y.token; if(body!=null) headers["Content-Type"]="application/json";
+  const H=window.Capacitor?.Plugins?.CapacitorHttp;
+  if(PREF && H){
+    const r=await H.request({method,url,headers,data:body??undefined,connectTimeout:15000,readTimeout:20000});
+    let data=r.data; if(typeof data==="string"){ try{data=JSON.parse(data)}catch(e){} }
+    return {status:r.status, data};
+  }
+  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),20000);
+  try{ const r=await fetch(url,{method,headers,body:body??undefined,signal:ac.signal}); let data=null; try{data=await r.json()}catch(e){} return {status:r.status,data}; }
+  finally{ clearTimeout(to); }
+}
+function mergeMood(a,b,da,db){
+  const m={...a}, del={...da};
+  for(const [d,r] of Object.entries(b||{})) if(!m[d] || (r.at||"")>(m[d].at||"")) m[d]=r;
+  for(const [d,t] of Object.entries(db||{})) if(!del[d] || t>del[d]) del[d]=t;
+  for(const [d,t] of Object.entries(del)) if(m[d] && (m[d].at||"")<t) delete m[d];
+  return {mood:m, del};
+}
+let ySyncing=false, ySyncTimer=null;
+function ySyncSoon(){ if(!Y.token) return; clearTimeout(ySyncTimer); ySyncTimer=setTimeout(()=>ySync(false),3000); }
+async function ySync(loud){
+  if(!Y.token||ySyncing) return; ySyncing=true; Y.err=""; renderY("sync");
+  try{
+    // 1) read the copy on Disk (if any)
+    let remote=null;
+    const dl=await yReq("GET", `${YD}/download?path=${encodeURIComponent(YFILE)}`);
+    if(dl.status===401||dl.status===403) throw new Error("auth");
+    if(dl.status===200 && dl.data?.href){ const f=await yReq("GET", dl.data.href, null, false); if(f.status===200) remote=typeof f.data==="string"?JSON.parse(f.data):f.data; }
+    else if(dl.status!==404) throw new Error("net");
+    // 2) merge
+    const before=JSON.stringify([S.mood,S.moodDel,S.cities]);
+    if(remote){
+      const mm=mergeMood(S.mood, remote.mood, S.moodDel, remote.moodDel); S.mood=mm.mood; S.moodDel=mm.del;
+      for(const [id,c] of Object.entries(remote.cities||{})) if(!S.cities[id]) S.cities[id]={...c,status:"ready"};
+    }
+    const changedHere=JSON.stringify([S.mood,S.moodDel,S.cities])!==before;
+    if(changedHere){ try{localStorage.setItem("mood",JSON.stringify(S.mood));localStorage.setItem("moodDel",JSON.stringify(S.moodDel));localStorage.setItem("cities",JSON.stringify(S.cities));}catch(e){}
+      if(PREF){ PREF.set({key:"mood",value:JSON.stringify(S.mood)}).catch(()=>{}); PREF.set({key:"moodDel",value:JSON.stringify(S.moodDel)}).catch(()=>{}); PREF.set({key:"cities",value:JSON.stringify(S.cities)}).catch(()=>{}); }
+      renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); }
+    // 3) write the merged copy back
+    const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
+    const body=JSON.stringify({app:"Барометр неба",v:1,updated:new Date().toISOString(),mood:S.mood,moodDel:S.moodDel,cities});
+    if(!remote || JSON.stringify(remote.mood)!==JSON.stringify(S.mood) || JSON.stringify(remote.moodDel||{})!==JSON.stringify(S.moodDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length){
+      const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
+      if(up.status===401||up.status===403) throw new Error("auth");
+      if(up.status!==200||!up.data?.href) throw new Error("net");
+      const put=await yReq("PUT", up.data.href, body, false);
+      if(put.status>=300) throw new Error("net");
+    }
+    Y.last=new Date().toISOString(); saveY();
+    if(loud) toast("Синхронизировано с Яндекс Диском");
+  }catch(e){
+    Y.err = e.message==="auth" ? "Доступ к Диску истёк или отозван — войдите заново." : "Нет связи с Яндекс Диском, попробую позже.";
+    if(e.message==="auth"){ Y.token=""; saveY(); }
+    if(loud) toast(Y.err);
+  }finally{ ySyncing=false; renderY(); }
+}
+function yAuthUrl(){ return `https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(Y.clientId)}&force_confirm=yes`; }
+function renderY(state){
+  const box=$("ysync"); if(!box) return;
+  const head=(sub,cls)=>`<div class="yh"><div class="ylogo">Я</div><div><div class="yt">Яндекс Диск</div><div class="ys ${cls||""}">${sub}</div></div></div>`;
+  if(Y.token){
+    const sub = state==="sync"||ySyncing ? "синхронизирую…" : Y.err ? Y.err : Y.last ? `синхронизировано ${fmtDM(new Date(Y.last))}, ${fmtHM(new Date(Y.last))}` : "подключён";
+    box.innerHTML=head(sub, Y.err?"bad":"ok")+`<div class="row"><button class="btn" data-y="sync">Синхронизировать сейчас</button><button class="btn ghost" data-y="off">Отключить</button></div>`;
+    return;
+  }
+  if(!Y.clientId){
+    box.innerHTML=head(Y.err||"отметки сохраняются в вашей папке на Диске и видны на любом телефоне", Y.err?"bad":"")+
+    `<ol><li>Откройте <a href="https://oauth.yandex.ru/client/new" target="_blank" rel="noopener">oauth.yandex.ru/client/new</a> и войдите в Яндекс ID.</li>
+    <li>Название: <b>Барометр неба</b>. Платформа: <b>Веб-сервисы</b>, в поле Redirect URI нажмите <b>«Подставить URL для отладки»</b>.</li>
+    <li>В «Доступ к данным» найдите <b>Яндекс Диск REST API</b> и отметьте <b>«Доступ к папке приложения на Диске»</b>. Укажите почту и нажмите <b>«Создать приложение»</b>.</li>
+    <li>Скопируйте <b>ClientID</b> и вставьте сюда:</li></ol>
+    <div class="row"><input id="yClient" placeholder="ClientID" autocomplete="off" aria-label="ClientID приложения Яндекса"><button class="btn" data-y="client">Далее</button></div>`;
+    return;
+  }
+  box.innerHTML=head(Y.err||"отметки и города будут храниться в папке приложения на вашем Диске и появятся на любом телефоне после входа", Y.err?"bad":"")+
+  `<ol><li><a href="${yAuthUrl()}" target="_blank" rel="noopener"><b>Войти через Яндекс ›</b></a> — откроется браузер, разрешите доступ.</li>
+  <li>Яндекс покажет код доступа — скопируйте его и вставьте сюда (можно вставить и весь адрес страницы):</li></ol>
+  <div class="row"><input id="yToken" placeholder="код доступа" autocomplete="off" aria-label="Код доступа Яндекса"><button class="btn" data-y="token">Подключить</button></div>
+  `;
+}
+$("ysync").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-y]"); if(!b) return;
+  const a=b.dataset.y;
+  if(a==="client"){ const v=$("yClient").value.trim(); if(!/^[0-9a-f]{32}$/i.test(v)){ toast("ClientID — это 32 символа из цифр и латинских букв a–f."); return; } Y.clientId=v; Y.err=""; saveY(); renderY(); }
+  if(a==="reset"){ Y.clientId=""; saveY(); renderY(); }
+  if(a==="token"){ let v=$("yToken").value.trim(); const m=v.match(/access_token=([^&\s]+)/); if(m) v=decodeURIComponent(m[1]); if(v.length<20){ toast("Код доступа слишком короткий — скопируйте его целиком."); return; } Y.token=v; Y.err=""; saveY(); await ySync(true); }
+  if(a==="sync") ySync(true);
+  if(a==="off"){ Y.token=""; Y.last=""; saveY(); renderY(); toast("Яндекс Диск отключён. Отметки остались на телефоне."); }
+});
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Y.token) ySync(false); });
 
 /* ---------- gestures: pull down to refresh, swipe a sheet down to close ---------- */
 const ptr=$("ptr"), PULL=70;
@@ -1532,6 +1647,20 @@ if(LN){
   $("remTime").addEventListener("change",()=>{ if($("remOn").checked) applyReminder(); else store.set("remind",JSON.stringify({on:false,time:$("remTime").value})); });
 }
 
+/* ---------- Android Back button (native app) ---------- */
+{
+  const AppP = PREF ? window.Capacitor.Plugins?.App : null;
+  if(AppP){
+    let lastBack=0;
+    AppP.addListener("backButton", ()=>{
+      if(openSheet){ if(openSheet.id==="mapSheet") stopPlay(); hideSheet(); return; }   // a window is open: close it
+      const now=Date.now();
+      if(now-lastBack<2000){ AppP.exitApp(); return; }                                    // second press: leave
+      lastBack=now; toast("Нажмите «Назад» ещё раз, чтобы выйти");
+    });
+  }
+}
+
 /* ---------- install + offline ---------- */
 let installEv=null;
 addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEv=e; $("installBtn").hidden=false; });
@@ -1574,6 +1703,7 @@ render();
   }
   refreshNow(true);
   if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); }
+  if(Y.token) setTimeout(()=>ySync(false), 1500);
 })();
 setInterval(render, 10*60*1000);
 setInterval(()=>{ if(!document.hidden) refreshNow(true); }, 30*60*1000);
