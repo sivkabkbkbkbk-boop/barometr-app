@@ -306,7 +306,47 @@ footer a{color:var(--muted)}
 .mchip:active{transform:scale(.93)}
 .mchip:focus-visible{outline:2px solid var(--press);outline-offset:3px}
 footer{padding-bottom:64px}
+/* blood pressure & sugar */
+.htiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.htile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:rgba(238,243,248,.05);border:1px solid var(--glass-line);border-radius:14px;padding:10px 12px;cursor:pointer;min-width:0;color:var(--ink)}
+.htile:active{transform:scale(.97)}
+.htile .ht{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.htile .hv{font-family:var(--f-mono);font-size:24px;font-weight:500;line-height:1.1}
+.htile .hv small{font-size:11px;color:var(--muted);margin-left:4px}
+.htile .hs{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.htile .hp{font-size:11px;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);border-radius:99px;padding:1px 8px}
+.mform{display:flex;flex-direction:column;gap:10px;background:var(--sheet-2);border-radius:16px;padding:12px}
+.mrow{display:flex;gap:8px;align-items:flex-end}
+.mrow label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted);flex:1;min-width:0}
+.mrow label.wide{flex:1}
+.mrow input{width:100%;box-sizing:border-box;background:var(--sheet);border:1px solid var(--glass-line);border-radius:12px;padding:10px;color:var(--ink);font-family:var(--f-mono);font-size:24px;text-align:center}
+.mrow .sl{font-size:26px;color:var(--muted);padding-bottom:10px}
+.mrow2{display:flex;gap:8px;flex-wrap:wrap}
+.mrow2 input{flex:1;min-width:140px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;color:var(--ink);font-size:13.5px}
+.mform .btn{align-self:stretch}
+.mhead2{display:flex;justify-content:space-between;align-items:center}
+.mlist{display:flex;flex-direction:column;gap:4px}
+.mitem{display:grid;grid-template-columns:8px auto 1fr auto auto;gap:4px 10px;align-items:center;background:var(--sheet-2);border-radius:12px;padding:8px 6px 8px 10px}
+.mitem i{width:8px;height:28px;border-radius:4px;grid-row:span 2}
+.mitem .mv{font-family:var(--f-mono);font-size:16px}
+.mitem .mv small{font-size:11px;color:var(--muted);font-family:var(--f-body)}
+.mitem .mw{grid-column:2/4;grid-row:2;font-size:11.5px;color:var(--muted)}
+.mitem .mc{font-size:11.5px;font-weight:600;text-align:right;grid-column:4;grid-row:1/3}
+.mitem .x{grid-column:5;grid-row:1/3;border:0;background:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px}
+/* report */
+.rselw{display:flex;flex-wrap:wrap;gap:6px}
+.rsel[aria-pressed="false"]{opacity:.6}
+.rpanels{display:flex;flex-direction:column;gap:8px}
+.rpan{background:var(--sheet-2);border-radius:14px;padding:8px 6px 2px}
+.rpan svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.rph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:0 6px}
+.rpt{font-size:12.5px;font-weight:600}
+.rpv{font-size:11px;color:var(--ink);font-family:var(--f-mono);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rps{font-size:11px;color:var(--muted);padding:1px 6px 0}
+.rps b{color:var(--ink)}
 /* chat */
+.fhm{font-size:11.5px;color:var(--muted)}
+.hmsw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
 .fact{display:flex;align-items:center;gap:2px;flex:none}
 .chatb{position:relative;border:1px solid var(--glass-line);background:rgba(238,243,248,.06);border-radius:10px;font-size:15px;padding:3px 8px;cursor:pointer;color:var(--ink)}
 .chatb i{position:absolute;top:-6px;right:-6px;background:#ff6b5e;color:#fff;font-style:normal;font-size:10px;font-weight:700;min-width:16px;height:16px;line-height:16px;border-radius:8px;padding:0 4px;text-align:center}
@@ -489,6 +529,11 @@ header{min-width:0}
     <div class="mtoday" id="mtMain"></div>
   </section>
 
+  <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
+    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">📊 отчёт ›</button></div>
+    <div class="htiles" id="hTiles"></div>
+  </section>
+
   <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div><div class="d5hint">нажмите на день — подробный прогноз</div></section>
 
   <div class="grid2" id="grid2">
@@ -576,6 +621,7 @@ header{min-width:0}
     <button class="xbtn" data-close aria-label="Закрыть">×</button>
   </div>
   <div class="sbody">
+    <button class="btn ghost" id="moodRep">📊 Отчёт: самочувствие, давление, сахар и погода</button>
     <div class="ctitle">Последние 4 недели · нажмите на день, чтобы отметить</div>
     <div class="days" id="mdays"></div>
     <div class="picker" id="mpicker" hidden></div>
@@ -629,6 +675,38 @@ header{min-width:0}
     <div class="ysync" id="ysync"></div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+  </div>
+</section>
+
+<section class="sheet" id="measSheet" role="dialog" aria-modal="true" aria-labelledby="measTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="measTitle">Мои измерения</h2><div class="sc">сохраняются на Яндекс Диске вместе с отметками</div></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody">
+    <div class="tabs" role="tablist" id="measTabs"></div>
+    <div class="mform" id="measForm"></div>
+    <div class="mhead2"><span class="ctitle" style="margin:0">Последние записи</span><button class="mlink" id="mRep">📊 отчёт ›</button></div>
+    <div class="mlist" id="measList"></div>
+    <div class="src">Цвет — подсказка для взрослых: А/Д до 130/85 — норма, 130–139/85–89 — повышенное, от 140/90 — высокое. Сахар натощак 3,9–5,5 ммоль/л, после еды — до 7,8. Это ориентир, а не диагноз: свои целевые значения уточните у врача.</div>
+  </div>
+</section>
+
+<section class="sheet" id="repSheet" role="dialog" aria-modal="true" aria-labelledby="repTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="repTitle">Отчёт</h2><div class="sc" id="repSub"></div></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody">
+    <div class="chips" id="repPer"></div>
+    <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
+    <div class="ctitle" style="margin:0">Что показать</div>
+    <div class="rselw" id="repSel"></div>
+    <div class="rpanels" id="repPanels"></div>
+    <button class="btn ghost" id="repShare">📤 Отправить отчёт (например, врачу)</button>
+    <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города.</div>
   </div>
 </section>
 
@@ -686,7 +764,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share"];
+const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -1926,6 +2004,7 @@ $("dayTabs").addEventListener("click",e=>{ const b=e.target.closest("[data-dday]
 /* ---------- which cards are on the main screen ---------- */
 const CARDS=[
   ["cardMood","Самочувствие","смайлики для быстрой отметки"],
+  ["cardHealth","Давление и сахар","последние измерения А/Д и сахара"],
   ["card5","Прогноз на 5 дней","температура и осадки по дням"],
   ["cardPress","Давление","стрелочный барометр и тенденция"],
   ["cardKp","Геомагнитный фон","индекс Kp и магнитные бури"],
@@ -1943,7 +2022,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="25.09 · сборка 5 (чат с друзьями)";
+const APP_VER="25.09 · сборка 6 (давление, сахар, отчёты)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2093,6 +2172,7 @@ $("kgMain").addEventListener("click",e=>{
   setTimeout(()=>b.classList.remove("pop"), 600);
 });
 $("cmOpen").addEventListener("click",()=>openMoodSheet());
+$("moodRep").addEventListener("click",()=>openReport());
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>showMoodPop());
@@ -2214,6 +2294,216 @@ function moodLoadArchive(rows){
 }
 renderMood();
 
+/* ---------- blood pressure and blood sugar diary (synced with Yandex Disk like the smileys) ---------- */
+const HM = {list: loadJSON("meas",[])||[], del: loadJSON("measDel",{})||{}, tab:"bp", ctx:"fast"};
+function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet){ ySyncSoon(); if(SH.on) shareSoon(); } }
+const GCTX={fast:"натощак",before:"до еды",after:"после еды",night:"перед сном",other:"в другое время"};
+function bpCat(sys,dia){
+  if(sys>=180||dia>=110) return {l:"очень высокое",c:"#ff5b5b",k:3};
+  if(sys>=140||dia>=90) return {l:"высокое",c:"#ff7a6b",k:2};
+  if(sys>=130||dia>=85) return {l:"повышенное",c:"#f2c94c",k:1};
+  if(sys<90||dia<60) return {l:"пониженное",c:"#78adff",k:-1};
+  return {l:"норма",c:"#8be38f",k:0};
+}
+function gluCat(v,ctx){
+  if(v<3.9) return {l:"низкий",c:"#78adff",k:-1};
+  const fast=ctx==="fast"||ctx==="before";
+  if(fast) return v<=5.5?{l:"норма",c:"#8be38f",k:0}:v<7?{l:"повышенный",c:"#f2c94c",k:1}:{l:"высокий",c:"#ff7a6b",k:2};
+  return v<7.8?{l:"норма",c:"#8be38f",k:0}:v<11.1?{l:"повышенный",c:"#f2c94c",k:1}:{l:"высокий",c:"#ff7a6b",k:2};
+}
+const fmtNum=(v,d=1)=>v.toFixed(d).replace(".",",");
+const whenTxt=t=>{ const d=new Date(t), td=isoDay(new Date()), yd=isoDay(new Date(Date.now()-DAY)), dd=isoDay(d); return (dd===td?"сегодня":dd===yd?"вчера":fmtDM(d))+", "+fmtHM(d); };
+function lastOf(type){ for(let i=HM.list.length-1;i>=0;i--) if(HM.list[i].type===type&&!HM.del[HM.list[i].id]) return HM.list[i]; return null; }
+function renderHealth(){
+  const bp=lastOf("bp"), gl=lastOf("glu");
+  const tile=(kind,title,val,unit,sub,cat)=>`<button class="htile" data-hopen="${kind}"><span class="ht">${title}</span><span class="hv">${val}<small>${unit}</small></span><span class="hs">${sub}</span>${cat?`<span class="hp" style="--c:${cat.c}">${cat.l}</span>`:""}</button>`;
+  $("hTiles").innerHTML =
+    (bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",`${bp.pulse?`пульс ${bp.pulse} · `:""}${whenTxt(bp.t)}`,bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)) +
+    (gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null));
+}
+function openMeas(tab){ HM.tab=tab||HM.tab; renderMeas(); showSheet("measSheet"); }
+function nowLocal(){ const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
+function renderMeas(){
+  const bp=HM.tab==="bp";
+  $("measTabs").innerHTML=`<button class="tab" role="tab" data-mt="bp" aria-selected="${bp}">🩺 Давление (А/Д)</button><button class="tab" role="tab" data-mt="glu" aria-selected="${!bp}">🩸 Сахар в крови</button>`;
+  $("measForm").innerHTML = bp ? `
+    <div class="mrow"><label>Верхнее<input id="mSys" inputmode="numeric" pattern="[0-9]*" placeholder="120" maxlength="3"></label><span class="sl">/</span><label>Нижнее<input id="mDia" inputmode="numeric" pattern="[0-9]*" placeholder="80" maxlength="3"></label><label>Пульс<input id="mPul" inputmode="numeric" pattern="[0-9]*" placeholder="70" maxlength="3"></label></div>
+    <div class="mrow2"><input id="mTime" type="datetime-local" value="${nowLocal()}" aria-label="Время измерения"><input id="mNote" placeholder="Заметка (необязательно)" maxlength="80"></div>
+    <button class="btn" id="mSave">Записать давление</button>` : `
+    <div class="mrow"><label class="wide">Сахар, ммоль/л<input id="mGlu" inputmode="decimal" placeholder="5,4" maxlength="5"></label></div>
+    <div class="chips" id="mCtx">${Object.entries(GCTX).map(([k,l])=>`<button class="chip" data-ctx="${k}" aria-pressed="${HM.ctx===k}">${l}</button>`).join("")}</div>
+    <div class="mrow2"><input id="mTime" type="datetime-local" value="${nowLocal()}" aria-label="Время измерения"><input id="mNote" placeholder="Заметка (необязательно)" maxlength="80"></div>
+    <button class="btn" id="mSave">Записать сахар</button>`;
+  const list=HM.list.filter(m=>m.type===HM.tab).slice(-40).reverse();
+  $("measList").innerHTML = list.length ? list.map(m=>{
+    const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
+    const v=m.type==="bp"?`${m.sys}/${m.dia}${m.pulse?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]||""}</small>`;
+    return `<div class="mitem"><i style="background:${c.c}"></i><span class="mv">${v}</span><span class="mw">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}</span><span class="mc" style="color:${c.c}">${c.l}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`;
+  }).join("") : `<div class="src" style="text-align:center">Записей пока нет.</div>`;
+}
+function saveMeasure(){
+  const tv=$("mTime").value, t=tv?new Date(tv):new Date(); if(isNaN(+t)||+t>Date.now()+5*60000){ toast("Проверьте время измерения."); return; }
+  const note=($("mNote").value||"").trim().slice(0,80), id="h"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  let m;
+  if(HM.tab==="bp"){
+    const sys=parseInt($("mSys").value,10), dia=parseInt($("mDia").value,10), pul=parseInt($("mPul").value,10);
+    if(!(sys>=60&&sys<=260)||!(dia>=30&&dia<=160)||sys<=dia){ toast("Введите давление, например 120 / 80."); ($("mSys").value?$("mDia"):$("mSys")).focus(); return; }
+    m={id,t:t.toISOString(),type:"bp",sys,dia}; if(pul>=30&&pul<=220) m.pulse=pul;
+  } else {
+    const v=parseFloat(String($("mGlu").value).replace(",","."));
+    if(!(v>=1&&v<=35)){ toast("Введите сахар в ммоль/л, например 5,4."); $("mGlu").focus(); return; }
+    m={id,t:t.toISOString(),type:"glu",v:Math.round(v*10)/10,ctx:HM.ctx};
+  }
+  if(note) m.note=note; m.city=S.slug;
+  HM.list.push(m); saveHM(); renderMeas(); renderHealth();
+  const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
+  toast(m.type==="bp"?`Записано: ${m.sys}/${m.dia} — ${c.l}`:`Записано: сахар ${fmtNum(m.v)} — ${c.l}`);
+}
+$("measSheet").addEventListener("click",e=>{
+  const t=e.target.closest("[data-mt]"); if(t){ HM.tab=t.dataset.mt; renderMeas(); return; }
+  const c=e.target.closest("[data-ctx]"); if(c){ HM.ctx=c.dataset.ctx; $("mCtx").querySelectorAll("[data-ctx]").forEach(b=>b.setAttribute("aria-pressed",b===c)); return; }
+  const d=e.target.closest("[data-mdel]"); if(d){ HM.del[d.dataset.mdel]=new Date().toISOString(); saveHM(); renderMeas(); renderHealth(); return; }
+  if(e.target.closest("#mSave")) saveMeasure();
+  if(e.target.closest("#mRep")) openReport(HM.tab==="bp"?["bp","pulse","mood"]:["glu","mood"]);
+});
+$("measSheet").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); saveMeasure(); } });
+$("cardHealth").addEventListener("click",e=>{
+  const o=e.target.closest("[data-hopen]"); if(o){ openMeas(o.dataset.hopen); return; }
+  if(e.target.closest("#hRep")) openReport();
+});
+renderHealth();
+let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
+
+/* ---------- report: any combination of indicators on one time axis ---------- */
+const REP_SERIES=[["bp","А/Д","#ff8a7a"],["pulse","Пульс","#c9b6ff"],["glu","Сахар","#f2c94c"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#7fd6c8"],["temp","Температура","#ffb86b"],["kp","Магнитный фон","#8be38f"],["rain","Осадки","#78adff"]];
+const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
+const REP={sel:loadJSON("repSel",null)||["bp","glu","mood","press"], per:"30", from:null, to:null, data:{}};
+function repRange(){
+  if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
+  return [REP.from, REP.to];
+}
+function openReport(sel){ if(sel){ REP.sel=sel; store.set("repSel",JSON.stringify(REP.sel)); } drawReport(); showSheet("repSheet"); const b=$("repSheet").querySelector(".sbody"); if(b) b.scrollTop=0; }
+function repEnsure(from,to){
+  const today=isoDay(new Date()), need={obs:[],kp:[]};
+  const want={obs:REP.sel.some(k=>["press","temp","rain"].includes(k)), kp:REP.sel.includes("kp")};
+  for(const src of ["obs","kp"]){ if(!want[src]) continue; const cov=coveredDays(src,S.slug);
+    for(let t=+new Date(isoDay(from)+"T12:00:00"); t<=+to; t+=DAY){ const d=isoDay(new Date(t)); if(d>=today) break; if(!cov.has(d)) need[src].push(d); } }
+  let busy=false;
+  for(const src of ["obs","kp"]){ const m=need[src]; if(!m.length) continue; const key=`${src}:${src==="kp"?"":S.slug}:${m[0]}:${m[m.length-1]}`;
+    if(asked.has(key)&&!S.loading[key]) continue; busy=true;
+    if(!S.loading[key]) ensure(src,S.slug,m[0],m[m.length-1]).then(()=>{ if(!$("repSheet").hidden) drawReport(); }); }
+  return busy;
+}
+function repTicks(x0,x1){ const span=(x1-x0)/DAY, n=4, out=[]; for(let i=0;i<=n;i++){ const t=x0+(x1-x0)*i/n; out.push([t, span<=2?fmtHM(new Date(t)):fmtDM(new Date(t))]); } return out; }
+function drawReport(){
+  const [from,to]=repRange(), x0=+from, x1=+to;
+  $("repSub").textContent=`${cityOf(S.slug).name} · ${fmtDMY(from)} — ${fmtDMY(to)}`;
+  $("repPer").innerHTML=REP_PER.map(([k,l])=>`<button class="chip" data-rp="${k}" aria-pressed="${REP.per===k}">${l}</button>`).join("");
+  $("repRange").hidden=REP.per!=="custom";
+  if(REP.per==="custom"){ $("rFrom").value=isoDay(from); $("rTo").value=isoDay(to); }
+  $("repSel").innerHTML=REP_SERIES.map(([k,l,c])=>`<button class="chip rsel" data-rs="${k}" aria-pressed="${REP.sel.includes(k)}" style="--accent:${c}">${REP.sel.includes(k)?"✓ ":""}${l}</button>`).join("");
+  const loading=repEnsure(from,to);
+  const W=360,L=36,R=10, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
+  const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
+  const bp=HM.list.filter(m=>m.type==="bp"&&inR(m.t)), gl=HM.list.filter(m=>m.type==="glu"&&inR(m.t));
+  const axis=(Hh,B)=>repTicks(x0,x1).map(([t,l],i)=>`<text x="${Math.min(W-R-14,Math.max(L+14,X(t)))}" y="${Hh-4}" text-anchor="middle" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">${l}</text><line x1="${X(t)}" x2="${X(t)}" y1="6" y2="${Hh-B}" stroke="rgba(238,243,248,.05)"/>`).join("");
+  const yGrid=(lo,hi,Y,Hh,fmt)=>niceTicks(lo,hi,3).filter(v=>v>=lo&&v<=hi).map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(238,243,248,.07)"/><text x="${L-4}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">${fmt?fmt(v):+v.toFixed(1)}</text>`).join("");
+  const ref=(Y,v,col,lab)=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${col}" stroke-dasharray="3 4" opacity=".6"/><text x="${W-R}" y="${Y(v)-3}" text-anchor="end" font-size="8.5" fill="${col}">${lab}</text>`;
+  const empty=(Hh,msg)=>`<text x="${L+iw/2}" y="${Hh/2}" text-anchor="middle" font-size="11" fill="#9fb1c5">${msg}</text>`;
+  REP.data={}; const panels=[];
+  for(const [k,label,col] of REP_SERIES){
+    if(!REP.sel.includes(k)) continue;
+    let Hh=120, B=16, T=10, g="", stat="", pts=[];
+    const ih=()=>Hh-T-B;
+    if(k==="bp"){
+      Hh=150; const lo=Math.min(60,...bp.map(m=>m.dia))-5, hi=Math.max(150,...bp.map(m=>m.sys))+5, Y=v=>T+(1-(v-lo)/(hi-lo))*ih();
+      g+=yGrid(lo,hi,Y,Hh)+ref(Y,140,"#ff7a6b","140")+ref(Y,90,"#ff7a6b","90");
+      if(bp.length>1) g+=`<path d="${bp.map((m,i)=>`${i?"L":"M"}${X(m.t).toFixed(1)} ${Y(m.sys).toFixed(1)}`).join(" ")}" fill="none" stroke="#ff8a7a" stroke-width="1.2" opacity=".5"/><path d="${bp.map((m,i)=>`${i?"L":"M"}${X(m.t).toFixed(1)} ${Y(m.dia).toFixed(1)}`).join(" ")}" fill="none" stroke="#ffc36b" stroke-width="1.2" opacity=".5"/>`;
+      for(const m of bp){ const c=bpCat(m.sys,m.dia).c, x=X(m.t).toFixed(1); g+=`<line x1="${x}" x2="${x}" y1="${Y(m.sys)}" y2="${Y(m.dia)}" stroke="${c}" stroke-width="2.4" stroke-linecap="round" opacity=".85"/><circle cx="${x}" cy="${Y(m.sys)}" r="3.2" fill="${c}"/><circle cx="${x}" cy="${Y(m.dia)}" r="2.6" fill="${c}" opacity=".8"/>`; }
+      if(!bp.length) g+=empty(Hh,"За период нет измерений давления");
+      else { const as=Math.round(bp.reduce((a,m)=>a+m.sys,0)/bp.length), ad=Math.round(bp.reduce((a,m)=>a+m.dia,0)/bp.length), hi2=bp.filter(m=>bpCat(m.sys,m.dia).k>=2).length, mx=bp.reduce((a,m)=>m.sys>a.sys?m:a);
+        stat=`среднее <b>${as}/${ad}</b> · макс ${mx.sys}/${mx.dia} · высокое ${hi2} из ${bp.length}`; }
+      pts=bp.map(m=>({t:+new Date(m.t),txt:`${m.sys}/${m.dia}${m.pulse?`, пульс ${m.pulse}`:""}`}));
+    } else if(k==="pulse"){
+      const pp=bp.filter(m=>m.pulse); const lo=Math.min(50,...pp.map(m=>m.pulse))-5, hi=Math.max(100,...pp.map(m=>m.pulse))+5, Y=v=>T+(1-(v-lo)/(hi-lo))*ih();
+      g+=yGrid(lo,hi,Y,Hh);
+      if(pp.length>1) g+=`<path d="${pp.map((m,i)=>`${i?"L":"M"}${X(m.t).toFixed(1)} ${Y(m.pulse).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="1.6"/>`;
+      g+=pp.map(m=>`<circle cx="${X(m.t).toFixed(1)}" cy="${Y(m.pulse)}" r="2.8" fill="${col}"/>`).join("");
+      if(!pp.length) g+=empty(Hh,"Пульс не записан"); else stat=`среднее <b>${Math.round(pp.reduce((a,m)=>a+m.pulse,0)/pp.length)}</b> уд/мин · ${Math.min(...pp.map(m=>m.pulse))}–${Math.max(...pp.map(m=>m.pulse))}`;
+      pts=pp.map(m=>({t:+new Date(m.t),txt:`пульс ${m.pulse}`}));
+    } else if(k==="glu"){
+      const lo=Math.min(3,...gl.map(m=>m.v))-.5, hi=Math.max(9,...gl.map(m=>m.v))+.5, Y=v=>T+(1-(v-lo)/(hi-lo))*ih();
+      g+=`<rect x="${L}" y="${Y(5.5)}" width="${iw}" height="${Y(3.9)-Y(5.5)}" fill="#8be38f" opacity=".08"/>`+yGrid(lo,hi,Y,Hh,v=>fmtNum(v,v%1?1:0))+ref(Y,7.8,"#f2c94c","7,8")+ref(Y,3.9,"#78adff","3,9");
+      if(gl.length>1) g+=`<path d="${gl.map((m,i)=>`${i?"L":"M"}${X(m.t).toFixed(1)} ${Y(m.v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="1.2" opacity=".5"/>`;
+      g+=gl.map(m=>{ const c=gluCat(m.v,m.ctx).c; return `<circle cx="${X(m.t).toFixed(1)}" cy="${Y(m.v)}" r="${m.ctx==="after"?3.6:3}" fill="${m.ctx==="after"?"none":c}" stroke="${c}" stroke-width="1.6"/>`; }).join("");
+      if(!gl.length) g+=empty(Hh,"За период нет измерений сахара");
+      else { const f=gl.filter(m=>m.ctx==="fast"||m.ctx==="before"), out=gl.filter(m=>gluCat(m.v,m.ctx).k!==0).length;
+        stat=`${f.length?`натощак ср. <b>${fmtNum(f.reduce((a,m)=>a+m.v,0)/f.length)}</b> · `:""}вне нормы ${out} из ${gl.length} · ○ после еды`; }
+      pts=gl.map(m=>({t:+new Date(m.t),txt:`сахар ${fmtNum(m.v)} (${GCTX[m.ctx]})`}));
+    } else if(k==="mood"){
+      Hh=58; B=16; T=4;
+      g+=markEmojis(X,x0,x1,T,ih(),W-R);
+      const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&inR(m.t));
+      if(!ms.length) g+=empty(Hh-10,"Нет отметок самочувствия");
+      else { const cnt={}; ms.forEach(m=>cnt[m.k]=(cnt[m.k]||0)+1); const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([kk,n])=>`${KIND[kk].e}×${n}`).join(" "); stat=`${ms.length} отметок · чаще всего ${top}`; }
+      pts=ms.map(m=>({t:+new Date(m.t),txt:`${KIND[m.k].e} ${KIND[m.k].l}`}));
+    } else {
+      const sr=seriesFor(k,from,to), P=sr.pts.filter(p=>p.v!=null);
+      if(!P.length){ g+=empty(Hh, loading?"Загружаю архив…":"Нет данных за период"); }
+      else if(sr.type==="line"){
+        const vs=P.map(p=>p.v); let lo=Math.min(...vs), hi=Math.max(...vs); const pad=(hi-lo)*.12||1; lo-=pad; hi+=pad; const Y=v=>T+(1-(v-lo)/(hi-lo))*ih();
+        g+=yGrid(lo,hi,Y,Hh)+`<path d="${P.map((p,i)=>`${i?"L":"M"}${X(p.t).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>`;
+        const u=METRICS[k].unit; stat=`${fmtNum(Math.min(...vs),0)}–${fmtNum(Math.max(...vs),0)} ${u} · среднее <b>${fmtNum(vs.reduce((a,b)=>a+b,0)/vs.length,k==="temp"?1:0)}</b>`;
+        pts=P.map(p=>({t:+p.t,txt:`${fmtNum(p.v,k==="temp"?1:0)} ${u}`}));
+      } else {
+        const vs=P.map(p=>p.v), hi=Math.max(k==="kp"?5:1,...vs)*1.08, Y=v=>T+(1-v/hi)*ih(), slot=sr.type==="barsDay"?DAY:3*H, bw=Math.max(1.2,slot/(x1-x0)*iw-1);
+        g+=yGrid(0,hi,Y,Hh)+(k==="kp"?ref(Y,5,"#ff7a6b","буря"):"")+P.map(p=>{ const y=Y(p.v); return `<rect x="${X(p.t).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(.8,T+ih()-y).toFixed(1)}" rx="1" fill="${k==="kp"?kpColor(p.v):col}" opacity=".85"/>`; }).join("");
+        stat=k==="kp"?`максимум <b>${fmtNum(Math.max(...vs))}</b>${vs.some(v=>v>=5)?` · бурь: ${new Set(P.filter(p=>p.v>=5).map(p=>isoDay(new Date(p.t)))).size} дн.`:" · бурь не было"}`:`всего <b>${fmtNum(vs.reduce((a,b)=>a+b,0))}</b> ${S.rainMode==="hours"?"ч с осадками":"мм"} · дней с осадками ${vs.filter(v=>v>0).length}`;
+        pts=P.map(p=>({t:+p.t+slot/2,txt:k==="kp"?`Kp ${fmtNum(p.v)}`:`${fmtNum(p.v)} ${S.rainMode==="hours"?"ч":"мм"}`}));
+      }
+    }
+    REP.data[k]={pts};
+    panels.push(`<div class="rpan" data-pk="${k}"><div class="rph"><span class="rpt" style="color:${col}">${label}</span><span class="rpv" id="rpv-${k}"></span></div><div class="rps">${stat}</div>
+      <svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-hidden="true">${axis(Hh,B)}${g}<line class="rcur" x1="0" x2="0" y1="4" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/></svg></div>`);
+  }
+  $("repPanels").innerHTML=panels.length?panels.join(""):`<div class="src" style="text-align:center">Выберите хотя бы один показатель выше.</div>`;
+}
+function repCursor(e){
+  const svg=e.target.closest(".rpan svg"); if(!svg) return;
+  const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), vx=(e.clientX-r.left)/r.width*360;
+  const [from,to]=[+REP.from,+REP.to], t=from+(vx-L)/iw*(to-from); if(t<from||t>to) return;
+  const win=(to-from)/40;
+  document.querySelectorAll("#repPanels .rpan").forEach(p=>{
+    const k=p.dataset.pk, cur=p.querySelector(".rcur"); cur.setAttribute("x1",vx); cur.setAttribute("x2",vx); cur.setAttribute("opacity",".5");
+    const pts=REP.data[k]?.pts||[]; let best=null,bd=Infinity; for(const q of pts){ const d=Math.abs(q.t-t); if(d<bd){bd=d;best=q;} }
+    $("rpv-"+k).textContent = best&&bd<=Math.max(win,k==="mood"?6*H:2*H) ? `${fmtDM(new Date(best.t))} ${fmtHM(new Date(best.t))} · ${best.txt}` : "";
+  });
+}
+function reportText(){
+  const [from,to]=repRange(), inR=t=>{const v=+new Date(t);return v>=+from&&v<=+to;};
+  const L=[`Метеодневник — отчёт ${fmtDMY(from)} — ${fmtDMY(to)}`, `Город: ${cityOf(S.slug).name}`];
+  const bp=HM.list.filter(m=>m.type==="bp"&&inR(m.t)), gl=HM.list.filter(m=>m.type==="glu"&&inR(m.t));
+  if(bp.length){ L.push("", `Артериальное давление (${bp.length} изм.), среднее ${Math.round(bp.reduce((a,m)=>a+m.sys,0)/bp.length)}/${Math.round(bp.reduce((a,m)=>a+m.dia,0)/bp.length)}:`);
+    bp.forEach(m=>L.push(`${fmtDM(new Date(m.t))} ${fmtHM(new Date(m.t))} — ${m.sys}/${m.dia}${m.pulse?`, пульс ${m.pulse}`:""}${m.note?` (${m.note})`:""}`)); }
+  if(gl.length){ L.push("", `Сахар крови, ммоль/л (${gl.length} изм.):`); gl.forEach(m=>L.push(`${fmtDM(new Date(m.t))} ${fmtHM(new Date(m.t))} — ${fmtNum(m.v)} ${GCTX[m.ctx]}${m.note?` (${m.note})`:""}`)); }
+  const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&inR(m.t));
+  if(ms.length){ L.push("", "Самочувствие:"); ms.forEach(m=>L.push(`${fmtDM(new Date(m.t))} ${fmtHM(new Date(m.t))} — ${KIND[m.k].e} ${KIND[m.k].l}`)); }
+  return L.join("\n");
+}
+async function shareText(title, text){
+  const Sh=window.Capacitor?.Plugins?.Share;
+  try{ if(Sh){ await Sh.share({title, text, dialogTitle:title}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
+  try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
+  try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
+}
+$("repSheet").addEventListener("click",e=>{
+  const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
+  const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
+  if(e.target.closest("#repShare")) shareText("Отчёт о самочувствии", reportText());
+});
+$("repPanels").addEventListener("pointermove",repCursor); $("repPanels").addEventListener("pointerdown",repCursor);
+for(const id of ["rFrom","rTo"]) $(id).addEventListener("change",()=>{ const f=new Date($("rFrom").value+"T00:00:00"), t=new Date($("rTo").value+"T23:59:59"); if(!isNaN(+f)&&!isNaN(+t)&&f<t){ REP.from=f; REP.to=new Date(Math.min(+t,Date.now())); drawReport(); } });
+
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
 const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Метеодневник» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
@@ -2252,22 +2542,23 @@ async function ySync(loud){
     if(dl.status===200 && dl.data?.href){ const f=await yReq("GET", dl.data.href, null, false); if(f.status===200) remote=typeof f.data==="string"?JSON.parse(f.data):f.data; }
     else if(dl.status!==404) throw new Error("net");
     // 2) merge
-    const before=JSON.stringify([S.marks,S.marksDel,S.cities]);
+    const before=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del]);
     if(remote){
       let rm=remote.marks;
       if(!Array.isArray(rm)){ rm=[]; for(const [d,r] of Object.entries(remote.mood||{})) if(r&&OLDV[r.v]) rm.push({id:"m"+d.replace(/-/g,""),t:new Date(d+"T12:00:00").toISOString(),k:OLDV[r.v],city:r.city}); }
       const mm=mergeMarks(S.marks, rm, S.marksDel, remote.marksDel); S.marks=mm.marks; S.marksDel=mm.del; rebuildMood();
       for(const [id,c] of Object.entries(remote.cities||{})) if(!S.cities[id]) S.cities[id]={...c,status:"ready"};
+      const hm=mergeMarks(HM.list, remote.meas||[], HM.del, remote.measDel); HM.list=hm.marks; HM.del=hm.del;
     }
-    const changedHere=JSON.stringify([S.marks,S.marksDel,S.cities])!==before;
-    if(changedHere){ store.set("marks",JSON.stringify(S.marks)); store.set("marksDel",JSON.stringify(S.marksDel)); store.set("cities",JSON.stringify(S.cities));
+    const changedHere=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del])!==before;
+    if(changedHere){ store.set("marks",JSON.stringify(S.marks)); store.set("marksDel",JSON.stringify(S.marksDel)); store.set("cities",JSON.stringify(S.cities)); saveHM(true); renderHealth();
       renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
     if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)){ if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f; else if(FR.list[k]&&!FR.list[k].s&&f.s) FR.list[k].s=f.s; }
     const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added,s:f.s||""};
-    const body=JSON.stringify({app:"Метеодневник",v:2,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,cities,friends});
-    if(!remote || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
+    const body=JSON.stringify({app:"Метеодневник",v:3,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,meas:HM.list,measDel:HM.del,cities,friends});
+    if(!remote || JSON.stringify(remote.meas||[])!==JSON.stringify(HM.list) || JSON.stringify(remote.measDel||{})!==JSON.stringify(HM.del) || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
       if(up.status===401||up.status===403) throw new Error("auth");
       if(up.status!==200||!up.data?.href) throw new Error("net");
@@ -2345,14 +2636,19 @@ function newSecret(){ const b=new Uint8Array(16); crypto.getRandomValues(b); ret
 if(!SH.secret){ try{ SH.secret=newSecret(); store.set("share",JSON.stringify(SH)); }catch(e){} }
 const FR = {list: loadJSON("friends",{})||{}, removed: loadJSON("friendsRemoved",{})||{}, busy:false, lastFetch:0};
 const saveShare=()=>store.set("share",JSON.stringify(SH));
-function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched,s:f.s||""}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
+function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched,s:f.s||"",acked:!!f.acked,notified:f.notified||0}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
 const FRIEND_PAGE="https://sivkabkbkbkbk-boop.github.io/barometr/friend.html";
 function shareLink(reply){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=${encodeURIComponent(SH.name||"")}&s=${encodeURIComponent(SH.secret||"")}${reply?"&r=1":""}`; }
 async function shareUpload(){
   // only what friends need: name, city and the last 120 days of smileys
   const since=isoDay(new Date(Date.now()-120*DAY)), mood={};
   for(const [d,r] of Object.entries(S.mood)) if(d>=since) mood[d]={e:r.e, s:+r.v.toFixed(2), k:r.kinds};
-  const body=JSON.stringify({app:"Метеодневник",v:1,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood});
+  const ack=[]; for(const k of Object.keys(FR.list)) ack.push(await boxId(k));
+  let hm=null;
+  if(SH.hm!==false && SH.secret){ const since2=new Date(Date.now()-120*DAY).toISOString();
+    const rows=HM.list.filter(m=>!HM.del[m.id]&&m.t>=since2).map(m=>m.type==="bp"?{t:m.t,type:"bp",sys:m.sys,dia:m.dia,pulse:m.pulse}:{t:m.t,type:"glu",v:m.v,ctx:m.ctx});
+    try{ hm=await aesSeal(await shareKey(SH.secret), rows); }catch(e){} }
+  const body=JSON.stringify({app:"Метеодневник",v:2,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood,ack,hm});
   const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/mood.json")}&overwrite=true`);
   if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
   const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
@@ -2369,7 +2665,11 @@ async function shareStart(){
     const info=await yReq("GET", `${YD}?path=${encodeURIComponent("app:/share")}&fields=public_key,public_url`);
     if(!info.data?.public_key) throw new Error("net");
     SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
-    shareSend(!!FR.replyTo); FR.replyTo=null;
+    let told=0; for(const f of Object.values(FR.list)) if(f.s&&!f.notified&&!f.acked){ if(await notifyInviter(f).catch(()=>false)) told++; }
+    await shareUpload().catch(()=>{});
+    if(FR.replyTo){ if(told) toast(`Готово! ${FR.replyTo} увидит вас автоматически, как только откроет приложение.`); else shareSend(true); }
+    else shareSend();
+    FR.replyTo=null; renderFriends(); pollHello();
   }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
 }
 async function shareSend(reply){
@@ -2406,9 +2706,16 @@ async function addFriendFromLink(url){
   if($("moodSheet").hidden){ $("moodPop").hidden=true; openMoodSheet(); } else renderFriends();
   if(had){ toast(`${nm} уже в друзьях — обновил отметки.`); return; }
   if(f.reply){ toast(`${nm} принял(а) ваше приглашение — теперь вы видите друг друга и можете переписываться 💬`); return; }
-  // the friend can see us only after getting our own link back
-  if(SH.on){ toast(`${nm} теперь в друзьях. Отправьте ответное приглашение — тогда вы будете видеть друг друга и сможете переписываться.`); setTimeout(()=>shareSend(true), 1600); }
-  else { FR.replyTo=nm; renderFriends(); toast(`${nm} теперь в друзьях. Чтобы ${nm} видел(а) ваше состояние, введите своё имя и нажмите «Поделиться».`); setTimeout(()=>{ $("shName")?.scrollIntoView({block:"center"}); $("shName")?.focus(); }, 700); }
+  // the inviter adds us automatically: a short encrypted note through a free relay (ntfy.sh); the old reply link is the fallback
+  if(SH.on){
+    const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
+    if(ok) toast(`🎉 ${nm} теперь в друзьях! У ${nm} вы появитесь сами, как только он(а) откроет приложение.`);
+    else { toast(`${nm} теперь в друзьях. Не удалось связаться автоматически — отправьте ответное приглашение.`); setTimeout(()=>shareSend(true), 1600); }
+  } else {
+    FR.replyTo=nm; renderFriends();
+    toast(Y.token?`${nm} теперь в друзьях. Введите своё имя и нажмите «Поделиться» — и ${nm} увидит вас автоматически.`:`${nm} теперь в друзьях. Чтобы ${nm} видел(а) вас и мог(ла) писать, подключите Яндекс Диск и нажмите «Поделиться».`);
+    setTimeout(()=>{ $("shName")?.scrollIntoView({block:"center"}); if(Y.token) $("shName")?.focus(); }, 700);
+  }
 }
 async function fetchFriend(f){
   try{
@@ -2417,7 +2724,11 @@ async function fetchFriend(f){
     if(dl.status!==200||!dl.data?.href) return;
     const r=await yReq("GET", dl.data.href, null, false); if(r.status!==200) return;
     const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
-    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name; }
+    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name;
+      if(SH.key) f.acked=Array.isArray(data.ack)&&data.ack.includes(await boxId(SH.key));
+      if(data.hm&&f.s){ try{ f.data.hm=await aesOpen(await shareKey(f.s), data.hm); }catch(e){} }
+      if(SH.on&&f.s&&!f.acked&&Date.now()-(f.notified||0)>6*H) notifyInviter(f).catch(()=>{});
+    }
   }catch(e){}
   await chatFetch(f).catch(()=>{});
 }
@@ -2435,9 +2746,11 @@ function renderFriends(state){
   let h="";
   // sharing controls
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
-  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят только ваше имя, город и отметки по дням. Нужен подключённый Яндекс Диск.</div>
+  else if(!SH.on&&!Y.token) h+=`<div class="fbox"><div class="hint">Чтобы дружить и переписываться, нужен Яндекс Диск — на нём хранится то, что видят друзья.</div><button class="btn" data-f="yandex">Подключить Яндекс Диск</button>${FR.replyTo?`<div class="hint">👋 После подключения введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} увидит вас автоматически.</div>`:""}</div>`;
+  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар. Нужен подключённый Яндекс Диск.</div>
     <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div>${FR.replyTo?`<div class="hint">👋 Введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} получит ответное приглашение.</div>`:""}</div>`;
   else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">📨 Пригласить друга</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
+    <label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
     <div class="hint">Вы делитесь состоянием как <b>${esc2(SH.name)}</b>. Кнопка откроет «Поделиться» — выберите ВКонтакте, Telegram, WhatsApp или SMS, и друг получит приглашение с вашим именем.</div></div>`;
   // comparison grid
   const fl=Object.values(FR.list);
@@ -2458,6 +2771,9 @@ function renderFriends(state){
       else if(!f.data) t=`${esc2(f.name)}: загружаю отметки…`;
       else if(both<3) t=`<b>${esc2(f.name)}</b>: пока мало общих дней (${both}).`;
       else t=`<b>${esc2(f.name)}</b>: совпало ${same} из ${both} дней (${Math.round(same/both*100)}%)`+(bad.length?`, обоим было плохо: ${bad.sort().slice(-4).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:"")+".";
+      const hmv=f.data?.hm||[], lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
+      if(lb||lg) t+=`<br><span class="fhm">${lb?`🩺 <b style="color:${bpCat(lb.sys,lb.dia).c}">${lb.sys}/${lb.dia}</b> ${whenTxt(lb.t)}`:""}${lb&&lg?" · ":""}${lg?`🩸 <b style="color:${gluCat(lg.v,lg.ctx).c}">${fmtNum(lg.v)}</b> ${whenTxt(lg.t)}`:""}</span>`;
+      if(SH.on&&f.s&&f.data&&!f.acked) t+=`<br><span class="fhm">⏳ ${esc2(f.name)} ещё не открыл(а) приложение после вашего ответа — добавит вас автоматически.</span>`;
       const un=chatUnread(f);
       return `<div class="fin"><span>${t}</span><span class="fact"><button class="chatb" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}">💬${un?`<i>${un}</i>`:""}</button><button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></span></div>`;
     }).join("")+`</div></div>`;
@@ -2466,12 +2782,14 @@ function renderFriends(state){
   box.innerHTML=h;
   const g=box.querySelector(".fgrid"); if(g) g.scrollLeft=g.scrollWidth;   // today on screen
 }
+$("friends").addEventListener("change",e=>{ const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
 $("friends").addEventListener("click",e=>{
   const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
   const ch=e.target.closest("[data-chat]"); if(ch){ openChat(ch.dataset.chat); return; }
   const b=e.target.closest("[data-f]"); if(!b) return;
   const a=b.dataset.f;
   if(a==="start") shareStart();
+  if(a==="yandex"){ hideSheet(true); setTimeout(()=>$("gearBtn").click(), 350); }
   if(a==="send") shareSend();
   if(a==="stop") shareStop();
   if(a==="add"){ const v=$("frLink").value.trim(); if(v) addFriendFromLink(v); }
@@ -2493,6 +2811,55 @@ async function pairKey(f){
   if(!KEYS[id]) KEYS[id]=await crypto.subtle.importKey("raw", await sha("mtd-chat|"+id), "AES-GCM", false, ["encrypt","decrypt"]);
   return KEYS[id];
 }
+async function aesKey(label, secret){ const id=label+"|"+secret; if(!KEYS[id]) KEYS[id]=await crypto.subtle.importKey("raw", await sha(id), "AES-GCM", false, ["encrypt","decrypt"]); return KEYS[id]; }
+const shareKey=sec=>aesKey("mtd-share",sec), helloKey=sec=>aesKey("mtd-hello",sec);
+async function aesSeal(key,obj){ const iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
+async function aesOpen(key,m){ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
+/* "I accepted your invitation": a tiny encrypted note on a free relay (ntfy.sh), readable only with the inviter's secret */
+const RELAY="https://ntfy.sh/";
+async function relayTopic(sec){ return "mtd"+hex(await sha("mtd-topic|"+sec)).slice(0,30); }
+async function textReq(method,url,body){
+  const Hc=window.Capacitor?.Plugins?.CapacitorHttp;
+  if(PREF&&Hc){ const r=await Hc.request({method,url,headers:body!=null?{"Content-Type":"text/plain"}:{},data:body??undefined,responseType:"text",connectTimeout:12000,readTimeout:15000}); return {status:r.status,text:typeof r.data==="string"?r.data:JSON.stringify(r.data)}; }
+  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),15000);
+  try{ const r=await fetch(url,{method,body:body??undefined,signal:ac.signal}); return {status:r.status,text:await r.text()}; } finally{ clearTimeout(to); }
+}
+async function notifyInviter(f){
+  if(!SH.on||!SH.key||!f||!f.s) return false;
+  const note=await aesSeal(await helloKey(f.s), {k:SH.key, n:SH.name||"Друг", s:SH.secret, t:new Date().toISOString()});
+  const r=await textReq("POST", RELAY+await relayTopic(f.s), JSON.stringify(note));
+  if(r.status>=300) return false;
+  f.notified=Date.now(); saveFriends(); return true;
+}
+let helloBusy=false;
+async function pollHello(){
+  if(!SH.on||!SH.secret||helloBusy) return; helloBusy=true;
+  try{
+    const r=await textReq("GET", `${RELAY}${await relayTopic(SH.secret)}/json?poll=1&since=${encodeURIComponent(SH.hsince||"12h")}`);
+    if(r.status!==200) return;
+    let added=[];
+    for(const line of String(r.text||"").split("\n")){
+      let ev; try{ ev=JSON.parse(line); }catch(e){ continue; }
+      if(ev.event!=="message") continue; SH.hsince=ev.id;
+      let o; try{ o=await aesOpen(await helloKey(SH.secret), JSON.parse(ev.message)); }catch(e){ continue; }
+      if(!o||!o.k||o.k===SH.key) continue;
+      const had=FR.list[o.k];
+      if(had){ if(o.s&&!had.s) had.s=o.s; continue; }
+      if(FR.removed[o.k]&&FR.removed[o.k]>(o.t||"")) continue;
+      delete FR.removed[o.k];
+      FR.list[o.k]={k:o.k,name:String(o.n||"Друг").slice(0,40),s:o.s||"",added:new Date().toISOString(),acked:true}; added.push(FR.list[o.k]);
+    }
+    saveShare();
+    if(added.length){
+      saveFriends(); await Promise.all(added.map(fetchFriend)); saveFriends(); shareUpload().catch(()=>{}); ySyncSoon();
+      toast(`🎉 ${added.map(f=>f.name).join(", ")} ${added.length>1?"приняли":"принял(а)"} ваше приглашение — теперь вы друзья!`);
+      renderChatBadge(); if(!$("moodSheet").hidden) renderFriends();
+    }
+  }catch(e){} finally{ helloBusy=false; }
+}
+setTimeout(pollHello, 3000);
+setInterval(()=>{ if(!document.hidden) pollHello(); }, 2*60*1000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(pollHello,800); });
 async function seal(f, obj){ const key=await pairKey(f), iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
 async function unseal(f, m){ const key=await pairKey(f); const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
 function chatUnread(f){ const r=CHAT.read[f.k]||""; return (CHAT.inb[f.k]||[]).filter(m=>m.t>r).length; }
@@ -2729,6 +3096,11 @@ async function restoreFromBackup(){
     for(const k of BACKUP_KEYS){
       const {value}=await PREF.get({key:k}); const local=store.get(k);
       if(value==null){ if(local!=null) PREF.set({key:k,value:local}).catch(()=>{}); continue; }   // first run of this version: copy up
+      if(k==="meas"||k==="measDel"){
+        if(k==="measDel"){ const m={...(JSON.parse(value)||{}),...(loadJSON("measDel",{})||{})}; try{localStorage.setItem(k,JSON.stringify(m))}catch(e){} HM.del=m; continue; }
+        const mm=mergeMarks(loadJSON("meas",[])||[], JSON.parse(value)||[], HM.del, {}); const out=JSON.stringify(mm.marks);
+        if(out!==local){ try{localStorage.setItem("meas",out)}catch(e){} changed=true; } if(out!==value) PREF.set({key:"meas",value:out}).catch(()=>{}); HM.list=mm.marks; continue;
+      }
       if(k==="marks"||k==="marksDel"){
         if(k==="marksDel"){ const a=loadJSON("marksDel",{})||{}, b=JSON.parse(value)||{}; const m={...b,...a}; const out=JSON.stringify(m); if(out!==local){ try{localStorage.setItem(k,out)}catch(e){} changed=true; } S.marksDel=m; continue; }
         const mm=mergeMarks(loadJSON("marks",[])||[], JSON.parse(value)||[], S.marksDel, {});
