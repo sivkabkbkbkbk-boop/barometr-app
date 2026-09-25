@@ -240,8 +240,13 @@ footer a{color:var(--muted)}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
-.rmap .tiles img:not(.osm){filter:sepia(1) hue-rotate(175deg) saturate(2.2) brightness(1.35)}
+.rmap .tiles img:not(.osm){filter:sepia(1) hue-rotate(175deg) saturate(2.2) brightness(1.35) contrast(.8);opacity:.72}
+.rmap{background:#1c2f4d!important}
+.rmap canvas.fx{z-index:1}
 .rmap canvas.lab{z-index:2}
+.rleg{flex-wrap:wrap;gap:4px 10px!important}
+.rleg .b{display:inline-flex;align-items:center;gap:4px}
+.rleg .b i{width:12px;height:8px;border-radius:3px;display:inline-block}
 .rmap .pin{z-index:3}
 .rmap .pin::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(127,214,200,.8);animation:pinPulse 2.2s ease-out infinite}
 @keyframes pinPulse{from{transform:scale(.4);opacity:1}to{transform:scale(1.6);opacity:0}}
@@ -492,7 +497,7 @@ header{min-width:0}
       <input type="range" class="rrange" min="0" max="1" step="1" value="0" aria-label="Время">
       <span class="rtime">—</span>
     </div>
-    <div class="rleg"><span>облачно</span><i class="lg"></i><span>ливень</span></div>
+    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span></div>
     <button class="mlink" data-metric="rain">Архив осадков ›</button>
     <div hidden><div id="prbars"></div><div id="praxis"></div></div>
   </section>
@@ -582,7 +587,7 @@ header{min-width:0}
       <input type="range" class="rrange" min="0" max="1" step="1" value="0" aria-label="Время">
       <span class="rtime">—</span>
     </div>
-    <div class="rleg"><span>облачно</span><i class="lg"></i><span>ливень</span></div>
+    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span></div>
     <div class="src">Прогноз численной модели по сетке точек вокруг города (Open-Meteo), от 3 часов назад до 12 часов вперёд. Это не снимок радара: положение отдельных ливней может отличаться на десятки километров. Карта © Esri, © участники OpenStreetMap.</div>
   </div>
 </section>
@@ -598,6 +603,7 @@ header{min-width:0}
     <div class="tgl" id="tglList"></div>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
+    <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
   </div>
 </section>
@@ -1180,13 +1186,30 @@ function niceTicks(lo,hi,n=4){
 }
 
 let CH=null;
+/* every wellbeing mark as its own emoji at the moment it was made; crowded ones stack in rows */
+function markEmojis(X, x0, x1, top, ih, right){
+  const span=(x1-x0)/DAY; if(span>62) return "";
+  const list=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]).map(m=>({m,t:+new Date(m.t)})).filter(o=>o.t>=x0&&o.t<=x1).sort((a,b)=>a.t-b.t);
+  if(!list.length) return "";
+  const fs=span>20?10:span>6?12:14, gap=fs*1.05, rows=[], ROWS=3; let out="", more=new Map();
+  for(const o of list){
+    const x=Math.min(right-fs/2, X(o.t)); let r=0; while(r<ROWS && rows[r]!=null && x-rows[r]<gap) r++;
+    if(r===ROWS){ const k=Math.round(x/gap); more.set(k,(more.get(k)||{x,n:0})); more.get(k).n++; continue; }
+    rows[r]=x; const y=top+fs*0.85+r*(fs+2);
+    out+=`<line x1="${X(o.t).toFixed(1)}" x2="${X(o.t).toFixed(1)}" y1="${(y+3).toFixed(1)}" y2="${top+ih}" stroke="rgba(238,243,248,.16)" stroke-dasharray="2 3"/>`;
+    out+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-size="${fs}"><title>${KIND[o.m.k].l}, ${fmtDM(new Date(o.t))} ${fmtHM(new Date(o.t))}</title>${KIND[o.m.k].e}</text>`;
+  }
+  for(const {x,n} of more.values()) out+=`<text x="${x.toFixed(1)}" y="${(top+fs*0.85+ROWS*(fs+2)).toFixed(1)}" text-anchor="middle" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">+${n}</text>`;
+  return out;
+}
+function marksNear(t, slot){ return S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-t)<=slot/2); }
 function drawHistory(){
   const m=METRICS[HS.metric];
   $("histTitle").textContent=m.name;
   $("histCity").textContent=`${cityOf(S.slug).name} · ${fmtDMY(HS.from)} — ${fmtDMY(HS.to)}`;
   $("pchips").innerHTML=PERIODS.map(([k,l])=>`<button class="chip" data-p="${k}" aria-pressed="${HS.period===k}" style="--accent:${m.color}">${l}</button>`).join("");
   const {type,pts}=seriesFor(HS.metric,HS.from,HS.to);
-  const svg=$("chart"), W=360, Hc=210, L=34, R=10, T=10, B=26, iw=W-L-R, ih=Hc-T-B;
+  const svg=$("chart"), W=360, Hc=210, L=34, R=10, B=26, T=(+HS.to-+HS.from)/DAY<=62&&S.marks.some(m=>!S.marksDel[m.id]&&+new Date(m.t)>=+HS.from&&+new Date(m.t)<=+HS.to+DAY)?30:10, iw=W-L-R, ih=Hc-T-B;
   const x0=+HS.from, x1=+HS.to, X=t=>L+(+t-x0)/(x1-x0||1)*iw;
   let s="";
   if(!pts.length){
@@ -1230,11 +1253,7 @@ function drawHistory(){
     const slot = type==="barsDay"?DAY:3*H, bw=Math.max(1.2, slot/(x1-x0)*iw - (slot/(x1-x0)*iw>6?2:0.6));
     s+=`<g clip-path="url(#clipR)">`+pts.map(p=>{const col=HS.metric==="kp"?kpColor(p.v):m.color; const y=Y(Math.max(p.v, p.v>0?0:0)); const hgt=Math.max(p.v>0?1.5:0.8,T+ih-y); return `<rect x="${(X(+p.t)+ (type==="barsDay"?1:0.3)).toFixed(1)}" y="${(T+ih-hgt).toFixed(1)}" width="${bw.toFixed(1)}" height="${hgt.toFixed(1)}" rx="1" fill="${col}" opacity="${p.v>0?.9:.35}"/>`}).join("")+`</g>`;
   }
-  const moods=Object.entries(S.mood).filter(([d])=>{const t=+new Date(d+"T12:00:00");return t>=x0&&t<=x1;});
-  if(moods.length && (x1-x0)/DAY<=45){
-    const fs=(x1-x0)/DAY>20?9:11;
-    s+=moods.map(([d,r])=>`<text x="${X(+new Date(d+"T12:00:00"))}" y="${T+fs-1}" text-anchor="middle" font-size="${fs}">${r.e}</text>`).join("");
-  }
+  s+=markEmojis(X, x0, x1, T, ih, W-R);
   s+=`<g id="cursor" style="display:none"><line id="cl" y1="${T}" y2="${T+ih}" stroke="#eef3f8" stroke-width="1" opacity=".5"/><circle id="cc" r="4" fill="${m.color}" stroke="#eef3f8" stroke-width="1.5"/></g><rect x="${L}" y="0" width="${iw}" height="${Hc}" fill="transparent" id="hit"/>`;
   svg.innerHTML=s;
   CH={pts,X,Y,type,m,L,iw,x0,x1};
@@ -1248,6 +1267,7 @@ function showPoint(p, silent){
   $("rv").textContent=fmtVal(p.v,m); $("rv").style.color=HS.metric==="kp"?kpColor(p.v):m.color;
   let when = type==="barsDay" ? fmtDMY(p.t) : type==="bars3h" ? `${fmtDM(p.t)}, ${fmtHM(p.t)}–${fmtHM(new Date(+p.t+3*H))}` : fmtDMH(p.t);
   if(p.o&&p.o.ph) when+=" · "+p.o.ph;
+  { const near=marksNear(type==="line"?+p.t:+p.t+(type==="barsDay"?DAY:3*H)/2, type==="barsDay"?DAY:type==="bars3h"?3*H:2*H); if(near.length) when+=" · "+[...new Set(near.map(m=>KIND[m.k].e))].join(""); }
   $("rt").textContent=when;
   const cur=$("cursor"); if(!cur) return;
   if(silent){cur.style.display="none";return;}
@@ -1421,20 +1441,21 @@ async function loadRadar(id){
   for(let j=0;j<RN;j++) lons.push(+(c.lon+(j-(RN-1)/2)*dLon).toFixed(3));
   for(const la of lats) for(const lo of lons){ qa.push(la); qo.push(lo); }
   const d0=isoDay(new Date(Date.now()-DAY)), d1=isoDay(new Date(Date.now()+DAY));
-  const j=await getMirror("forecast", `latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover&start_date=${d0}&end_date=${d1}&timezone=GMT`, 30000);
+  const j=await getMirror("forecast", `latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover,weather_code&start_date=${d0}&end_date=${d1}&timezone=GMT`, 30000);
   const arr=Array.isArray(j)?j:[j];
   const all=arr[0].hourly.time.map(t=>+new Date(t+":00Z")), tNow=Date.now();
   const keep=all.map((t,k)=>[t,k]).filter(([t])=>t>=tNow-3*H-H&&t<=tNow+12*H+H);   // from 3 hours ago to 12 hours ahead
   const times=keep.map(([t])=>t);
   const P=keep.map(([,k])=>arr.map(a=>a.hourly.precipitation[k]??0));
   const C=keep.map(([,k])=>arr.map(a=>a.hourly.cloud_cover[k]??0));
+  const Wc=keep.map(([,k])=>arr.map(a=>a.hourly.weather_code?.[k]??0));
   RAD.loaded=Date.now();
-  Object.assign(RAD,{id,times,lats,lons,P,C});
+  Object.assign(RAD,{id,times,lats,lons,P,C,W:Wc});
   const now=Date.now(); RAD.t=Math.min(Math.max(now,times[0]),times[times.length-1]);
-  try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C,loaded:RAD.loaded})); }catch(e){}
+  try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C,W:Wc,loaded:RAD.loaded})); }catch(e){}
   setupControls(); drawRadar();
 }
-function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,r,{id}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
+function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,{W:null},r,{id}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
 // field value at time t (linear between hours), grid index g
 function fieldAt(t){
   const T=RAD.times; if(!T.length) return null;
@@ -1442,29 +1463,108 @@ function fieldAt(t){
   const f=Math.min(1,Math.max(0,(t-T[k])/(T[k+1]-T[k]||1)));
   const n=RN*RN, P=new Float32Array(n), C=new Float32Array(n);
   for(let g=0;g<n;g++){ P[g]=RAD.P[k][g]*(1-f)+RAD.P[k+1][g]*f; C[g]=RAD.C[k][g]*(1-f)+RAD.C[k+1][g]*f; }
-  return {P,C};
+  const Wk=RAD.W&&RAD.W[f<.5?k:k+1];
+  return {P,C,W:Wk||null};
 }
-const PR_STOPS=[[0.05,[143,211,255,.0]],[0.1,[143,211,255,.45]],[0.5,[61,139,255,.6]],[1.5,[47,91,255,.7]],[4,[242,201,76,.78]],[8,[255,122,107,.85]]];
-function prColor(v){
-  if(v<PR_STOPS[0][0]) return null;
-  for(let i=1;i<PR_STOPS.length;i++){ if(v<=PR_STOPS[i][0]){ const [a,ca]=PR_STOPS[i-1],[b,cb]=PR_STOPS[i]; const f=(v-a)/(b-a); return ca.map((x,k)=>x+(cb[k]-x)*f); } }
-  return PR_STOPS[PR_STOPS.length-1][1];
-}
-const FIELD=document.createElement("canvas"); const FM=88; FIELD.width=FIELD.height=FM;
+/* precipitation field: smooth grid, stepped intensity bands (like weather radar maps), rain / snow / thunder */
+const LEVELS=[0.1,0.5,1.5,4,8];                 // mm/h: weak, moderate, heavy, very heavy, downpour
+const PAL_RAIN=[[125,195,255,.42],[70,140,255,.55],[45,90,235,.66],[245,200,70,.72],[255,105,95,.78]];
+const PAL_SNOW=[[236,238,255,.45],[210,195,255,.58],[180,150,255,.68],[160,120,245,.74],[150,100,235,.8]];
+const PTYPE=c=>c>=95?3:(c>=71&&c<=77)||c===85||c===86?2:1;      // 1 rain, 2 snow, 3 thunder
+const FM=120, FIELD=document.createElement("canvas"); FIELD.width=FIELD.height=FM;
+const FS=new Float32Array(FM*FM), FT=new Uint8Array(FM*FM), FE=new Float32Array(FM*FM);
+function prLevel(v){ let l=-1; for(let i=0;i<LEVELS.length;i++) if(v>=LEVELS[i]) l=i; return l; }
 function paintField(fld){
   const ctx=FIELD.getContext("2d"), img=ctx.createImageData(FM,FM), d=img.data, s=(RN-1)/(FM-1);
+  const tmp=new Float32Array(FM*FM), C=new Float32Array(FM*FM), SN=new Float32Array(FM*FM), TH=new Float32Array(FM*FM);
+  const isS=fld.W?fld.W.map(c=>PTYPE(c)===2?1:0):null, isT=fld.W?fld.W.map(c=>PTYPE(c)===3?1:0):null;
+  // smooth (bicubic-like) upsampling: bilinear, then two box-blur passes
   for(let y=0;y<FM;y++){ const gy=(FM-1-y)*s, i0=Math.floor(gy), i1=Math.min(RN-1,i0+1), fy=gy-i0;
-    for(let x=0;x<FM;x++){ const gx=x*s, j0=Math.floor(gx), j1=Math.min(RN-1,j0+1), fx=gx-j0;
-      const bl=(A)=>(A[i0*RN+j0]*(1-fx)+A[i0*RN+j1]*fx)*(1-fy)+(A[i1*RN+j0]*(1-fx)+A[i1*RN+j1]*fx)*fy;
-      const p=bl(fld.P), c=bl(fld.C), o=(y*FM+x)*4, col=prColor(p);
-      const ca=Math.max(0,(c-35)/65)*0.33;              // cloud veil
-      let r=210,g=220,b=235,a=ca;
-      if(col){ const aa=col[3]; r=col[0]*aa+r*a*(1-aa); g=col[1]*aa+g*a*(1-aa); b=col[2]*aa+b*a*(1-aa); a=aa+a*(1-aa); r/=a; g/=a; b/=a; }
-      const edge=Math.min(1, Math.min(x,y,FM-1-x,FM-1-y)/(FM*0.14));   // soft fade at the edge of the data grid
-      d[o]=r; d[o+1]=g; d[o+2]=b; d[o+3]=Math.round(a*255*edge*edge*(3-2*edge));
+    for(let x=0;x<FM;x++){ const gx=x*s, j0=Math.floor(gx), j1=Math.min(RN-1,j0+1), fx=gx-j0, o=y*FM+x;
+      const bl=A=>(A[i0*RN+j0]*(1-fx)+A[i0*RN+j1]*fx)*(1-fy)+(A[i1*RN+j0]*(1-fx)+A[i1*RN+j1]*fx)*fy;
+      FS[o]=bl(fld.P); C[o]=bl(fld.C);
+      if(isS){ SN[o]=bl(isS); TH[o]=bl(isT); }
+      const edge=Math.min(1, Math.min(x,y,FM-1-x,FM-1-y)/(FM*0.14)); FE[o]=edge*edge*(3-2*edge);
     } }
+  const blur=(A,R,passes)=>{ for(let pass=0;pass<passes;pass++){
+    for(let y=0;y<FM;y++) for(let x=0;x<FM;x++){ let a=0,n=0; for(let k=-R;k<=R;k++){ const xx=x+k; if(xx>=0&&xx<FM){ a+=A[y*FM+xx]; n++; } } tmp[y*FM+x]=a/n; }
+    for(let y=0;y<FM;y++) for(let x=0;x<FM;x++){ let a=0,n=0; for(let k=-R;k<=R;k++){ const yy=y+k; if(yy>=0&&yy<FM){ a+=tmp[yy*FM+x]; n++; } } A[y*FM+x]=a/n; } } };
+  blur(FS,3,2); if(isS){ blur(SN,5,2); blur(TH,5,2); }
+  for(let o=0;o<FM*FM;o++) FT[o]=SN[o]>=.5?2:TH[o]>=.5?3:1;
+  for(let o=0;o<FM*FM;o++){
+    const p=FS[o], lv=prLevel(p), c=C[o], i=o*4;
+    let r=205,g=215,b=232,a=Math.max(0,(c-40)/60)*0.22;         // light cloud veil
+    if(lv>=0){ const col=(FT[o]===2?PAL_SNOW:PAL_RAIN)[lv]; r=col[0]; g=col[1]; b=col[2]; a=col[3]; }
+    d[i]=r; d[i+1]=g; d[i+2]=b; d[i+3]=Math.round(a*255*FE[o]);
+  }
   ctx.putImageData(img,0,0);
 }
+/* contour lines around each intensity band (marching squares on the smoothed field) */
+function drawContours(ctx, X0, Y0, X1, Y1){
+  const sx=(X1-X0)/FM, sy=(Y1-Y0)/FM;
+  ctx.lineJoin="round"; ctx.lineCap="round";
+  LEVELS.slice(0,4).forEach((lv,li)=>{
+    ctx.beginPath();
+    for(let y=0;y<FM-1;y++) for(let x=0;x<FM-1;x++){
+      const o=y*FM+x; if(FE[o]<.35) continue;
+      const a=FS[o],b=FS[o+1],c=FS[o+FM+1],e=FS[o+FM];
+      const code=(a>=lv?8:0)|(b>=lv?4:0)|(c>=lv?2:0)|(e>=lv?1:0); if(code===0||code===15) continue;
+      const P=(v1,v2)=>(lv-v1)/((v2-v1)||1e-6);
+      const top=[x+P(a,b),y], right=[x+1,y+P(b,c)], bot=[x+P(e,c),y+1], left=[x,y+P(a,e)];
+      const seg={1:[left,bot],2:[bot,right],3:[left,right],4:[top,right],5:[left,top,bot,right],6:[top,bot],7:[left,top],8:[left,top],9:[top,bot],10:[top,right,left,bot],11:[top,right],12:[left,right],13:[bot,right],14:[left,bot]}[code];
+      for(let k=0;k<seg.length;k+=2){ ctx.moveTo(X0+(seg[k][0]+.5)*sx, Y0+(seg[k][1]+.5)*sy); ctx.lineTo(X0+(seg[k+1][0]+.5)*sx, Y0+(seg[k+1][1]+.5)*sy); }
+    }
+    ctx.strokeStyle=li===0?"rgba(200,230,255,.55)":li===1?"rgba(170,205,255,.6)":li===2?"rgba(255,255,255,.7)":"rgba(255,225,140,.85)";
+    ctx.lineWidth=li>=2?1.4:1; ctx.stroke();
+  });
+}
+function drawThunderMarks(ctx, X0, Y0, X1, Y1){
+  let sx=0,sy=0,n=0; for(let o=0;o<FM*FM;o++) if(FT[o]===3&&FS[o]>=LEVELS[0]&&FE[o]>.5){ sx+=o%FM; sy+=Math.floor(o/FM); n++; }
+  if(n<8) return; const x=X0+(sx/n+.5)/FM*(X1-X0), y=Y0+(sy/n+.5)/FM*(Y1-Y0);
+  ctx.font="18px 'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⚡",x,y-16);
+}
+/* what is falling at a point of the map canvas: {p, type} */
+function fieldSample(m, x, y){
+  if(!m.fb) return null; const [X0,Y0,X1,Y1]=m.fb;
+  const fx=Math.floor((x-X0)/(X1-X0)*FM), fy=Math.floor((y-Y0)/(Y1-Y0)*FM);
+  if(fx<0||fy<0||fx>=FM||fy>=FM) return null; const o=fy*FM+fx;
+  return {p:FS[o]*FE[o], t:FT[o]};
+}
+/* animated drops, snowflakes and lightning inside the precipitation zones */
+const FX={raf:0,last:0};
+function fxSeed(m, w, h){ const n=Math.round(w*h/320); m.parts=Array.from({length:n},()=>({x:Math.random()*w,y:Math.random()*h,u:Math.random(),s:.6+Math.random()*.8,ph:Math.random()*6.28})); m.flash=null; m.nextFlash=1+Math.random()*2; }
+function fxFrame(now){
+  FX.raf=0; const dt=Math.min(.05,(now-(FX.last||now))/1000); FX.last=now; let any=false;
+  for(const m of RAD.maps){
+    if(!m.vis||!m.fx||!m.fb||!RAD.cur) continue; any=true;
+    const w=m.el.clientWidth, h=m.el.clientHeight, dpr=Math.min(2,devicePixelRatio||1);
+    if(m.fx.width!==Math.round(w*dpr)||m.fx.height!==Math.round(h*dpr)){ m.fx.width=Math.round(w*dpr); m.fx.height=Math.round(h*dpr); fxSeed(m,w,h); }
+    if(!m.parts) fxSeed(m,w,h);
+    const c=m.fx.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,w,h);
+    const sc=Math.max(.7,Math.min(1.6,2**(m.z-7)));
+    c.lineCap="round";
+    for(const q of m.parts){
+      const f=fieldSample(m,q.x,q.y); const p=f?f.p:0, snow=f&&f.t===2;
+      if(snow){ q.y+=(14+10*q.s)*dt*sc; q.x+=Math.sin(now/900+q.ph)*8*dt; } else { q.y+=(170+90*q.s)*dt*sc; q.x-=24*dt*sc; }
+      if(q.y>h+8){ q.y=-8; q.x=Math.random()*(w+30); } if(q.x<-10) q.x=w+5; if(q.x>w+10) q.x=-5;
+      if(p<LEVELS[0]) continue;
+      const dens=Math.min(1,.12+p/2.2); if(q.u>dens) continue;          // weak rain: few drops, heavy: many
+      if(snow){ c.fillStyle="rgba(255,255,255,.95)"; c.beginPath(); c.arc(q.x,q.y,(1+q.s*1.1)*Math.min(1.3,sc),0,6.283); c.fill(); }
+      else { const L=(5+Math.min(9,p*2))*q.s*sc; c.strokeStyle=`rgba(225,238,255,${.45+Math.min(.45,p/6)})`; c.lineWidth=p>=LEVELS[2]?1.5:1; c.beginPath(); c.moveTo(q.x,q.y); c.lineTo(q.x+L*.14,q.y-L); c.stroke(); }
+    }
+    // lightning in thunderstorm cells
+    m.nextFlash-=dt;
+    if(m.nextFlash<=0){ m.nextFlash=.8+Math.random()*2.2; const [X0,Y0,X1,Y1]=m.fb, cand=[];
+      for(let k=0;k<40;k++){ const x=Math.random()*w, y=Math.random()*h, f=fieldSample(m,x,y); if(f&&f.t===3&&f.p>=LEVELS[0]) cand.push([x,y]); }
+      if(cand.length){ const [x,y]=cand[Math.floor(Math.random()*cand.length)]; const pts=[[x,y-26*sc]]; let yy=y-26*sc,xx=x; while(yy<y+18*sc){ yy+=7*sc; xx+=(Math.random()-.5)*9*sc; pts.push([xx,yy]); } m.flash={x,y,a:1,pts}; } }
+    if(m.flash){ const F=m.flash; const g=c.createRadialGradient(F.x,F.y,0,F.x,F.y,46*sc); g.addColorStop(0,`rgba(235,225,255,${.55*F.a})`); g.addColorStop(1,"rgba(235,225,255,0)"); c.fillStyle=g; c.fillRect(F.x-50*sc,F.y-50*sc,100*sc,100*sc);
+      if(F.a>.45){ c.strokeStyle=`rgba(255,250,210,${F.a})`; c.lineWidth=1.8; c.shadowColor="#fff6b0"; c.shadowBlur=8; c.beginPath(); F.pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); c.shadowBlur=0; }
+      F.a-=dt*2.4; if(F.a<=0) m.flash=null; }
+  }
+  if(any&&!document.hidden) FX.raf=requestAnimationFrame(fxFrame);
+}
+function fxStart(){ if(reduce||FX.raf) return; FX.last=0; FX.raf=requestAnimationFrame(fxFrame); }
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) fxStart(); });
 /* Russian map labels: the base map has none of its own, so names are drawn here */
 const MAP_TOWNS="Таллин|59.44|24.75|8;Рига|56.95|24.11|8;Хельсинки|60.17|24.94|8;Вильнюс|54.69|25.28|8;Киев|50.45|30.52|8;Варшава|52.23|21.01|8;Стокгольм|59.33|18.07|8;Тарту|58.38|26.72|140;Нарва|59.38|28.19|150;Даугавпилс|55.87|26.54|150;Каунас|54.90|23.90|120;Пярну|58.39|24.50|200;Котка|60.47|26.95|220;Лаппеэнранта|61.06|28.19|200;Турку|60.45|22.27|150;Тампере|61.50|23.76|120;Полоцк|55.49|28.79|220;Орша|54.51|30.41|220;Резекне|56.51|27.33|240;Харьков|49.99|36.23|40;Валдай|57.98|33.24|330;Чудово|59.12|31.66|340;Малая Вишера|58.85|32.22|345;Окуловка|58.39|33.29|345;Пестово|58.60|35.80|350;Сольцы|58.12|30.32|350;Шимск|58.21|30.72|360;Холм|57.15|31.18|370;Демянск|57.64|32.47|370;Крестцы|58.25|32.52|365;Любытино|58.81|33.39|380;Хвойная|58.90|34.54|380;Парфино|57.98|31.66|390;Батецкий|58.64|30.31|390;Поддорье|57.47|31.12|400;Марёво|57.30|32.10|400;Мошенское|58.51|34.61|400;Луга|58.74|29.85|335;Кингисепп|59.37|28.61|335;Волхов|59.92|32.34|335;Лодейное Поле|60.73|33.55|350;Пикалёво|59.51|34.18|360;Бокситогорск|59.47|33.85|365;Кировск|59.88|30.99|360;Тосно|59.54|30.88|345;Любань|59.35|31.25|380;Приозерск|61.03|30.12|350;Сланцы|59.12|28.09|355;Порхов|57.77|29.56|350;Дно|57.83|29.96|360;Остров|57.34|28.35|350;Опочка|56.71|28.66|360;Невель|56.02|29.93|360;Печоры|57.81|27.61|365;Гдов|58.74|27.82|370;Новоржев|57.03|29.33|390;Локня|56.83|30.15|395;Бологое|57.88|34.05|340;Осташков|57.15|33.10|345;Кашин|57.36|37.61|360;Кимры|56.87|37.36|345;Бежецк|57.79|36.69|350;Нелидово|56.22|32.78|360;Удомля|57.88|35.01|355;Лихославль|57.13|35.47|370;Андреаполь|56.65|32.26|385;Весьегонск|58.66|37.26|385;Устюжна|58.84|36.43|370;Бабаево|59.39|35.94|370;Сокол|59.46|40.12|350;Белозерск|60.03|37.79|360;Кириллов|59.86|38.38|365;Великий Устюг|60.76|46.30|340;Тотьма|59.97|42.76|370;Олонец|60.98|32.97|365;Медвежьегорск|62.91|34.46|360;Пудож|61.80|36.53|375";
 const MAP_WATER="оз. Ильмень|58.27|31.30;Ладожское озеро|60.85|31.60;Онежское озеро|61.70|35.40;Чудское озеро|58.70|27.45;Финский залив|60.05|26.60;Балтийское море|57.80|19.80;Рижский залив|57.60|23.50;Рыбинское вдхр.|58.40|38.40;оз. Селигер|57.22|33.05;Белое озеро|60.18|37.63;Белое море|65.60|37.00;Баренцево море|71.00|40.00;Азовское море|46.00|36.50;Чёрное море|43.40|34.00;Каспийское море|42.50|50.50;оз. Байкал|53.50|108.00;Ботнический залив|62.50|20.50;Горьковское вдхр.|57.20|42.70;Куйбышевское вдхр.|54.90|48.90;Волгоградское вдхр.|50.00|45.60";
@@ -1477,13 +1577,22 @@ const MAP_LABELS=(()=>{
   MAP_WATER.split(";").forEach(x=>{const [n,la,lo]=x.split("|"); out.push({n,la:+la,lo:+lo,r:90,w:1});});
   return out.sort((a,b)=>a.r-b.r);
 })();
+/* "Новгородский муниципальный округ" from GPS → the nearest known town, or a trimmed name */
+function shortPlace(c){
+  let best=null, bd=1e9;
+  for(const L of MAP_LABELS){ if(L.w) continue; const dy=(L.la-c.lat)*111, dx=(L.lo-c.lon)*111*Math.cos(c.lat*Math.PI/180), d=Math.hypot(dx,dy); if(d<bd){ bd=d; best=L; } }
+  const n=(c.name||"").trim();
+  if(/округ|район|поселение|муниципал/i.test(n) && best && bd<25) return best.n;
+  const t=n.replace(/\s+(муниципальный|городской|сельский)\s+(округ|район)$/i,"").replace(/\s+(район|округ)$/i,"");
+  return t.length>24 ? t.slice(0,23)+"…" : t;
+}
 function drawMapLabels(ctx, w, h, z, x0, y0, home){
   ctx.clearRect(0,0,w,h);
   const boxes=[], hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
   boxes.push([w-48,0,48,130],[w-120,h-16,120,16],[0,0,175,28]);                         // expand button, attribution
   const limit = z<=5?45 : z===6?180 : 1e9;
   const list=[];
-  if(home) list.push({n:home.name,la:home.lat,lo:home.lon,r:-1,home:true});
+  if(home) list.push({n:shortPlace(home),la:home.lat,lo:home.lon,r:-1,home:true});
   for(const c of Object.values(S.cities||{})) if(!home||c.lat!==home.lat||c.lon!==home.lon) list.push({n:c.name,la:c.lat,lo:c.lon,r:0});
   list.push(...MAP_LABELS);
   ctx.lineJoin="round"; ctx.textBaseline="middle";
@@ -1500,7 +1609,8 @@ function drawMapLabels(ctx, w, h, z, x0, y0, home){
     else {
       const dot=[x-3,y-3,6,6];
       const cand=L.home?[[x+11,y-th/2,"left"],[x-11-tw,y-th/2,"right"],[x-tw/2,y+10,"c-down"]]:[[x+5,y-th/2,"left"],[x-5-tw,y-th/2,"right"],[x-tw/2,y-th-4,"c-up"]];
-      for(const [bx,by,al] of cand){ const b=[bx-1,by,tw+2,th]; if(!hit(b)&&(L.home||!hit(dot))){ box=b; tx=al==="left"?bx:al==="right"?bx+tw:bx+tw/2; align=al; break; } }
+      for(const [bx,by,al] of cand){ const b=[bx-1,by,tw+2,th]; const inside=bx>=2&&bx+tw<=w-2&&by>=0&&by+th<=h; if(inside&&!hit(b)&&(L.home||!hit(dot))){ box=b; tx=al==="left"?bx:al==="right"?bx+tw:bx+tw/2; align=al; break; } }
+      if(!box&&L.home){ const bx=Math.max(4,Math.min(w-tw-4,x-tw/2)), by=Math.min(h-th-2,y+10); box=[bx-1,by,tw+2,th]; tx=bx; align="left"; }
       if(!box) continue;
       boxes.push(dot); near.push([x,y]);
       if(!L.home){ ctx.fillStyle=big?"#eef3f8":"#c9d6e4"; ctx.strokeStyle="rgba(8,14,24,.9)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,big?3:2.2,0,6.283); ctx.fill(); ctx.stroke(); }
@@ -1523,9 +1633,11 @@ function MiniMap(el, interactive){
   const pin=document.createElement("div"); pin.className="pin"; el.appendChild(pin);
   const st=document.createElement("div"); st.className="rstat"; el.appendChild(st);
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
+  const fx=document.createElement("canvas"); fx.className="fx"; el.appendChild(fx);
   const lab=document.createElement("canvas"); lab.className="lab"; el.appendChild(lab); let labKey="";
   const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
-  const m={el,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,relabel:()=>{labKey="";}};
+  const m={el,fx,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,vis:false,relabel:()=>{labKey="";}};
+  if("IntersectionObserver" in window) new IntersectionObserver(es=>{ m.vis=es[0].isIntersecting; if(m.vis) fxStart(); }).observe(el); else m.vis=true;
   const ESRI="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
   m.setHome=(lat,lon)=>{ m.home=[lat,lon]; m.center=[lat,lon]; m.draw(); };
   m.draw=()=>{
@@ -1558,15 +1670,16 @@ function MiniMap(el, interactive){
     if(RAD.lats.length){
       const hl=RSTEP/2, hlo=(RAD.lons[1]-RAD.lons[0])/2;
       const X0=lon2x(RAD.lons[0]-hlo,z)-x0, X1=lon2x(RAD.lons[RN-1]+hlo,z)-x0, Y0=lat2y(RAD.lats[RN-1]+hl,z)-y0, Y1=lat2y(RAD.lats[0]-hl,z)-y0;
-      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; ctx.filter="blur(6px)";
-      ctx.drawImage(FIELD,X0,Y0,X1-X0,Y1-Y0); ctx.filter="none";
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+      ctx.drawImage(FIELD,X0,Y0,X1-X0,Y1-Y0);
+      m.fb=[X0,Y0,X1,Y1]; drawContours(ctx,X0,Y0,X1,Y1); drawThunderMarks(ctx,X0,Y0,X1,Y1); fxStart();
     }
     // Russian labels (OpenStreetMap tiles already carry local names)
     const lk=[w,h,z,Math.round(x0),Math.round(y0),TILES.osm,Object.keys(S.cities||{}).length].join(",");
     if(lk!==labKey){ labKey=lk; if(lab.width!==w*dpr||lab.height!==h*dpr){ lab.width=w*dpr; lab.height=h*dpr; }
       const lc=lab.getContext("2d"); lc.setTransform(dpr,0,0,dpr,0,0);
       if(TILES.osm) lc.clearRect(0,0,w,h); else drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
-    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i]; st.textContent= v>=0.1?`над городом: ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо"; }
+    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent= v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо"; }
   };
   if(interactive){
     let drag=null;
@@ -1666,6 +1779,7 @@ function lineChart(pts, opt){
   const d=pts.map((p,i)=>`${i?"L":"M"}${X(p.x+.5).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
   const area=d+` L${X(pts[pts.length-1].x+.5).toFixed(1)} ${T+ih} L${X(pts[0].x+.5).toFixed(1)} ${T+ih} Z`;
   g+=`<path d="${area}" fill="${opt.color}" opacity=".12"/><path d="${d}" fill="none" stroke="${opt.color}" stroke-width="2" stroke-linejoin="round"/>`;
+  if(opt.marks) for(const mk of opt.marks) g+=`<line x1="${X(mk.x)}" x2="${X(mk.x)}" y1="${T}" y2="${T+ih}" stroke="rgba(238,243,248,.18)" stroke-dasharray="2 3"/><text x="${X(mk.x)}" y="${T-5}" text-anchor="middle" font-size="12">${mk.e}</text>`;
   if(opt.now!=null) g+=`<line x1="${X(opt.now)}" x2="${X(opt.now)}" y1="${T}" y2="${T+ih}" stroke="#eef3f8" stroke-dasharray="3 3" opacity=".5"/>`;
   const iMax=ys.indexOf(Math.max(...ys)), iMin=ys.indexOf(Math.min(...ys));
   for(const i of new Set([iMax,iMin])) g+=`<circle cx="${X(pts[i].x+.5)}" cy="${Y(pts[i].y)}" r="3" fill="${opt.color}"/><text x="${Math.min(W-R-12,Math.max(L+12,X(pts[i].x+.5)))}" y="${Y(pts[i].y)-7}" text-anchor="middle" font-size="10" fill="#eef3f8" font-family="JetBrains Mono,monospace">${opt.fmt(pts[i].y)}</text>`;
@@ -1713,8 +1827,9 @@ function renderDay(d){
   if(notes.length) h+=`<div class="dnote">${notes.map(n=>`<div>${n}</div>`).join("")}</div>`;
   // charts
   const X=x=>new Date(x.t).getHours();
-  h+=`<div class="dchart"><div class="ct"><span>Температура и осадки по часам</span><span>°C · мм</span></div>${lineChart(hs.map(x=>({x:X(x),y:x.temp})),{h:150,minSpan:6,color:"#ffb86b",fmt:v=>Math.round(v)+"°",bars:hs.map(x=>({x:X(x),v:x.pr||0})),now:nowH})}</div>`;
-  if(pp.length>=6) h+=`<div class="dchart"><div class="ct"><span>Давление по часам</span><span>мм рт. ст.</span></div>${lineChart(hs.filter(x=>x.p!=null).map(x=>({x:X(x),y:toMM(x.p)})),{h:120,minSpan:6,color:"#7fd6c8",fmt:v=>v.toFixed(0),now:nowH})}</div>`;
+  const dm=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&isoDay(new Date(m.t))===d).map(m=>{const t=new Date(m.t);return {x:t.getHours()+t.getMinutes()/60,e:KIND[m.k].e};});
+  h+=`<div class="dchart"><div class="ct"><span>Температура и осадки по часам</span><span>°C · мм</span></div>${lineChart(hs.map(x=>({x:X(x),y:x.temp})),{h:150,minSpan:6,color:"#ffb86b",fmt:v=>Math.round(v)+"°",bars:hs.map(x=>({x:X(x),v:x.pr||0})),now:nowH,marks:dm})}</div>`;
+  if(pp.length>=6) h+=`<div class="dchart"><div class="ct"><span>Давление по часам</span><span>мм рт. ст.</span></div>${lineChart(hs.filter(x=>x.p!=null).map(x=>({x:X(x),y:toMM(x.p)})),{h:120,minSpan:6,color:"#7fd6c8",fmt:v=>v.toFixed(0),now:nowH,marks:dm})}</div>`;
   box.innerHTML=h;
 }
 function openDay(d){ renderDay(d); showSheet("daySheet"); const b=$("daySheet").querySelector(".sbody"); if(b) b.scrollTop=0; }
@@ -1741,7 +1856,8 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-$("gearBtn").addEventListener("click",()=>{ renderToggles(); renderY(); showSheet("setSheet"); });
+const APP_VER="25.09 · сборка с зонами осадков";
+$("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
 /* ---------- refresh: straight from the sources ---------- */
