@@ -6,7 +6,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Барометр неба</title>
+<title>Метеодневник</title>
 <meta name="theme-color" content="#0d1726">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -294,6 +294,23 @@ footer a{color:var(--muted)}
 .mchip:active{transform:scale(.93)}
 .mchip:focus-visible{outline:2px solid var(--press);outline-offset:3px}
 footer{padding-bottom:64px}
+/* friends */
+.friends{display:flex;flex-direction:column;gap:10px}
+.fbox{background:var(--sheet-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.fbox .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fbox input{flex:1;min-width:0;background:var(--sheet);border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;color:var(--ink);font-size:13.5px}
+.fbox .hint{margin:0}
+.fgrid{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fgrid table{border-collapse:separate;border-spacing:2px;font-size:12px}
+.fgrid th{font-family:var(--f-mono);font-weight:400;color:var(--muted);font-size:9.5px;padding:0 1px;min-width:20px}
+.fgrid th.nm{text-align:left;min-width:0;font-family:var(--f-body);font-size:12px;color:var(--ink);font-weight:600;padding-right:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sheet-2);z-index:1}
+.fgrid th.nm small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+.fgrid td{width:22px;height:22px;text-align:center;border-radius:6px;background:rgba(238,243,248,.05);font-size:15px;line-height:22px;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.fgrid td.today{outline:1px solid var(--glass-line)}
+.fins{display:flex;flex-direction:column;gap:6px}
+.fin{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.fin b{color:var(--ink)}
+.fin .x{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;flex:none}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:40;background:var(--ink);color:#0d1726;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:500;max-width:calc(100% - 48px);transition:all .3s;pointer-events:none}
 .toast.show{transform:translate(-50%,0);opacity:1}
 [hidden]{display:none!important}
@@ -435,6 +452,8 @@ footer{padding-bottom:64px}
       <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
     </div>
     <div class="ysync" id="ysync"></div>
+    <div class="ctitle">Друзья</div>
+    <div class="friends" id="friends"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
     <div class="facs" id="mfacs"></div>
     <div class="src" id="backupNote" hidden>Отметки также попадают в резервную копию Android (если она включена в настройках телефона).</div>
@@ -490,7 +509,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["mood","moodDel","cities","city","remind","gpsDone","yandex"];
+const BACKUP_KEYS = ["mood","moodDel","cities","city","remind","gpsDone","yandex","friends","share"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -1418,7 +1437,7 @@ $("mbtns").addEventListener("click",e=>{
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>{ const today=isoDay(new Date()); if(!S.mood[today]) showMoodPop(); else openMoodSheet(); });
-function openMoodSheet(){ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderMoodSheet(); showSheet("moodSheet"); }
+function openMoodSheet(){ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderFriends(); renderMoodSheet(); showSheet("moodSheet"); fetchFriends(false); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
 /* per-day weather features for a date (Moscow day) */
@@ -1512,7 +1531,7 @@ renderMood();
 
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
-const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Барометр неба» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
+const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Метеодневник» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
 const Y = Object.assign({clientId:"", token:"", last:"", err:""}, loadJSON("yandex",{})||{});
 Y.clientId=Y_CLIENT_ID;   // always the built-in app (tokens issued earlier keep working)
 const saveY=()=>store.set("yandex",JSON.stringify({clientId:Y.clientId,token:Y.token,last:Y.last}));
@@ -1559,8 +1578,10 @@ async function ySync(loud){
       renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
-    const body=JSON.stringify({app:"Барометр неба",v:1,updated:new Date().toISOString(),mood:S.mood,moodDel:S.moodDel,cities});
-    if(!remote || JSON.stringify(remote.mood)!==JSON.stringify(S.mood) || JSON.stringify(remote.moodDel||{})!==JSON.stringify(S.moodDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length){
+    if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)) if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f;
+    const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added};
+    const body=JSON.stringify({app:"Метеодневник",v:1,updated:new Date().toISOString(),mood:S.mood,moodDel:S.moodDel,cities,friends});
+    if(!remote || JSON.stringify(remote.mood)!==JSON.stringify(S.mood) || JSON.stringify(remote.moodDel||{})!==JSON.stringify(S.moodDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
       if(up.status===401||up.status===403) throw new Error("auth");
       if(up.status!==200||!up.data?.href) throw new Error("net");
@@ -1568,6 +1589,8 @@ async function ySync(loud){
       if(put.status>=300) throw new Error("net");
     }
     Y.last=new Date().toISOString(); saveY();
+    saveFriends();
+    if(SH.on) await shareUpload().catch(()=>{});
     if(loud) toast("Синхронизировано с Яндекс Диском");
   }catch(e){
     Y.err = e.message==="auth" ? "Доступ к Диску истёк или отозван — войдите заново." : "Нет связи с Яндекс Диском, попробую позже.";
@@ -1581,6 +1604,7 @@ function yAuthUrl(manual){
   return manual ? base+"&redirect_uri="+encodeURIComponent("https://oauth.yandex.ru/verification_code")
                 : base+"&redirect_uri="+encodeURIComponent(Y_REDIRECT)+"&state="+(PREF?"app":"web");
 }
+function openLink(url){ if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }
 // the login page sends the user back with barometr://auth?access_token=…
 function yTakeToken(url){
   const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
@@ -1590,8 +1614,8 @@ function yTakeToken(url){
 {
   const AppU = PREF ? window.Capacitor.Plugins?.App : null;
   if(AppU){
-    AppU.addListener("appUrlOpen", e=>yTakeToken(e.url));
-    AppU.getLaunchUrl?.().then(r=>{ if(r&&r.url) yTakeToken(r.url); }).catch(()=>{});
+    AppU.addListener("appUrlOpen", e=>openLink(e.url));
+    AppU.getLaunchUrl?.().then(r=>{ if(r&&r.url) openLink(r.url); }).catch(()=>{});
   }
 }
 function renderY(state){
@@ -1605,7 +1629,7 @@ function renderY(state){
   if(!Y.clientId){
     box.innerHTML=head(Y.err||"отметки сохраняются в вашей папке на Диске и видны на любом телефоне", Y.err?"bad":"")+
     `<ol><li>Откройте <a href="https://oauth.yandex.ru/client/new" target="_blank" rel="noopener">oauth.yandex.ru/client/new</a> и войдите в Яндекс ID.</li>
-    <li>Название: <b>Барометр неба</b>. Платформа: <b>Веб-сервисы</b>, в поле Redirect URI нажмите <b>«Подставить URL для отладки»</b>.</li>
+    <li>Название: <b>Метеодневник</b>. Платформа: <b>Веб-сервисы</b>, в поле Redirect URI нажмите <b>«Подставить URL для отладки»</b>.</li>
     <li>В «Доступ к данным» найдите <b>Яндекс Диск REST API</b> и отметьте <b>«Доступ к папке приложения на Диске»</b>. Укажите почту и нажмите <b>«Создать приложение»</b>.</li>
     <li>Скопируйте <b>ClientID</b> и вставьте сюда:</li></ol>
     <div class="row"><input id="yClient" placeholder="ClientID" autocomplete="off" aria-label="ClientID приложения Яндекса"><button class="btn" data-y="client">Далее</button></div>`;
@@ -1628,6 +1652,127 @@ $("ysync").addEventListener("click",async e=>{
   if(a==="off"){ Y.token=""; Y.last=""; saveY(); renderY(); toast("Яндекс Диск отключён. Отметки остались на телефоне."); }
 });
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Y.token) ySync(false); });
+
+/* ---------- friends: a public folder on each person's Disk with only name, city and smileys ---------- */
+const SH = Object.assign({on:false, key:"", name:"", url:""}, loadJSON("share",{})||{});
+const FR = {list: loadJSON("friends",{})||{}, removed: loadJSON("friendsRemoved",{})||{}, busy:false, lastFetch:0};
+const saveShare=()=>store.set("share",JSON.stringify(SH));
+function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
+const FRIEND_PAGE="https://sivkabkbkbkbk-boop.github.io/barometr/friend.html";
+function shareLink(){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=${encodeURIComponent(SH.name||"")}`; }
+async function shareUpload(){
+  // only what friends need: name, city and the last 120 days of smileys
+  const since=isoDay(new Date(Date.now()-120*DAY)), mood={};
+  for(const [d,r] of Object.entries(S.mood)) if(d>=since) mood[d]=r.v;
+  const body=JSON.stringify({app:"Метеодневник",v:1,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood});
+  const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/mood.json")}&overwrite=true`);
+  if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
+  const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
+}
+async function shareStart(){
+  if(!Y.token){ toast("Сначала подключите Яндекс Диск — выше в этом окне."); return; }
+  const nm=($("shName")?.value||SH.name||"").trim(); if(!nm){ toast("Напишите имя — его увидят друзья."); $("shName")?.focus(); return; }
+  SH.name=nm.slice(0,40); renderFriends("busy");
+  try{
+    await yReq("PUT", `${YD}?path=${encodeURIComponent("app:/share")}`);                       // folder (409 if it exists — fine)
+    await shareUpload();
+    const pub=await yReq("PUT", `${YD}/publish?path=${encodeURIComponent("app:/share")}`);
+    if(pub.status>=300) throw new Error(pub.status===401||pub.status===403?"auth":"net");
+    const info=await yReq("GET", `${YD}?path=${encodeURIComponent("app:/share")}&fields=public_key,public_url`);
+    if(!info.data?.public_key) throw new Error("net");
+    SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
+    shareSend();
+  }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
+}
+async function shareSend(){
+  const text=`${SH.name} делится самочувствием в «Метеодневнике». Откройте ссылку, чтобы добавить в друзья:\n${shareLink()}`;
+  const Sh=window.Capacitor?.Plugins?.Share;
+  try{ if(Sh){ await Sh.share({title:"Метеодневник", text, dialogTitle:"Отправить другу"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
+  try{ if(navigator.share){ await navigator.share({title:"Метеодневник", text}); return; } }catch(e){ return; }
+  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); }catch(e){ toast(shareLink()); }
+}
+async function shareStop(){
+  renderFriends("busy");
+  try{ await yReq("PUT", `${YD}/unpublish?path=${encodeURIComponent("app:/share")}`); }catch(e){}
+  SH.on=false; SH.key=""; SH.url=""; saveShare(); renderFriends(); toast("Доступ закрыт: старая ссылка больше не работает.");
+}
+function parseFriendLink(url){
+  const s=String(url||""); const m=s.match(/[?&#]k=([^&#\s]+)/); if(!m) return null;
+  const n=s.match(/[?&#]n=([^&#\s]*)/); return {k:decodeURIComponent(m[1]), name:n?decodeURIComponent(n[1]).slice(0,40):""};
+}
+async function addFriendFromLink(url){
+  const f=parseFriendLink(url); if(!f){ toast("Это не похоже на ссылку «Метеодневника»."); return; }
+  if(f.k===SH.key){ toast("Это ваша собственная ссылка."); return; }
+  const had=!!FR.list[f.k];
+  FR.list[f.k]=Object.assign({k:f.k,name:f.name||"Друг",added:new Date().toISOString()}, FR.list[f.k]||{}); delete FR.removed[f.k]; saveFriends();
+  await fetchFriend(FR.list[f.k]);
+  toast(had?`${FR.list[f.k].name} уже в друзьях — обновил отметки.`:`${FR.list[f.k].name} добавлен(а) в друзья`);
+  ySyncSoon();
+  if($("moodSheet").hidden){ $("moodPop").hidden=true; openMoodSheet(); } else renderFriends();
+}
+async function fetchFriend(f){
+  try{
+    const dl=await yReq("GET", `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(f.k)}&path=${encodeURIComponent("/mood.json")}`, null, false);
+    if(dl.status===404||dl.status===403){ f.gone=true; return; }
+    if(dl.status!==200||!dl.data?.href) return;
+    const r=await yReq("GET", dl.data.href, null, false); if(r.status!==200) return;
+    const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
+    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name; }
+  }catch(e){}
+}
+async function fetchFriends(force){
+  if(FR.busy) return; if(!force && Date.now()-FR.lastFetch<10*60*1000) return;
+  const list=Object.values(FR.list); if(!list.length) return;
+  FR.busy=true; FR.lastFetch=Date.now();
+  await Promise.all(list.map(fetchFriend)); FR.busy=false; saveFriends();
+  if(!$("moodSheet").hidden) renderFriends();
+}
+function renderFriends(state){
+  const box=$("friends"); if(!box) return;
+  const today=new Date(), days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(+today-i*DAY)));
+  const esc2=esc;
+  let h="";
+  // sharing controls
+  if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
+  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят только ваше имя, город и смайлики по дням. Нужен подключённый Яндекс Диск.</div>
+    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div></div>`;
+  else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">Отправить ссылку другу</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
+    <div class="hint">Вы делитесь отметками как <b>${esc2(SH.name)}</b>. Отправьте ссылку во ВКонтакте, Telegram или по SMS.</div></div>`;
+  // comparison grid
+  const fl=Object.values(FR.list);
+  if(fl.length){
+    const cell=(v,d)=>`<td class="${d===days[13]?"today":""}">${v?MOOD[v].e:""}</td>`;
+    const rows=[[`Я`, cityOf(S.slug).name, d=>S.mood[d]?.v]].concat(fl.map(f=>[f.name||"Друг", f.gone?"ссылка закрыта":(f.data?.city||"…"), d=>f.data?.mood?.[d]]));
+    h+=`<div class="fbox"><div class="fgrid"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
+      rows.map(([n,c,get])=>`<tr><th class="nm">${esc2(n)}<small>${esc2(c)}</small></th>${days.map(d=>cell(get(d),d)).join("")}</tr>`).join("")+`</tbody></table></div>`;
+    // coincidences over the last 60 days
+    const since=isoDay(new Date(Date.now()-60*DAY));
+    h+=`<div class="fins">`+fl.map(f=>{
+      const fm=f.data?.mood||{}; let both=0,same=0,bad=[];
+      for(const [d,r] of Object.entries(S.mood)){ if(d<since||!fm[d]) continue; both++; if(fm[d]===r.v) same++; if(fm[d]===1&&r.v===1) bad.push(d); }
+      let t;
+      if(f.gone) t=`${esc2(f.name)} закрыл(а) доступ.`;
+      else if(!f.data) t=`${esc2(f.name)}: загружаю отметки…`;
+      else if(both<3) t=`<b>${esc2(f.name)}</b>: пока мало общих дней (${both}).`;
+      else t=`<b>${esc2(f.name)}</b>: совпало ${same} из ${both} дней (${Math.round(same/both*100)}%)`+(bad.length?`, обоим было плохо: ${bad.sort().slice(-4).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:"")+".";
+      return `<div class="fin"><span>${t}</span><button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>`;
+    }).join("")+`</div></div>`;
+  }
+  h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
+  box.innerHTML=h;
+  const g=box.querySelector(".fgrid"); if(g) g.scrollLeft=g.scrollWidth;   // today on screen
+}
+$("friends").addEventListener("click",e=>{
+  const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
+  const b=e.target.closest("[data-f]"); if(!b) return;
+  const a=b.dataset.f;
+  if(a==="start") shareStart();
+  if(a==="send") shareSend();
+  if(a==="stop") shareStop();
+  if(a==="add"){ const v=$("frLink").value.trim(); if(v) addFriendFromLink(v); }
+});
+// website version: friend.html leaves the link here
+try{ const pend=localStorage.getItem("pendingFriend"); if(pend){ localStorage.removeItem("pendingFriend"); setTimeout(()=>addFriendFromLink(pend), 1500); } }catch(e){}
 
 /* ---------- gestures: pull down to refresh, swipe a sheet down to close ---------- */
 const ptr=$("ptr"), PULL=70;
@@ -1737,7 +1882,7 @@ if(LN){
     store.set("remind",JSON.stringify({on,time}));
     if(on){
       try{ let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
-        if(p.display!=="granted"){ $("remOn").checked=false; store.set("remind",JSON.stringify({on:false,time})); toast("Разрешите уведомления для «Барометра» в настройках Android."); return; } }catch(e){}
+        if(p.display!=="granted"){ $("remOn").checked=false; store.set("remind",JSON.stringify({on:false,time})); toast("Разрешите уведомления для «Метеодневника» в настройках Android."); return; } }catch(e){}
     }
     await scheduleReminders();
     if(on) toast(`Напомню в шторке каждый день в ${time}`);
