@@ -40,7 +40,7 @@ jobs:
       - name: Разрешения, цвета, иконка
         run: |
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
           ST=android/app/src/main/res/values/styles.xml
           sed -i 's|<item name="windowActionBar">false</item>|<item name="windowActionBar">false</item>\n        <item name="android:statusBarColor">#0d1726</item>\n        <item name="android:navigationBarColor">#0d1726</item>\n        <item name="android:windowBackground">@color/barometr_bg</item>|' $ST
