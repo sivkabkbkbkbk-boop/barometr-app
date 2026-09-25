@@ -306,6 +306,109 @@ footer a{color:var(--muted)}
 .mchip:active{transform:scale(.93)}
 .mchip:focus-visible{outline:2px solid var(--press);outline-offset:3px}
 footer{padding-bottom:64px}
+/* risk card */
+.risk{border-color:color-mix(in srgb,var(--rc,#f2c94c) 35%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--rc,#f2c94c) 16%,transparent),var(--glass) 62%)}
+.rpill{font-size:11px;font-weight:700;border-radius:99px;padding:2px 9px;color:var(--rc,#f2c94c);background:color-mix(in srgb,var(--rc,#f2c94c) 16%,transparent)}
+.rpill:empty{display:none}
+.rbody{display:flex;align-items:center;gap:12px}
+.rbody svg{width:96px;flex:none}
+.rwhy{display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.3}
+/* health tab */
+.hbig{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:6px 0 4px}
+.hbig .bv{font-family:var(--f-mono);font-size:44px;font-weight:500;line-height:1.05}
+.hbig .bv .sl{color:var(--muted)}.hbig .bv small{font-size:14px;color:var(--muted)}
+.hp{font-size:12px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);border-radius:99px;padding:3px 10px;white-space:nowrap}
+.wk{display:block;width:100%;height:auto;margin-top:6px}
+.wkc{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:2px}
+.wkc b{color:var(--ink)}
+.hli{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--glass-line)}
+.hli:last-child{border:0}
+.hli i{width:6px;height:30px;border-radius:3px;flex:none}
+.hlt{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.hlt .mono{font-family:var(--f-mono);font-size:16px}.hlt small{font-family:var(--f-body);font-size:11.5px;color:var(--muted)}
+.hle{font-size:19px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+.hli .x{border:0;background:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px}
+.hempty{text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center;color:var(--muted);font-size:13.5px;padding:24px 18px}
+.hfab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:14;border:0;background:var(--press);color:#0d1726;font-weight:700;font-size:15px;border-radius:99px;padding:13px 18px;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer}
+.hfab[hidden]{display:none}
+.dayrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--glass-line)}
+.dayrow .dl{width:62px;flex:none;font-size:12px;color:var(--muted);text-transform:capitalize}
+.dayrow .de{display:flex;flex-wrap:wrap;gap:3px;font-size:19px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+/* report summary */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.kpi{background:var(--glass);border:1px solid var(--glass-line);border-radius:14px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .kl{font-size:11px;color:var(--muted)}
+.kpi .kv{font-family:var(--f-mono);font-size:20px;font-weight:500}
+.kpi .ks{font-size:11px;color:var(--muted)}
+.ins{display:flex;flex-direction:column;gap:10px;margin-top:10px;font-size:13.5px;line-height:1.35}
+.inr{display:flex;gap:10px;align-items:flex-start}.inr>b{font-size:20px;line-height:1.1;flex:none}
+.rcal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px}
+.rcal .cw{font-size:10px;color:var(--muted);text-align:center}
+.rcal i{position:relative;aspect-ratio:1;border-radius:8px;background:rgba(238,243,248,.04);display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;font-size:17px;line-height:1;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+.rcal i em{position:absolute;top:2px;left:4px;font-style:normal;font-size:8.5px;color:var(--muted);font-family:var(--f-mono)}
+.rcal i small{font-size:8.5px;font-family:var(--f-mono);margin-top:1px}
+.rcal i.td{outline:1px solid var(--press)}
+/* friends & chats */
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;color:#0d1726;flex:none;position:relative}
+.av em{position:absolute;right:-5px;bottom:-5px;font-style:normal;font-size:18px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+.av.grp{background:linear-gradient(135deg,#ffb86b,#8be38f);font-size:22px}
+.fcard{display:flex;flex-direction:column;gap:10px}
+.fcard .fr{display:flex;align-items:center;gap:11px}
+.fcard .fn{flex:1;display:flex;flex-direction:column;min-width:0}
+.fcard .fn b{font-size:16px}
+.fcard .x{border:0;background:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px}
+.chatb.big{font-size:19px;padding:6px 10px;border-radius:12px}
+.ftiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.ftile{background:rgba(238,243,248,.05);border:1px solid var(--glass-line);border-radius:12px;padding:7px 9px;display:flex;flex-direction:column;gap:3px;min-width:0;align-items:flex-start}
+.ftile .kl{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ftile .fv{font-family:var(--f-mono);font-size:17px}
+.wk4{font-size:14px;letter-spacing:1px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+.ftile .hp{font-size:10.5px;padding:1px 7px}
+.flast{border:0;text-align:left;background:var(--sheet-2);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cl{display:flex;gap:11px;align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--glass-line);background:none;color:var(--ink);width:100%;text-align:left;cursor:pointer}
+.cl:last-child{border-bottom:0}
+.cl .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cl .t b{font-size:15px}.cl .t small{font-size:11px;color:var(--muted);font-weight:400}
+.cl .pv{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cl .r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11px;color:var(--muted);flex:none}
+.cnt{background:var(--press);color:#0d1726;font-weight:700;font-size:11px;border-radius:9px;padding:1px 7px}
+.newg{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink);font-size:14px;cursor:pointer;border-style:dashed!important}
+.newg small{font-size:11.5px;color:var(--muted)}
+.newg:disabled{opacity:.55;cursor:default}
+.gplist{display:flex;flex-direction:column;gap:4px}
+.gpick{display:flex;align-items:center;gap:10px;background:var(--sheet-2);border-radius:12px;padding:8px 10px;font-size:15px}
+.gpick input{width:20px;height:20px;accent-color:#7fd6c8}
+.msg .who{font-size:11.5px;font-weight:700}
+.msg.card{background:none;padding:0;border-radius:0;max-width:86%}
+.msg.card .tm{padding-right:6px}
+.stc{background:linear-gradient(135deg,rgba(127,214,200,.18),var(--sheet-2));border:1px solid rgba(127,214,200,.3);border-radius:16px;padding:9px 12px;min-width:220px}
+.msg.me .stc{background:linear-gradient(135deg,rgba(120,173,255,.25),#23406a)}
+.sth{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.stb{display:flex;gap:10px;align-items:center;margin-top:4px}
+.ste{font-size:32px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
+.stv{display:flex;flex-direction:column;gap:2px;font-size:13px}
+.stv .mono{font-family:var(--f-mono);font-size:17px}
+.stl{font-weight:600}
+/* bottom tabs */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(9,16,27,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.bnav button{position:relative;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bnav button b{font-size:21px;font-weight:400;line-height:1.1;filter:grayscale(1) opacity(.65);transition:filter .2s,transform .2s}
+.bnav button[aria-current]{color:var(--ink)}
+.bnav button[aria-current] b{filter:none;transform:translateY(-1px)}
+.bnav button[aria-current]::before{content:"";position:absolute;top:-6px;width:34px;height:3px;border-radius:3px;background:var(--press)}
+.bnav i,.seg3 i{font-style:normal;background:#ff6b5e;color:#fff;font-size:10px;font-weight:700;border-radius:8px;min-width:16px;height:16px;line-height:16px;padding:0 4px;position:absolute;top:0;left:calc(50% + 8px)}
+.bnav i:empty,.seg3 i:empty{display:none}
+.app.page{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
+.mchip{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}
+.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+.ptitle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
+.ptitle h1{margin:0;font-family:var(--f-disp);font-weight:500;font-size:24px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sheet-2);border-radius:13px;padding:3px;gap:2px}
+.seg3.two{grid-template-columns:1fr 1fr}
+.seg3 button{position:relative;border:0;background:none;color:var(--muted);border-radius:10px;padding:8px 2px;font-size:12.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+.seg3 button[aria-pressed="true"]{background:var(--ink);color:#0d1726;font-weight:700}
+.seg3 i{position:static;display:inline-block;margin-left:2px}
+body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 /* blood pressure & sugar */
 .htiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .htile{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:rgba(238,243,248,.05);border:1px solid var(--glass-line);border-radius:14px;padding:10px 12px;cursor:pointer;min-width:0;color:var(--ink)}
@@ -490,7 +593,7 @@ header{min-width:0}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 26 26"><g class="ic"><path d="M18.5 8.5A6.5 6.5 0 1 0 19.5 13"/><path d="M19.2 4.8v4h-4"/></g><circle class="sp" cx="13" cy="13" r="8"/><path class="ck" d="M8 13.5l3.2 3.2L18 9.8"/></svg></div>
-<main class="app">
+<main class="app page" id="pgToday">
   <header>
     <button class="citybtn" id="citybtn" aria-haspopup="dialog">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5c0 3.4 4.5 8.5 4.5 8.5s4.5-5.1 4.5-8.5A4.5 4.5 0 0 0 8 1.5zm0 6.2a1.7 1.7 0 1 1 0-3.4 1.7 1.7 0 0 1 0 3.4z" fill="currentColor"/></svg>
@@ -522,6 +625,11 @@ header{min-width:0}
     <div class="cond"><div class="icon" id="cicon"></div><div class="txt" id="ctext"></div></div>
   </section>
 
+
+  <section class="card fade risk" id="cardRisk" style="animation-delay:.01s" aria-label="Погода и самочувствие сегодня">
+    <div class="mchead"><div class="label">Погода и самочувствие сегодня</div><span class="rpill" id="riskPill"></span></div>
+    <div class="rbody"><svg id="riskG" viewBox="0 0 96 58" aria-hidden="true"></svg><div class="rwhy" id="riskWhy"></div></div>
+  </section>
 
   <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
     <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="chatb" id="cmChat" hidden aria-label="Чат с друзьями">💬</button><button class="mlink" id="cmOpen">дневник ›</button></span></div>
@@ -578,6 +686,36 @@ header{min-width:0}
   <footer><button class="btn ghost" id="installBtn" hidden>Установить приложение</button><div>Погода и архив: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Kp: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA</a>, <a href="https://kp.gfz.de/" target="_blank" rel="noopener">GFZ</a></div></footer>
 </main>
 
+
+<main class="app page" id="pgHealth" hidden>
+  <div class="ptitle"><h1>Здоровье</h1></div>
+  <div class="seg3" id="hSeg"><button data-hs="bp">🩺 Давление</button><button data-hs="glu">🩸 Сахар</button><button data-hs="mood">😊 Состояние</button></div>
+  <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
+</main>
+<main class="app page" id="pgRep" hidden>
+  <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare">📤 Врачу</button></div>
+  <div class="chips" id="repPer"></div>
+  <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
+  <div class="kpis" id="repKpi"></div>
+  <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
+  <div class="card"><div class="label">Что показать на графиках</div><div class="rselw" id="repSel" style="margin-top:8px"></div></div>
+  <div class="rpanels" id="repPanels"></div>
+  <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
+  <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — подсказка, а не диагноз.</div>
+</main>
+<main class="app page" id="pgFriends" hidden>
+  <div class="ptitle"><h1>Друзья</h1><button class="chip on" id="frInvite">＋ Пригласить</button></div>
+  <div class="seg3 two" id="fSeg"><button data-fs="friends">👥 Друзья</button><button data-fs="chats">💬 Чаты <i id="fSegN"></i></button></div>
+  <div class="friends" id="friends"></div>
+  <div class="friends" id="chats" hidden></div>
+</main>
+<nav class="bnav" id="bnav" aria-label="Разделы">
+  <button data-tab="today" aria-current="page"><b>🌤</b>Сегодня</button>
+  <button data-tab="health"><b>❤️</b>Здоровье</button>
+  <button data-tab="rep"><b>📊</b>Отчёты</button>
+  <button data-tab="friends"><b>👥</b>Друзья<i id="navN"></i></button>
+</nav>
+
 <div class="mpop" id="moodPop" hidden>
   <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
     <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете?</div></div>
@@ -631,8 +769,6 @@ header{min-width:0}
       <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
     </div>
     <div class="src">Синхронизация с Яндекс Диском — в настройках (кнопка ⚙ вверху экрана).</div>
-    <div class="ctitle">Друзья</div>
-    <div class="friends" id="friends"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
     <div class="facs" id="mfacs"></div>
     <div class="ctitle">Симптомы и погода</div>
@@ -693,20 +829,16 @@ header{min-width:0}
   </div>
 </section>
 
-<section class="sheet" id="repSheet" role="dialog" aria-modal="true" aria-labelledby="repTitle" hidden>
+
+
+<section class="sheet" id="grpSheet" role="dialog" aria-modal="true" aria-labelledby="grpTitle" hidden>
   <div class="grab"></div>
-  <div class="shead">
-    <div><h2 id="repTitle">Отчёт</h2><div class="sc" id="repSub"></div></div>
-    <button class="xbtn" data-close aria-label="Закрыть">×</button>
-  </div>
+  <div class="shead"><div><h2 id="grpTitle">Общий чат</h2><div class="sc">все участники увидят сообщения друг друга, если они друзья между собой</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
   <div class="sbody">
-    <div class="chips" id="repPer"></div>
-    <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
-    <div class="ctitle" style="margin:0">Что показать</div>
-    <div class="rselw" id="repSel"></div>
-    <div class="rpanels" id="repPanels"></div>
-    <button class="btn ghost" id="repShare">📤 Отправить отчёт (например, врачу)</button>
-    <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города.</div>
+    <input class="search" id="grpName" placeholder="Название, например «Семья»" maxlength="40" autocomplete="off">
+    <div class="ctitle" style="margin:0">Кто в чате</div>
+    <div class="gplist" id="grpList"></div>
+    <button class="btn" id="grpCreate">Создать чат</button>
   </div>
 </section>
 
@@ -1064,6 +1196,7 @@ function render(){
 
   $("hours").innerHTML=hrs.slice(i,i+25).map((x,n)=>`<div class="h${n===0?" now":""}"><div class="t">${n===0?"сейчас":fmtH(new Date(x.t))}</div>${icon(x.sym)}<div class="v">${Math.round(x.temp)}°</div></div>`).join("");
   if(typeof render5==="function") render5();
+  if(typeof renderRisk==="function") renderRisk();
   sky.set(c, cur);
   if(!$("hist").hidden) drawHistory();
 }
@@ -2003,6 +2136,7 @@ $("d5").addEventListener("keydown",e=>{ if(e.key!=="Enter"&&e.key!==" ") return;
 $("dayTabs").addEventListener("click",e=>{ const b=e.target.closest("[data-dday]"); if(b) renderDay(b.dataset.dday); });
 /* ---------- which cards are on the main screen ---------- */
 const CARDS=[
+  ["cardRisk","Погода и самочувствие","насколько сегодняшняя погода может влиять на самочувствие"],
   ["cardMood","Самочувствие","смайлики для быстрой отметки"],
   ["cardHealth","Давление и сахар","последние измерения А/Д и сахара"],
   ["card5","Прогноз на 5 дней","температура и осадки по дням"],
@@ -2022,7 +2156,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="25.09 · сборка 6 (давление, сахар, отчёты)";
+const APP_VER="26.09 · сборка 7 (вкладки и общий чат)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2101,6 +2235,7 @@ function saveMarks(){
   rebuildMood();
   ySyncSoon(); if(typeof scheduleReminders==="function") scheduleReminders();
   renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); if(!$("hist").hidden) drawHistory();
+  if(typeof TAB!=="undefined"&&TAB==="rep") drawReport();
 }
 function addMark(k, when){
   const t=(when||new Date()).toISOString();
@@ -2355,7 +2490,8 @@ function saveMeasure(){
     m={id,t:t.toISOString(),type:"glu",v:Math.round(v*10)/10,ctx:HM.ctx};
   }
   if(note) m.note=note; m.city=S.slug;
-  HM.list.push(m); saveHM(); renderMeas(); renderHealth();
+  HM.list.push(m); saveHM(); renderMeas(); renderHealth(); if(TAB==="health") renderHealthPage();
+  if(openSheet&&openSheet.id==="measSheet") setTimeout(()=>hideSheet(), 700);
   const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
   toast(m.type==="bp"?`Записано: ${m.sys}/${m.dia} — ${c.l}`:`Записано: сахар ${fmtNum(m.v)} — ${c.l}`);
 }
@@ -2382,7 +2518,7 @@ function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
   return [REP.from, REP.to];
 }
-function openReport(sel){ if(sel){ REP.sel=sel; store.set("repSel",JSON.stringify(REP.sel)); } drawReport(); showSheet("repSheet"); const b=$("repSheet").querySelector(".sbody"); if(b) b.scrollTop=0; }
+function openReport(sel){ if(sel){ REP.sel=sel; store.set("repSel",JSON.stringify(REP.sel)); } if(openSheet) hideSheet(true); showTab("rep"); }
 function repEnsure(from,to){
   const today=isoDay(new Date()), need={obs:[],kp:[]};
   const want={obs:REP.sel.some(k=>["press","temp","rain"].includes(k)), kp:REP.sel.includes("kp")};
@@ -2391,7 +2527,7 @@ function repEnsure(from,to){
   let busy=false;
   for(const src of ["obs","kp"]){ const m=need[src]; if(!m.length) continue; const key=`${src}:${src==="kp"?"":S.slug}:${m[0]}:${m[m.length-1]}`;
     if(asked.has(key)&&!S.loading[key]) continue; busy=true;
-    if(!S.loading[key]) ensure(src,S.slug,m[0],m[m.length-1]).then(()=>{ if(!$("repSheet").hidden) drawReport(); }); }
+    if(!S.loading[key]) ensure(src,S.slug,m[0],m[m.length-1]).then(ok=>{ if(ok&&TAB==="rep") drawReport(); }); }
   return busy;
 }
 function repTicks(x0,x1){ const span=(x1-x0)/DAY, n=4, out=[]; for(let i=0;i<=n;i++){ const t=x0+(x1-x0)*i/n; out.push([t, span<=2?fmtHM(new Date(t)):fmtDM(new Date(t))]); } return out; }
@@ -2467,6 +2603,58 @@ function drawReport(){
       <svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-hidden="true">${axis(Hh,B)}${g}<line class="rcur" x1="0" x2="0" y1="4" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/></svg></div>`);
   }
   $("repPanels").innerHTML=panels.length?panels.join(""):`<div class="src" style="text-align:center">Выберите хотя бы один показатель выше.</div>`;
+  repSummary(from,to);
+}
+/* key numbers, plain-language findings and a calendar of smileys */
+function repSummary(from,to){
+  const x0=+from, x1=+to, span=x1-x0, inR=(t,a=x0,b=x1)=>{const v=+new Date(t);return v>=a&&v<=b;};
+  const bp=HM.list.filter(m=>m.type==="bp"&&inR(m.t)), bpP=HM.list.filter(m=>m.type==="bp"&&inR(m.t,x0-span,x0));
+  const gl=HM.list.filter(m=>m.type==="glu"&&inR(m.t)), glF=gl.filter(m=>m.ctx==="fast"||m.ctx==="before");
+  const days=Object.entries(S.mood).filter(([d])=>inR(d+"T12:00:00"));
+  const avg=(a,f)=>a.reduce((q,m)=>q+f(m),0)/a.length;
+  let k="";
+  if(bp.length){ const s1=Math.round(avg(bp,m=>m.sys)), d1=Math.round(avg(bp,m=>m.dia)), df=bpP.length?s1-Math.round(avg(bpP,m=>m.sys)):null;
+    k+=`<div class="kpi"><span class="kl">А/Д среднее</span><span class="kv">${s1}/${d1}</span><span class="ks"${df?` style="color:${df<0?"#8be38f":"#ff9a8b"}"`:""}>${df?`${df<0?"↓":"↑"} ${Math.abs(df)} к пред. периоду`:`${bp.length} измерений`}</span></div>`; }
+  if(gl.length){ const base=glF.length?glF:gl; k+=`<div class="kpi"><span class="kl">Сахар ${glF.length?"натощак":"средний"}</span><span class="kv">${fmtNum(avg(base,m=>m.v))}</span><span class="ks">в норме ${Math.round(gl.filter(m=>gluCat(m.v,m.ctx).k===0).length/gl.length*100)}%</span></div>`; }
+  if(days.length){ const good=days.filter(([,r])=>r.v>=2.5).length; k+=`<div class="kpi"><span class="kl">Хороших дней</span><span class="kv">${Math.round(good/days.length*100)}%</span><span class="ks">${good} из ${days.length} с отметками</span></div>`; }
+  if(!k) k=`<div class="kpi" style="grid-column:1/-1"><span class="kl">За этот период ещё нет записей</span><span class="ks">Отмечайте самочувствие и записывайте давление — здесь появятся итоги.</span></div>`;
+  $("repKpi").innerHTML=k;
+  // findings: compare days with and without a weather factor (needs the weather archive for the marked days)
+  const cov=coveredDays("obs",S.slug), today=isoDay(new Date()), dset=new Set(days.map(([d])=>d));
+  for(const m of bp) dset.add(isoDay(new Date(m.t)));
+  const need=[...dset].filter(d=>d<today&&!cov.has(d)).sort();
+  if(need.length){ const key=`obs:${S.slug}:${need[0]}:${need[need.length-1]}`; if(!asked.has(key)) ensure("obs",S.slug,need[0],need[need.length-1]).then(ok=>{ if(ok&&TAB==="rep") drawReport(); }); }
+  const kneed=[...dset].filter(d=>d<today).sort(), kc=coveredDays("kp");
+  const km=kneed.filter(d=>!kc.has(d)); if(km.length){ const key=`kp::${km[0]}:${km[km.length-1]}`; if(!asked.has(key)) ensure("kp",S.slug,km[0],km[km.length-1]).then(ok=>{ if(ok&&TAB==="rep") drawReport(); }); }
+  const F={}; for(const d of dset) F[d]=dayFeatures(d,S.slug);
+  const ins=[], bad=r=>r.v<=1.6||r.kinds.some(x=>KIND[x]?.sym&&KIND[x].s<=1.5);
+  const cmpMood=(test,label,icon)=>{
+    const a=days.filter(([d])=>F[d]&&test(F[d])===true), b=days.filter(([d])=>F[d]&&test(F[d])===false);
+    if(a.length<3||b.length<3) return;
+    const ra=a.filter(([,r])=>bad(r)).length/a.length, rb=b.filter(([,r])=>bad(r)).length/b.length;
+    if(ra>=rb*1.5&&ra-rb>=.2) ins.push([ra-rb,icon,`${label} плохое самочувствие бывает <b>${rb>0?`в ${fmtNum(ra/rb,1).replace(",0","")} раза чаще`:"заметно чаще"}</b> <span class="fhm">(${a.filter(([,r])=>bad(r)).length} из ${a.length} дней против ${b.filter(([,r])=>bad(r)).length} из ${b.length})</span>`]);
+    else if(rb>=ra*1.5&&rb-ra>=.2) ins.push([(rb-ra)/2,icon,`${label} вы чувствуете себя <b>скорее лучше</b>, чем в другие дни`]);
+  };
+  cmpMood(f=>f.dpress==null?null:f.dpress>=5,"При перепаде атм. давления больше 5 мм за сутки","🧭");
+  cmpMood(f=>f.kp==null?null:f.kp>=4,"В дни с магнитным фоном Kp ≥ 4","🧲");
+  cmpMood(f=>f.dtemp==null?null:f.dtemp>=9,"При перепаде температуры больше 9°","🌡");
+  const cmpBp=(test,label,icon)=>{
+    const a=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===true;}), b=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===false;});
+    if(a.length<3||b.length<3) return; const d=Math.round(avg(a,m=>m.sys)-avg(b,m=>m.sys));
+    if(Math.abs(d)>=5) ins.push([Math.abs(d)/20,icon,`${label} верхнее давление в среднем <b>на ${Math.abs(d)} мм ${d>0?"выше":"ниже"}</b> <span class="fhm">(${a.length} и ${b.length} измерений)</span>`]);
+  };
+  cmpBp(f=>f.kp==null?null:f.kp>=4,"В дни с Kp ≥ 4","🧲");
+  cmpBp(f=>f.dpress==null?null:f.dpress>=5,"В дни резких перепадов атм. давления","🧭");
+  cmpBp(f=>f.press==null?null:f.press<745,"При низком атм. давлении (ниже 745 мм)","⬇️");
+  $("repIns").innerHTML = ins.length ? ins.sort((a,b)=>b[0]-a[0]).slice(0,3).map(([,i,t])=>`<div class="inr"><b>${i}</b><span>${t}</span></div>`).join("")
+    : `<div class="fhm">${need.length?"Загружаю погоду за отмеченные дни…":"Пока мало данных для выводов. Отмечайте самочувствие и давление 2–3 недели — приложение сравнит дни с перепадами погоды и спокойные дни."}</div>`;
+  // calendar of the last five weeks (Monday first)
+  const end=new Date(); const start=new Date(+end-34*DAY); const pad=(start.getDay()+6)%7; let c="";
+  for(const w of ["пн","вт","ср","чт","пт","сб","вс"]) c+=`<span class="cw">${w}</span>`;
+  for(let i=0;i<pad;i++) c+=`<i></i>`;
+  for(let t=+start;t<=+end;t+=DAY){ const d=isoDay(new Date(t)), r=S.mood[d], b=HM.list.find(m=>m.type==="bp"&&isoDay(new Date(m.t))===d);
+    c+=`<i class="${d===today?"td":""}" style="${r?`background:${r.v>=2.5?"rgba(139,227,143,.16)":r.v>=1.9?"rgba(242,201,76,.16)":"rgba(255,122,107,.18)"}`:""}"><em>${+d.slice(8)}</em>${r?r.e:""}${b?`<small style="color:${bpCat(b.sys,b.dia).c}">${b.sys}</small>`:""}</i>`; }
+  $("repCal").innerHTML=c; $("repCalT").textContent="Последние 5 недель: самочувствие и А/Д";
 }
 function repCursor(e){
   const svg=e.target.closest(".rpan svg"); if(!svg) return;
@@ -2496,7 +2684,7 @@ async function shareText(title, text){
   try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
   try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
 }
-$("repSheet").addEventListener("click",e=>{
+$("pgRep").addEventListener("click",e=>{
   const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
   const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
   if(e.target.closest("#repShare")) shareText("Отчёт о самочувствии", reportText());
@@ -2504,6 +2692,127 @@ $("repSheet").addEventListener("click",e=>{
 $("repPanels").addEventListener("pointermove",repCursor); $("repPanels").addEventListener("pointerdown",repCursor);
 for(const id of ["rFrom","rTo"]) $(id).addEventListener("change",()=>{ const f=new Date($("rFrom").value+"T00:00:00"), t=new Date($("rTo").value+"T23:59:59"); if(!isNaN(+f)&&!isNaN(+t)&&f<t){ REP.from=f; REP.to=new Date(Math.min(+t,Date.now())); drawReport(); } });
 
+
+/* ---------- today: how much the weather may affect wellbeing (0–10) ---------- */
+function weatherRisk(){
+  const f=S.feed[S.slug]; if(!f||!f.hours) return null;
+  const now=Date.now(), hs=f.hours.filter(h=>+new Date(h.t)>=now-2*H&&+new Date(h.t)<=now+22*H); if(hs.length<8) return null;
+  const pp=hs.map(h=>h.p!=null?h.p*HPA2MM:null).filter(v=>v!=null), T=hs.map(h=>h.temp);
+  let j3=0; for(let i=3;i<pp.length;i++) j3=Math.max(j3,Math.abs(pp[i]-pp[i-3]));
+  const dP=pp.length?pp[pp.length-1]-pp[0]:0, dT=Math.max(...T)-Math.min(...T);
+  const kps=(S.kpFc||[]).filter(x=>{const t=+new Date(x.t);return t>=now-3*H&&t<=now+24*H;}).map(x=>x.kp), kp=kps.length?Math.max(...kps):null;
+  let sc=1; const why=[];
+  const pAbs=Math.abs(dP);
+  sc+=Math.min(3.5,pAbs/2.2); sc+=j3>=3?2:j3>=2?1:0;
+  if(pAbs>=2) why.push([pAbs+j3,`🧭 Давление <b>${dP<0?"падает":"растёт"} на ${Math.round(pAbs)} мм</b> за сутки${j3>=2.5?`, до ${Math.round(j3)} мм за 3 ч`:""}`]);
+  else why.push([0,`🧭 Давление стабильное (${Math.round(pp[0]||0)} мм)`]);
+  if(kp!=null){ sc+=kp>=6?3.5:kp>=5?3:kp>=4?2:kp>=3?.7:0; why.push([kp*1.2,kp>=5?`🧲 <b>Магнитная буря</b>: Kp до ${Math.round(kp)}`:kp>=4?`🧲 Kp до ${Math.round(kp)} — <b>неспокойно</b>`:`🧲 Магнитный фон спокойный (Kp ${Math.round(kp)})`]); }
+  if(dT>=7){ sc+=dT>=12?1.5:.8; why.push([dT/2,`🌡 Перепад температур <b>${Math.round(dT)}°</b>`]); }
+  const hum=hs.reduce((a,h)=>a+(h.hum||0),0)/hs.length, wind=Math.max(...hs.map(h=>h.wind||0));
+  if(wind>=10){ sc+=.7; why.push([wind/3,`💨 Сильный ветер до ${Math.round(wind)} м/с`]); }
+  if(hum>=90&&pAbs>=2){ sc+=.4; }
+  sc=Math.max(1,Math.min(10,Math.round(sc)));
+  const lvl=sc<=3?{l:"спокойно",c:"#8be38f"}:sc<=6?{l:"умеренно",c:"#f2c94c"}:{l:"неблагоприятно",c:"#ff7a6b"};
+  return {sc,lvl,why:why.sort((a,b)=>b[0]-a[0]).slice(0,3).map(x=>x[1])};
+}
+function renderRisk(){
+  const r=weatherRisk(), card=$("cardRisk"); if(!card) return;
+  if(!r){ $("riskWhy").innerHTML=`<span class="fhm">Загружаю прогноз…</span>`; $("riskPill").textContent=""; $("riskG").innerHTML=""; return; }
+  card.style.setProperty("--rc", r.lvl.c);
+  $("riskPill").textContent=r.lvl.l;
+  const a0=Math.PI, a1=Math.PI+Math.PI*r.sc/10, R=36, cx=48, cy=50, pt=a=>[cx+Math.cos(a)*R, cy+Math.sin(a)*R];
+  const [x0,y0]=pt(a0),[x1,y1]=pt(a1),[x2,y2]=pt(2*Math.PI);
+  $("riskG").innerHTML=`<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x2} ${y2}" fill="none" stroke="rgba(238,243,248,.12)" stroke-width="9" stroke-linecap="round"/><path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${r.lvl.c}" stroke-width="9" stroke-linecap="round"/><text x="48" y="50" text-anchor="middle" font-size="22" font-weight="700" fill="#eef3f8" font-family="Onest,system-ui">${r.sc}</text><text x="48" y="22" text-anchor="middle" font-size="8" fill="#9fb1c5">из 10</text>`;
+  $("riskWhy").innerHTML=r.why.map(w=>`<span>${w}</span>`).join("");
+}
+
+/* ---------- health tab ---------- */
+let HSEG=store.get("hseg")||"bp";
+function weekChart(type){
+  const now=Date.now(), x0=+new Date(isoDay(new Date(now-6*DAY))+"T00:00:00"), x1=x0+7*DAY, W=340,Hh=104,L=4,R=26,T=8,B=16, iw=W-L-R, ih=Hh-T-B;
+  const X=t=>L+(+new Date(t)-x0)/(x1-x0)*iw, list=HM.list.filter(m=>m.type===type&&+new Date(m.t)>=x0);
+  let g=""; const dn=["вс","пн","вт","ср","чт","пт","сб"];
+  for(let i=0;i<7;i++){ const t=x0+i*DAY; g+=`<text x="${X(t+DAY/2)}" y="${Hh-3}" text-anchor="middle" font-size="9.5" fill="#9fb1c5">${dn[new Date(t).getDay()]}</text>`; if(i) g+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ih}" stroke="rgba(238,243,248,.05)"/>`; }
+  if(type==="bp"){
+    const lo=Math.min(60,...list.map(m=>m.dia))-4, hi=Math.max(150,...list.map(m=>m.sys))+4, Y=v=>T+(1-(v-lo)/(hi-lo))*ih;
+    for(const v of [140,90]) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#ff7a6b" stroke-dasharray="3 4" opacity=".5"/><text x="${W-2}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="#ff7a6b">${v}</text>`;
+    for(const m of list){ const x=X(m.t).toFixed(1), c=bpCat(m.sys,m.dia).c; g+=`<line x1="${x}" x2="${x}" y1="${Y(m.sys)}" y2="${Y(m.dia)}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`; }
+  } else {
+    const lo=Math.min(3.5,...list.map(m=>m.v))-.4, hi=Math.max(9,...list.map(m=>m.v))+.4, Y=v=>T+(1-(v-lo)/(hi-lo))*ih;
+    g+=`<rect x="${L}" y="${Y(5.5)}" width="${iw}" height="${Y(3.9)-Y(5.5)}" fill="#8be38f" opacity=".08"/>`;
+    for(const v of [7.8,3.9]) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v>5?"#f2c94c":"#78adff"}" stroke-dasharray="3 4" opacity=".5"/><text x="${W-2}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="${v>5?"#f2c94c":"#78adff"}">${fmtNum(v)}</text>`;
+    for(const m of list){ const c=gluCat(m.v,m.ctx).c; g+=`<circle cx="${X(m.t).toFixed(1)}" cy="${Y(m.v)}" r="4.2" fill="${m.ctx==="after"?"none":c}" stroke="${c}" stroke-width="2"/>`; }
+  }
+  if(!list.length) g+=`<text x="${L+iw/2}" y="${T+ih/2}" text-anchor="middle" font-size="11" fill="#9fb1c5">за неделю записей нет</text>`;
+  return `<svg viewBox="0 0 ${W} ${Hh}" class="wk" aria-hidden="true">${g}</svg>`;
+}
+function weekCompare(type){
+  const now=Date.now(), a=HM.list.filter(m=>m.type===type&&+new Date(m.t)>=now-7*DAY), b=HM.list.filter(m=>m.type===type&&+new Date(m.t)<now-7*DAY&&+new Date(m.t)>=now-14*DAY);
+  if(!a.length) return "";
+  if(type==="bp"){ const s=x=>Math.round(x.reduce((q,m)=>q+m.sys,0)/x.length), d=x=>Math.round(x.reduce((q,m)=>q+m.dia,0)/x.length);
+    const diff=b.length?s(a)-s(b):null; return `<span>за неделю <b>${s(a)}/${d(a)}</b> в среднем</span>${diff!=null&&diff!==0?`<span style="color:${diff<0?"#8be38f":"#ff9a8b"}">${diff<0?"↓":"↑"} ${Math.abs(diff)} к прошлой</span>`:""}`; }
+  const f=a.filter(m=>m.ctx==="fast"||m.ctx==="before"), av=x=>x.reduce((q,m)=>q+m.v,0)/x.length;
+  return `<span>${f.length?`натощак <b>${fmtNum(av(f))}</b> в среднем`:`в среднем <b>${fmtNum(av(a))}</b>`}</span><span>${a.filter(m=>gluCat(m.v,m.ctx).k===0).length} из ${a.length} в норме</span>`;
+}
+function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-+new Date(t))<=3*H); return ms.length?KIND[ms[ms.length-1].k].e:""; }
+function renderHealthPage(){
+  document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
+  const box=$("hBody"); let h="";
+  if(HSEG==="mood"){
+    const rec=S.mood[isoDay(new Date())];
+    h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("")}</div>
+      <div class="mtoday" style="margin-top:8px">${(rec?.marks||[]).map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join("")}</div></div>`;
+    const days=[]; for(let i=0;i<14;i++) days.push(isoDay(new Date(Date.now()-i*DAY)));
+    h+=`<div class="card" style="padding:6px 14px"><div class="label" style="padding:6px 0">Последние 2 недели</div>`+days.map(d=>{ const r=S.mood[d]; const dd=new Date(d+"T12:00:00");
+      return `<div class="dayrow"><span class="dl">${d===isoDay(new Date())?"сегодня":new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric"}).format(dd)}</span><span class="de">${r?r.marks.map(m=>`<span title="${KIND[m.k].l} ${fmtHM(new Date(m.t))}">${KIND[m.k].e}</span>`).join(""):`<span class="fhm">—</span>`}</span></div>`; }).join("")+`</div>`;
+    h+=`<button class="btn ghost" data-hact="diary">📖 Дневник: связь самочувствия с погодой ›</button>`;
+    box.innerHTML=h; $("hFab")?.remove(); return;
+  }
+  const type=HSEG, last=lastOf(type);
+  if(last){
+    const c=type==="bp"?bpCat(last.sys,last.dia):gluCat(last.v,last.ctx);
+    h+=`<div class="card"><div class="label">Последнее · ${whenTxt(last.t)}</div>
+      <div class="hbig"><div><span class="bv">${type==="bp"?`${last.sys}<span class="sl">/</span>${last.dia}`:`${fmtNum(last.v)}<small> ммоль/л</small>`}</span>
+      <div class="fhm">${type==="bp"?(last.pulse?`пульс ${last.pulse}`:""):GCTX[last.ctx]}${last.note?` · ${esc(last.note)}`:""}</div></div><span class="hp" style="--c:${c.c}">${c.l}</span></div>
+      ${weekChart(type)}<div class="wkc">${weekCompare(type)}</div></div>`;
+    const list=HM.list.filter(m=>m.type===type).slice(-30).reverse();
+    h+=`<div class="card" style="padding:4px 14px">`+list.map(m=>{ const c=type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
+      return `<div class="hli"><i style="background:${c.c}"></i><div class="hlt"><span class="mono">${type==="bp"?`${m.sys}/${m.dia}${m.pulse?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]}</small>`}</span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}</span></div><span class="hle">${moodNear(m.t)}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`; }).join("")+`</div>`;
+    h+=`<button class="btn ghost" data-hact="rep">📊 Отчёт за месяц ›</button>`;
+  } else h+=`<div class="card hempty"><div style="font-size:40px">${type==="bp"?"🩺":"🩸"}</div><div>${type==="bp"?"Записывайте давление утром и вечером — приложение сопоставит его с погодой и самочувствием.":"Записывайте сахар натощак и после еды — увидите, как он меняется день ото дня."}</div></div>`;
+  box.innerHTML=h;
+  let fab=$("hFab"); if(!fab){ fab=document.createElement("button"); fab.id="hFab"; fab.className="hfab"; document.body.appendChild(fab); fab.addEventListener("click",()=>openMeas(HSEG)); }
+  fab.textContent=type==="bp"?"＋ Записать давление":"＋ Записать сахар";
+}
+$("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG); renderHealthPage(); });
+$("hBody").addEventListener("click",e=>{
+  const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(new Date())}`); setTimeout(()=>renderHealthPage(),500); return; }
+  const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); renderHealthPage(); return; }
+  const d=e.target.closest("[data-mdel]"); if(d){ HM.del[d.dataset.mdel]=new Date().toISOString(); saveHM(); renderHealthPage(); renderHealth(); return; }
+  const a=e.target.closest("[data-hact]"); if(!a) return;
+  if(a.dataset.hact==="diary") openMoodSheet();
+  if(a.dataset.hact==="rep"){ REP.per="30"; openReport(HSEG==="bp"?["bp","pulse","mood","press"]:["glu","mood"]); }
+});
+
+/* ---------- bottom tabs ---------- */
+let TAB="today";
+const PAGES={today:"pgToday",health:"pgHealth",rep:"pgRep",friends:"pgFriends"};
+function showTab(t, sub){
+  if(!PAGES[t]) t="today";
+  const changed=TAB!==t; TAB=t;
+  for(const [k,id] of Object.entries(PAGES)) $(id).hidden=k!==t;
+  document.querySelectorAll("#bnav [data-tab]").forEach(b=>{ if(b.dataset.tab===t) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
+  document.body.dataset.tab=t;
+  if(changed) scrollTo(0,0);
+  if(t==="health") renderHealthPage();
+  if(t==="rep") drawReport();
+  if(t==="friends"){ if(sub) FSEG=sub; renderFriendsPage(); fetchFriends(false); }
+  if(t==="today"){ render(); drawRadar(); }
+  if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood";
+  $("moodChip").hidden = t!=="today" || !!LAYOUT.cardMood || !$("moodPop").hidden;
+}
+$("bnav").addEventListener("click",e=>{ const b=e.target.closest("[data-tab]"); if(b) showTab(b.dataset.tab); });
+document.body.dataset.tab="today";
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
 const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Метеодневник» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
@@ -2648,7 +2957,8 @@ async function shareUpload(){
   if(SH.hm!==false && SH.secret){ const since2=new Date(Date.now()-120*DAY).toISOString();
     const rows=HM.list.filter(m=>!HM.del[m.id]&&m.t>=since2).map(m=>m.type==="bp"?{t:m.t,type:"bp",sys:m.sys,dia:m.dia,pulse:m.pulse}:{t:m.t,type:"glu",v:m.v,ctx:m.ctx});
     try{ hm=await aesSeal(await shareKey(SH.secret), rows); }catch(e){} }
-  const body=JSON.stringify({app:"Метеодневник",v:2,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood,ack,hm});
+  let wx=null; try{ const fd=S.feed[S.slug], h=fd?.hours?.[nearestIdx(fd.hours,Date.now())]; if(h) wx={t:Math.round(h.temp),k:cond(h.sym).kind,p:h.p!=null?Math.round(h.p*HPA2MM):null,at:new Date().toISOString()}; }catch(e){}
+  const body=JSON.stringify({app:"Метеодневник",v:2,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood,ack,hm,wx});
   const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/mood.json")}&overwrite=true`);
   if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
   const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
@@ -2703,7 +3013,7 @@ async function addFriendFromLink(url){
   await fetchFriend(FR.list[f.k]);
   const nm=FR.list[f.k].name;
   ySyncSoon();
-  if($("moodSheet").hidden){ $("moodPop").hidden=true; openMoodSheet(); } else renderFriends();
+  $("moodPop").hidden=true; if(openSheet) hideSheet(true); showTab("friends","friends");
   if(had){ toast(`${nm} уже в друзьях — обновил отметки.`); return; }
   if(f.reply){ toast(`${nm} принял(а) ваше приглашение — теперь вы видите друг друга и можете переписываться 💬`); return; }
   // the inviter adds us automatically: a short encrypted note through a free relay (ntfy.sh); the old reply link is the fallback
@@ -2724,7 +3034,7 @@ async function fetchFriend(f){
     if(dl.status!==200||!dl.data?.href) return;
     const r=await yReq("GET", dl.data.href, null, false); if(r.status!==200) return;
     const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
-    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name;
+    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated, wx:data.wx||null}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name;
       if(SH.key) f.acked=Array.isArray(data.ack)&&data.ack.includes(await boxId(SH.key));
       if(data.hm&&f.s){ try{ f.data.hm=await aesOpen(await shareKey(f.s), data.hm); }catch(e){} }
       if(SH.on&&f.s&&!f.acked&&Date.now()-(f.notified||0)>6*H) notifyInviter(f).catch(()=>{});
@@ -2737,50 +3047,55 @@ async function fetchFriends(force){
   const list=Object.values(FR.list); if(!list.length) return;
   FR.busy=true; FR.lastFetch=Date.now();
   await Promise.all(list.map(fetchFriend)); FR.busy=false; saveFriends();
-  if(!$("moodSheet").hidden) renderFriends();
+  if(TAB==="friends") renderFriends();
 }
 function renderFriends(state){
   const box=$("friends"); if(!box) return;
-  const today=new Date(), days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(+today-i*DAY)));
-  const esc2=esc;
-  let h="";
+  const esc2=esc; let h="";
   // sharing controls
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
   else if(!SH.on&&!Y.token) h+=`<div class="fbox"><div class="hint">Чтобы дружить и переписываться, нужен Яндекс Диск — на нём хранится то, что видят друзья.</div><button class="btn" data-f="yandex">Подключить Яндекс Диск</button>${FR.replyTo?`<div class="hint">👋 После подключения введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} увидит вас автоматически.</div>`:""}</div>`;
   else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар. Нужен подключённый Яндекс Диск.</div>
-    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div>${FR.replyTo?`<div class="hint">👋 Введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} получит ответное приглашение.</div>`:""}</div>`;
-  else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">📨 Пригласить друга</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
-    <label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
-    <div class="hint">Вы делитесь состоянием как <b>${esc2(SH.name)}</b>. Кнопка откроет «Поделиться» — выберите ВКонтакте, Telegram, WhatsApp или SMS, и друг получит приглашение с вашим именем.</div></div>`;
-  // comparison grid
+    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div>${FR.replyTo?`<div class="hint">👋 Введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} увидит вас автоматически.</div>`:""}</div>`;
   const fl=Object.values(FR.list);
-  if(fl.length){
-    const emo=v=>v==null?"":typeof v==="number"?(MOOD[v]?.e||""):(v.e||"");
-    const cell=(v,d)=>`<td class="${d===days[13]?"today":""}">${emo(v)}</td>`;
-    const rows=[[`Я`, cityOf(S.slug).name, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", f.gone?"ссылка закрыта":(f.data?.city||"…"), d=>f.data?.mood?.[d]]));
-    h+=`<div class="fbox"><div class="fgrid"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
-      rows.map(([n,c,get])=>`<tr><th class="nm">${esc2(n)}<small>${esc2(c)}</small></th>${days.map(d=>cell(get(d),d)).join("")}</tr>`).join("")+`</tbody></table></div>`;
-    // coincidences over the last 60 days
-    const since=isoDay(new Date(Date.now()-60*DAY));
-    h+=`<div class="fins">`+fl.map(f=>{
-      const fm=f.data?.mood||{}; let both=0,same=0,bad=[];
-      const sc=v=>typeof v==="number"?v:(v?.s??null);
-      for(const [d,r] of Object.entries(S.mood)){ const fs=sc(fm[d]); if(d<since||fs==null) continue; both++; if(Math.abs(fs-r.v)<0.75) same++; if(fs<=1.5&&r.v<=1.5) bad.push(d); }
-      let t;
-      if(f.gone) t=`${esc2(f.name)} закрыл(а) доступ.`;
-      else if(!f.data) t=`${esc2(f.name)}: загружаю отметки…`;
-      else if(both<3) t=`<b>${esc2(f.name)}</b>: пока мало общих дней (${both}).`;
-      else t=`<b>${esc2(f.name)}</b>: совпало ${same} из ${both} дней (${Math.round(same/both*100)}%)`+(bad.length?`, обоим было плохо: ${bad.sort().slice(-4).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:"")+".";
-      const hmv=f.data?.hm||[], lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
-      if(lb||lg) t+=`<br><span class="fhm">${lb?`🩺 <b style="color:${bpCat(lb.sys,lb.dia).c}">${lb.sys}/${lb.dia}</b> ${whenTxt(lb.t)}`:""}${lb&&lg?" · ":""}${lg?`🩸 <b style="color:${gluCat(lg.v,lg.ctx).c}">${fmtNum(lg.v)}</b> ${whenTxt(lg.t)}`:""}</span>`;
-      if(SH.on&&f.s&&f.data&&!f.acked) t+=`<br><span class="fhm">⏳ ${esc2(f.name)} ещё не открыл(а) приложение после вашего ответа — добавит вас автоматически.</span>`;
-      const un=chatUnread(f);
-      return `<div class="fin"><span>${t}</span><span class="fact"><button class="chatb" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}">💬${un?`<i>${un}</i>`:""}</button><button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></span></div>`;
-    }).join("")+`</div></div>`;
+  if(!fl.length&&SH.on) h+=`<div class="card hempty"><div style="font-size:38px">🤝</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">📨 Пригласить друга</button></div>`;
+  const today=isoDay(new Date());
+  for(const f of fl){
+    const d=f.data||{}, mood=d.mood||{}, tm=mood[today], hmv=d.hm||[];
+    const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
+    const wk=[]; for(let i=3;i>=0;i--){ const r=mood[isoDay(new Date(Date.now()-i*DAY))]; wk.push(r?.e||"·"); }
+    const wx=d.wx&&Date.now()-+new Date(d.wx.at||0)<12*H?` · ${d.wx.t}° ${WXE[d.wx.k]||""}`:"";
+    const L=threadLast(f.k), un=chatUnread(f);
+    const tile=(lab,val,pill,sub)=>`<div class="ftile"><span class="kl">${lab}</span><span class="mono fv">${val}</span>${pill?`<span class="hp" style="--c:${pill.c}">${pill.l}</span>`:`<span class="kl">${sub||""}</span>`}</div>`;
+    h+=`<div class="card fcard">
+      <div class="fr"><span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${tm.e}</em>`:""}</span>
+        <span class="fn"><b>${esc2(f.name||"Друг")}</b><span class="fhm">${f.gone?"закрыл(а) доступ":esc2(d.city||"загружаю…")}${wx}</span></span>
+        <button class="chatb big" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}">💬${un?`<i>${un}</i>`:""}</button>
+        <button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>
+      ${f.data?`<div class="ftiles">${tile(lb?`А/Д · ${shortWhen(lb.t)}`:"А/Д",lb?`${lb.sys}/${lb.dia}`:"—",lb?bpCat(lb.sys,lb.dia):null,lb?"":"нет данных")}${tile(lg?`Сахар · ${shortWhen(lg.t)}`:"Сахар",lg?fmtNum(lg.v):"—",lg?gluCat(lg.v,lg.ctx):null,lg?"":"нет данных")}${tile("4 дня",`<span class="wk4">${wk.join("")}</span>`,null,tm?tm.l||"":"сегодня без отметки")}</div>`:""}
+      ${L?`<button class="flast" data-chat="${esc2(f.k)}"><b>${L.me?"Вы":esc2(f.name)}:</b> ${L.c?"📋 состояние":esc2(L.x)} <span class="fhm">· ${shortWhen(L.t)}</span></button>`:""}
+      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">⏳ ${esc2(f.name)} ещё не открыл(а) приложение — добавит вас автоматически.</div>`:""}
+      ${!f.s?`<div class="fhm">Для чата и давления нужно новое приглашение от ${esc2(f.name)}.</div>`:""}
+    </div>`;
   }
-  h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
+  // coincidences and a two-week comparison
+  if(fl.length){
+    const since=isoDay(new Date(Date.now()-60*DAY)), lines=[];
+    for(const f of fl){ const fm=f.data?.mood||{}; let both=0,same=0,bad=[]; const sc=v=>typeof v==="number"?v:(v?.s??null);
+      for(const [d,r] of Object.entries(S.mood)){ const fs=sc(fm[d]); if(d<since||fs==null) continue; both++; if(Math.abs(fs-r.v)<0.75) same++; if(fs<=1.5&&r.v<=1.5) bad.push(d); }
+      if(both>=3) lines.push(`С <b>${esc2(f.name)}</b> самочувствие совпало ${same} из ${both} дней${bad.length?` — обоим было плохо ${bad.sort().slice(-3).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:""}.`); }
+    const days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(Date.now()-i*DAY)));
+    const emo=v=>v==null?"":typeof v==="number"?(MOOD[v]?.e||""):(v.e||"");
+    const rows=[[`Я`, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", d=>f.data?.mood?.[d]]));
+    h+=`<div class="card"><div class="label">Совпадения самочувствия</div>${lines.length?`<div class="ins" style="gap:6px">${lines.map(l=>`<span>${l}</span>`).join("")}</div>`:`<div class="fhm" style="margin-top:6px">Появятся, когда у вас будет хотя бы 3 общих дня с отметками.</div>`}
+      <div class="fgrid" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
+      rows.map(([n,get])=>`<tr><th class="nm">${esc2(n)}</th>${days.map(d=>`<td class="${d===days[13]?"today":""}">${emo(get(d))}</td>`).join("")}</tr>`).join("")+`</tbody></table></div></div>`;
+  }
+  if(SH.on) h+=`<div class="fbox"><label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
+    <div class="hint">Вы делитесь как <b>${esc2(SH.name)}</b>. «＋ Пригласить» наверху откроет «Поделиться» — друг получит приглашение с вашим именем.</div><button class="btn ghost" data-f="stop">Перестать делиться</button></div>`;
+  h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
   box.innerHTML=h;
-  const g=box.querySelector(".fgrid"); if(g) g.scrollLeft=g.scrollWidth;   // today on screen
+  box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
 }
 $("friends").addEventListener("change",e=>{ const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
 $("friends").addEventListener("click",e=>{
@@ -2789,7 +3104,7 @@ $("friends").addEventListener("click",e=>{
   const b=e.target.closest("[data-f]"); if(!b) return;
   const a=b.dataset.f;
   if(a==="start") shareStart();
-  if(a==="yandex"){ hideSheet(true); setTimeout(()=>$("gearBtn").click(), 350); }
+  if(a==="yandex"){ $("gearBtn").click(); }
   if(a==="send") shareSend();
   if(a==="stop") shareStop();
   if(a==="add"){ const v=$("frLink").value.trim(); if(v) addFriendFromLink(v); }
@@ -2797,8 +3112,9 @@ $("friends").addEventListener("click",e=>{
 
 /* ---------- chat between friends: each person keeps an outbox in the public folder (app:/share/chat.json),
    messages are encrypted with a key only the two friends have (both secrets from the invitation links) ---------- */
-const CHAT = Object.assign({out:{}, inb:{}, read:{}}, loadJSON("chat",{})||{});
-const saveChat=()=>{ for(const o of [CHAT.out,CHAT.inb]) for(const k of Object.keys(o)) o[k]=o[k].slice(-300); store.set("chat",JSON.stringify(CHAT)); };
+const CHAT = Object.assign({out:{}, inb:{}, read:{}, groups:{}, gin:{}, gout:{}}, loadJSON("chat",{})||{});
+for(const k of ["groups","gin","gout"]) if(!CHAT[k]) CHAT[k]={};
+const saveChat=()=>{ for(const o of [CHAT.out,CHAT.inb,CHAT.gin,CHAT.gout]) for(const k of Object.keys(o)) o[k]=o[k].slice(-300); store.set("chat",JSON.stringify(CHAT)); };
 const QUICK=["Как ты? 🙂","У меня всё хорошо 😄","Голова болит 🤕","Давление скачет, держись 💪","Магнитная буря — береги себя 🧲","Обнимаю 🤗"];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))), unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -2853,7 +3169,7 @@ async function pollHello(){
     if(added.length){
       saveFriends(); await Promise.all(added.map(fetchFriend)); saveFriends(); shareUpload().catch(()=>{}); ySyncSoon();
       toast(`🎉 ${added.map(f=>f.name).join(", ")} ${added.length>1?"приняли":"принял(а)"} ваше приглашение — теперь вы друзья!`);
-      renderChatBadge(); if(!$("moodSheet").hidden) renderFriends();
+      renderChatBadge(); if(TAB==="friends") renderFriends();
     }
   }catch(e){} finally{ helloBusy=false; }
 }
@@ -2862,16 +3178,20 @@ setInterval(()=>{ if(!document.hidden) pollHello(); }, 2*60*1000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(pollHello,800); });
 async function seal(f, obj){ const key=await pairKey(f), iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
 async function unseal(f, m){ const key=await pairKey(f); const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
-function chatUnread(f){ const r=CHAT.read[f.k]||""; return (CHAT.inb[f.k]||[]).filter(m=>m.t>r).length; }
-function chatUnreadAll(){ return Object.values(FR.list).reduce((a,f)=>a+chatUnread(f),0); }
+/* one-to-one threads skip group messages; a group thread = my copies + what each member sent */
+const dmIn=k=>(CHAT.inb[k]||[]).filter(m=>!m.g), dmOut=k=>(CHAT.out[k]||[]).filter(m=>!m.g);
+function chatUnread(f){ const r=CHAT.read[f.k]||""; return dmIn(f.k).filter(m=>m.t>r).length; }
+function groupUnread(g){ const r=CHAT.read["g:"+g]||""; return (CHAT.gin[g]||[]).filter(m=>m.t>r).length; }
+function chatUnreadAll(){ return Object.values(FR.list).reduce((a,f)=>a+chatUnread(f),0)+Object.keys(CHAT.groups).reduce((a,g)=>a+groupUnread(g),0); }
 async function chatUpload(){
   const boxes={};
-  for(const [k,list] of Object.entries(CHAT.out)){ const f=FR.list[k]; if(!f||!f.s||!list.length) continue; boxes[await boxId(k)]=list.slice(-100).map(m=>m.box).filter(Boolean); }
-  const body=JSON.stringify({app:"Метеодневник",v:1,updated:new Date().toISOString(),boxes});
+  for(const [k,list] of Object.entries(CHAT.out)){ const f=FR.list[k]; if(!f||!f.s||!list.length) continue; boxes[await boxId(k)]=list.slice(-120).map(m=>m.box).filter(Boolean); }
+  const body=JSON.stringify({app:"Метеодневник",v:2,updated:new Date().toISOString(),boxes});
   const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/chat.json")}&overwrite=true`);
   if(up.status!==200||!up.data?.href) throw new Error("net");
   const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
 }
+function memberName(k, g){ if(k===SH.key) return "Вы"; return FR.list[k]?.name || (g&&CHAT.groups[g]?.members?.find(m=>m.k===k)?.n) || "Участник"; }
 async function chatFetch(f){
   if(!f.s||!SH.key) return 0;
   const dl=await yReq("GET", `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(f.k)}&path=${encodeURIComponent("/chat.json")}`, null, false);
@@ -2879,70 +3199,178 @@ async function chatFetch(f){
   const r=await yReq("GET", dl.data.href+(dl.data.href.includes("?")?"&":"?")+"_="+Date.now(), null, false); if(r.status!==200) return 0;
   const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
   const box=data?.boxes?.[await boxId(SH.key)]||[];
-  const have=new Set((CHAT.inb[f.k]||[]).map(m=>m.id)); let added=[];
-  for(const m of box){ try{ const o=await unseal(f,m); if(o&&o.id&&!have.has(o.id)){ added.push({id:o.id,t:o.t,x:String(o.x||"").slice(0,1000)}); have.add(o.id); } }catch(e){} }
+  const have=new Set([...(CHAT.inb[f.k]||[]).map(m=>m.id), ...Object.values(CHAT.gin).flat().filter(m=>m.from===f.k).map(m=>m.id)]);
+  const added=[];
+  for(const m of box){ let o; try{ o=await unseal(f,m); }catch(e){ continue; } if(!o||!o.id||have.has(o.id)) continue; have.add(o.id);
+    const msg={id:o.id,t:o.t,x:String(o.x||"").slice(0,1000)}; if(o.c&&typeof o.c==="object") msg.c=o.c;
+    if(o.g){
+      const g=String(o.g).slice(0,40);
+      if(!CHAT.groups[g]&&o.gm) CHAT.groups[g]={id:g,name:String(o.gm.name||"Общий чат").slice(0,40),members:(o.gm.members||[]).slice(0,20).map(x=>({k:String(x.k),n:String(x.n||"").slice(0,40)})),by:f.k,created:o.t};
+      else if(CHAT.groups[g]&&o.gm){ const G=CHAT.groups[g]; for(const x of o.gm.members||[]) if(!G.members.some(y=>y.k===x.k)) G.members.push({k:String(x.k),n:String(x.n||"").slice(0,40)}); if(o.gm.name) G.name=String(o.gm.name).slice(0,40); }
+      if(!CHAT.groups[g]) continue;
+      msg.from=f.k; (CHAT.gin[g]=CHAT.gin[g]||[]).push(msg); added.push({...msg,g});
+    } else { (CHAT.inb[f.k]=CHAT.inb[f.k]||[]).push(msg); added.push(msg); }
+  }
   if(added.length){
-    CHAT.inb[f.k]=(CHAT.inb[f.k]||[]).concat(added).sort((a,b)=>a.t<b.t?-1:1); saveChat();
-    if(CH_OPEN===f.k){ CHAT.read[f.k]=added[added.length-1].t; saveChat(); renderChat(); }
-    else { const last=added[added.length-1]; if(last.t>(CHAT.read[f.k]||"")) toast(`💬 ${f.name}: ${last.x.slice(0,60)}`); }
-    renderChatBadge(); if(!$("moodSheet").hidden) renderFriends();
+    for(const o of [CHAT.inb,CHAT.gin]) for(const k of Object.keys(o)) o[k].sort((a,b)=>a.t<b.t?-1:1);
+    saveChat();
+    const open=added.filter(m=>(m.g?"g:"+m.g:f.k)===CH_OPEN);
+    if(open.length){ CHAT.read[CH_OPEN]=open[open.length-1].t; saveChat(); renderChat(); }
+    const other=added.filter(m=>(m.g?"g:"+m.g:f.k)!==CH_OPEN), last=other[other.length-1];
+    if(last&&last.t>(CHAT.read[last.g?"g:"+last.g:f.k]||"")) toast(`💬 ${last.g?`${CHAT.groups[last.g].name} · `:""}${f.name}: ${(last.c?"📋 состояние":last.x).slice(0,60)}`);
+    renderChatBadge(); if(TAB==="friends") renderFriendsPage();
   }
   return added.length;
 }
 let CH_OPEN=null, chatTimer=0;
+function chatPollStart(list){
+  clearInterval(chatTimer); list.forEach(f=>chatFetch(f).catch(()=>{}));
+  chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; if(TAB==="friends") renderFriendsPage(); return; } if(!document.hidden) list.forEach(f=>chatFetch(f).catch(()=>{})); }, 15000);
+}
 function openChat(k){
   const f=FR.list[k]; if(!f) return;
   CH_OPEN=k; $("chatTitle").textContent=f.name||"Друг";
   const today=f.data?.mood?.[isoDay(new Date())];
   $("chatSub").textContent=[f.data?.city, today?`сегодня ${today.e||""}`:""].filter(Boolean).join(" · ");
-  CHAT.read[k]=((CHAT.inb[k]||[]).slice(-1)[0]||{}).t||CHAT.read[k]||""; saveChat();
+  CHAT.read[k]=(dmIn(k).slice(-1)[0]||{}).t||CHAT.read[k]||""; saveChat();
+  renderChat(); showSheet("chatSheet"); renderChatBadge(); chatPollStart([f]);
+}
+function openGroup(g){
+  const G=CHAT.groups[g]; if(!G) return;
+  CH_OPEN="g:"+g; $("chatTitle").textContent=G.name;
+  const names=G.members.filter(m=>m.k!==SH.key).map(m=>memberName(m.k,g));
+  $("chatSub").textContent=`${names.join(", ")} и вы`;
+  CHAT.read[CH_OPEN]=((CHAT.gin[g]||[]).slice(-1)[0]||{}).t||CHAT.read[CH_OPEN]||""; saveChat();
   renderChat(); showSheet("chatSheet"); renderChatBadge();
-  clearInterval(chatTimer); chatFetch(f).catch(()=>{});
-  chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; renderFriends(); return; } if(!document.hidden) chatFetch(f).catch(()=>{}); }, 15000);
+  chatPollStart(G.members.map(m=>FR.list[m.k]).filter(Boolean));
+}
+const MCOL=["#ffb86b","#8be38f","#c9b6ff","#78adff","#7fd6c8","#f2c94c","#ff8a7a"];
+const colorOf=k=>{ let h=0; for(const ch of String(k)) h=(h*31+ch.charCodeAt(0))>>>0; return MCOL[h%MCOL.length]; };
+function stateCard(c){
+  const bp=c.bp?`<span class="mono">${esc(c.bp)}</span>${c.bpl?` <span class="hp" style="--c:${esc(c.bpc||"#9fb1c5")}">${esc(c.bpl)}</span>`:""}`:"";
+  const gl=c.glu?`<span class="mono" style="font-size:14px">🩸 ${esc(c.glu)}</span>`:"";
+  return `<div class="stc"><div class="sth">📋 Состояние</div><div class="stb"><span class="ste">${esc(c.e||"🙂")}</span><div class="stv"><span class="stl">${esc(c.l||"")}</span>${bp||gl?`<span>${bp} ${gl}</span>`:""}<span class="fhm">${esc([c.city, c.t!=null?c.t+"°":"", c.p?c.p+" мм":""].filter(Boolean).join(" · "))}</span></div></div></div>`;
 }
 function renderChat(){
-  const f=FR.list[CH_OPEN]; if(!f) return;
-  const box=$("chatList");
-  let h="";
-  if(!Y.token||!SH.on) h+=`<div class="cnote">Чтобы переписываться, подключите Яндекс Диск в ⚙ Настройках и нажмите «Поделиться» в разделе «Друзья».</div>`;
-  else if(!f.s) h+=`<div class="cnote">У ${esc(f.name)} старое приглашение, без чата. Попросите ${esc(f.name)} прислать новое — или отправьте своё, кнопкой ниже.<br><button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
-  const all=[...(CHAT.out[f.k]||[]).map(m=>({...m,me:1})), ...(CHAT.inb[f.k]||[])].sort((a,b)=>a.t<b.t?-1:1);
+  const isG=String(CH_OPEN||"").startsWith("g:"), g=isG?CH_OPEN.slice(2):null, f=isG?null:FR.list[CH_OPEN];
+  if(!isG&&!f) return; if(isG&&!CHAT.groups[g]) return;
+  const box=$("chatList"); let h="";
+  if(!Y.token||!SH.on) h+=`<div class="cnote">Чтобы переписываться, подключите Яндекс Диск в ⚙ Настройках и нажмите «Поделиться» во вкладке «Друзья».</div>`;
+  else if(f&&!f.s) h+=`<div class="cnote">У ${esc(f.name)} старое приглашение, без чата. Попросите ${esc(f.name)} прислать новое — или отправьте своё, кнопкой ниже.<br><button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
+  let all;
+  if(isG){
+    const G=CHAT.groups[g], miss=G.members.filter(m=>m.k!==SH.key&&!FR.list[m.k]?.s);
+    if(miss.length) h+=`<div class="cnote">${miss.map(m=>esc(m.n||"Участник")).join(", ")} ${miss.length>1?"не у вас в друзьях":"не у вас в друзьях"} — ${miss.length>1?"их":"его/её"} сообщения здесь не видны. Попросите прислать приглашение.</div>`;
+    all=[...(CHAT.gout[g]||[]).map(m=>({...m,me:1})), ...(CHAT.gin[g]||[])];
+  } else all=[...dmOut(f.k).map(m=>({...m,me:1})), ...dmIn(f.k)];
+  all.sort((a,b)=>a.t<b.t?-1:1);
   let lastDay="";
   for(const m of all){
     const d=isoDay(new Date(m.t)); if(d!==lastDay){ lastDay=d; h+=`<div class="cday">${d===isoDay(new Date())?"сегодня":fmtDM(new Date(m.t))}</div>`; }
-    h+=`<div class="msg${m.me?" me":""}"><span class="tx">${esc(m.x)}</span><span class="tm">${fmtHM(new Date(m.t))}${m.me?(m.st==="err"?' <b class="er" data-retry>!</b>':m.st==="ok"?" ✓":" …"):""}</span></div>`;
+    const who=isG&&!m.me?`<span class="who" style="color:${colorOf(m.from)}">${esc(memberName(m.from,g))}</span>`:"";
+    const st=m.me?(m.st==="err"?' <b class="er" data-retry>!</b>':m.st==="ok"?" ✓":" …"):"";
+    h+=`<div class="msg${m.me?" me":""}${m.c?" card":""}">${who}${m.c?stateCard(m.c):`<span class="tx">${esc(m.x)}</span>`}<span class="tm">${fmtHM(new Date(m.t))}${st}</span></div>`;
   }
-  if(!all.length&&f.s&&SH.on) h+=`<div class="cnote">Напишите ${esc(f.name)} первым 👋<br>Сообщения шифруются: прочитать их можете только вы двое.</div>`;
+  if(!all.length&&SH.on) h+=`<div class="cnote">${isG?`Это общий чат «${esc(CHAT.groups[g].name)}». Напишите первым 👋`:`Напишите ${esc(f.name)} первым 👋`}<br>Сообщения шифруются: прочитать их могут только участники.</div>`;
   box.innerHTML=h;
-  $("chatQuick").innerHTML=[...QUICK,"__me"].map(q=>q==="__me"?`<button class="chip" data-q="__me">Моё состояние</button>`:`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
-  const can=!!(f.s&&SH.on&&Y.token); $("chatIn").disabled=!can; $("chatSend").disabled=!can; $("chatQuick").hidden=!can;
+  $("chatQuick").innerHTML=["__me",...QUICK].map(q=>q==="__me"?`<button class="chip" data-q="__me">📋 Моё состояние</button>`:`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+  const can=!!(SH.on&&Y.token&&(isG||f.s)); $("chatIn").disabled=!can; $("chatSend").disabled=!can; $("chatQuick").hidden=!can;
   const sc=$("chatSheet").querySelector(".sbody"); requestAnimationFrame(()=>{ sc.scrollTop=sc.scrollHeight; });
 }
-async function chatSend(text){
-  const f=FR.list[CH_OPEN]; text=String(text||"").trim().slice(0,1000); if(!f||!text) return;
-  const m={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), t:new Date().toISOString(), x:text, st:"send"};
-  try{ m.box=await seal(f,{id:m.id,t:m.t,x:m.x}); }catch(e){ toast("Не получилось зашифровать сообщение."); return; }
-  (CHAT.out[f.k]=CHAT.out[f.k]||[]).push(m); saveChat(); renderChat();
-  await chatPush();
+function myState(){
+  const rec=S.mood[isoDay(new Date())], last=rec?.marks?.slice(-1)[0];
+  const c=cityOf(S.slug), f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours,Date.now())];
+  const b=lastOf("bp"), gl=lastOf("glu"), fresh=m=>m&&Date.now()-+new Date(m.t)<18*H;
+  const st={e:last?KIND[last.k].e:"🙂", l:last?`${KIND[last.k].l} · ${fmtHM(new Date(last.t))}`:"самочувствие не отмечено", city:c.name};
+  if(fresh(b)){ const cat=bpCat(b.sys,b.dia); st.bp=`${b.sys}/${b.dia}`; st.bpl=cat.l; st.bpc=cat.c; }
+  if(fresh(gl)) st.glu=fmtNum(gl.v);
+  if(h){ st.t=Math.round(h.temp); if(h.p!=null) st.p=Math.round(h.p*HPA2MM); }
+  const x=`Моё состояние: ${st.e} ${st.l}${st.bp?`, А/Д ${st.bp}`:""}${st.glu?`, сахар ${st.glu}`:""} · ${st.city}${st.t!=null?` ${st.t}°`:""}`;
+  return {x, c:st};
+}
+async function chatSend(text, card){
+  text=String(text||"").trim().slice(0,1000); if(!text) return;
+  const isG=String(CH_OPEN||"").startsWith("g:"), id=Date.now().toString(36)+Math.random().toString(36).slice(2,6), t=new Date().toISOString();
+  const payload={id,t,x:text}; if(card) payload.c=card;
+  if(isG){
+    const g=CH_OPEN.slice(2), G=CHAT.groups[g]; payload.g=g; payload.gm={name:G.name,members:G.members};
+    const to=G.members.filter(m=>m.k!==SH.key&&FR.list[m.k]?.s);
+    if(!to.length){ toast("В этом чате пока нет друзей, которым можно отправить сообщение."); return; }
+    for(const m of to){ try{ const box=await seal(FR.list[m.k],payload); (CHAT.out[m.k]=CHAT.out[m.k]||[]).push({id,t,x:text,g,st:"send",box}); }catch(e){} }
+    (CHAT.gout[g]=CHAT.gout[g]||[]).push({id,t,x:text,c:card,st:"send"});
+  } else {
+    const f=FR.list[CH_OPEN]; if(!f) return;
+    const m={id,t,x:text,st:"send"}; if(card) m.c=card;
+    try{ m.box=await seal(f,payload); }catch(e){ toast("Не получилось зашифровать сообщение."); return; }
+    (CHAT.out[f.k]=CHAT.out[f.k]||[]).push(m);
+  }
+  saveChat(); renderChat(); await chatPush();
 }
 async function chatPush(){
   const pend=Object.values(CHAT.out).flat().filter(m=>m.st!=="ok"); if(!pend.length) return;
-  try{ await chatUpload(); pend.forEach(m=>m.st="ok"); }catch(e){ pend.forEach(m=>m.st="err"); toast("Сообщение не отправилось — нет связи с Яндекс Диском. Нажмите «!», чтобы повторить."); }
-  saveChat(); if(CH_OPEN) renderChat();
+  const ids=new Set(pend.map(m=>m.id)), gp=Object.values(CHAT.gout).flat().filter(m=>ids.has(m.id));
+  try{ await chatUpload(); pend.forEach(m=>m.st="ok"); gp.forEach(m=>m.st="ok"); }
+  catch(e){ pend.forEach(m=>m.st="err"); gp.forEach(m=>m.st="err"); toast("Сообщение не отправилось — нет связи с Яндекс Диском. Нажмите «!», чтобы повторить."); }
+  saveChat(); if(CH_OPEN) renderChat(); if(TAB==="friends") renderFriendsPage();
 }
-function myStateText(){
-  const rec=S.mood[isoDay(new Date())]; const last=rec?.marks?.slice(-1)[0];
-  const c=cityOf(S.slug), f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours,Date.now())];
-  let t=last?`Моё состояние: ${KIND[last.k].e} ${KIND[last.k].l} (${fmtHM(new Date(last.t))})`:"Сегодня ещё не отмечал(а) самочувствие";
-  if(h&&h.p!=null) t+=` · ${c.name}: ${Math.round(h.temp)}°, давление ${Math.round(h.p*HPA2MM)} мм`;
-  return t;
+function myStateText(){ return myState().x; }
+function renderChatBadge(){
+  const n=chatUnreadAll(), b=$("cmChat");
+  if(b){ b.hidden=!Object.keys(FR.list).length; b.innerHTML=`💬${n?`<i>${n}</i>`:""}`; }
+  if($("navN")) $("navN").textContent=n?String(n):""; if($("fSegN")) $("fSegN").textContent=n?String(n):"";
 }
-function renderChatBadge(){ const n=chatUnreadAll(), b=$("cmChat"); if(!b) return; b.hidden=!Object.keys(FR.list).length; b.innerHTML=`💬${n?`<i>${n}</i>`:""}`; }
 $("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatSend(v); i.focus(); });
 $("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("chatSend").click(); } });
-$("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; chatSend(b.dataset.q==="__me"?myStateText():b.dataset.q); });
+$("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; if(b.dataset.q==="__me"){ const st=myState(); chatSend(st.x, st.c); } else chatSend(b.dataset.q); });
 $("chatList").addEventListener("click",e=>{ if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
-$("cmChat").addEventListener("click",()=>{ const fl=Object.values(FR.list); const withNew=fl.find(f=>chatUnread(f)); if(withNew) openChat(withNew.k); else if(fl.length===1) openChat(fl[0].k); else { openMoodSheet(); setTimeout(()=>$("friends").scrollIntoView({block:"start"}),400); } });
+$("cmChat").addEventListener("click",()=>showTab("friends","chats"));
+
+/* ---------- friends tab: people and chats ---------- */
+let FSEG="friends";
+const WXE={clear:"☀️",fair:"🌤",partly:"⛅",cloud:"☁️",rain:"🌧",snow:"🌨",thunder:"⛈",fog:"🌫"};
+function renderFriendsPage(){
+  document.querySelectorAll("#fSeg [data-fs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.fs===FSEG));
+  $("friends").hidden=FSEG!=="friends"; $("chats").hidden=FSEG!=="chats";
+  if(FSEG==="friends") renderFriends(); else renderChats();
+  renderChatBadge();
+}
+function threadLast(key){
+  if(key.startsWith("g:")){ const g=key.slice(2); const a=[...(CHAT.gout[g]||[]).map(m=>({...m,me:1})),...(CHAT.gin[g]||[])].sort((x,y)=>x.t<y.t?-1:1); return a[a.length-1]; }
+  const a=[...dmOut(key).map(m=>({...m,me:1})),...dmIn(key)].sort((x,y)=>x.t<y.t?-1:1); return a[a.length-1];
+}
+const shortWhen=t=>{ const d=new Date(t), dd=isoDay(d); return dd===isoDay(new Date())?fmtHM(d):dd===isoDay(new Date(Date.now()-DAY))?"вчера":fmtDM(d); };
+function renderChats(){
+  const rows=[];
+  for(const G of Object.values(CHAT.groups)){ const L=threadLast("g:"+G.id); rows.push({key:"g:"+G.id,t:L?.t||G.created||"",html:(()=>{ const un=groupUnread(G.id);
+    const prev=L?`${L.me?"Вы":esc(memberName(L.from,G.id))}: ${L.c?"📋 состояние":esc(L.x)}`:`${G.members.length} участника · напишите первым`;
+    return `<button class="cl" data-open="g:${esc(G.id)}"><span class="av grp">👥</span><span class="t"><span><b>${esc(G.name)}</b> <small>· ${G.members.length} уч.</small></span><span class="pv">${prev}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:""}</span></button>`; })()}); }
+  for(const f of Object.values(FR.list)){ const L=threadLast(f.k), un=chatUnread(f), today=f.data?.mood?.[isoDay(new Date())];
+    rows.push({key:f.k,t:L?.t||"",html:`<button class="cl" data-open="${esc(f.k)}"><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}${today?`<em>${today.e}</em>`:""}</span><span class="t"><b>${esc(f.name)}</b><span class="pv">${L?`${L.me?"Вы: ":""}${L.c?"📋 состояние":esc(L.x)}`:f.s?"Нет сообщений":"нужно новое приглашение для чата"}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:L&&L.me?(L.st==="ok"?"✓":""):""}</span></button>`}); }
+  rows.sort((a,b)=>(b.t||"").localeCompare(a.t||""));
+  let h=rows.length?`<div class="card" style="padding:2px 12px">${rows.map(r=>r.html).join("")}</div>`:`<div class="card hempty"><div style="font-size:38px">💬</div><div>Здесь будут переписки с друзьями. Пригласите друга кнопкой «＋ Пригласить».</div></div>`;
+  const ok=Object.values(FR.list).filter(f=>f.s).length;
+  h+=`<button class="card newg" data-newg ${ok<2?"disabled":""}>＋ Создать общий чат<small>${ok<2?"нужно хотя бы двое друзей с новым приглашением":"например, со всей семьёй"}</small></button>`;
+  $("chats").innerHTML=h;
+}
+$("chats").addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"); if(o){ const k=o.dataset.open; if(k.startsWith("g:")) openGroup(k.slice(2)); else openChat(k); return; }
+  if(e.target.closest("[data-newg]")){ openGroupSheet(); }
+});
+$("fSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-fs]"); if(!b) return; FSEG=b.dataset.fs; renderFriendsPage(); });
+$("frInvite").addEventListener("click",()=>{ if(SH.on) shareSend(); else { FSEG="friends"; renderFriendsPage(); setTimeout(()=>{ const i=$("shName"); if(i){ i.scrollIntoView({block:"center"}); i.focus(); } else toast("Сначала подключите Яндекс Диск."); },200); } });
+function openGroupSheet(){
+  const list=Object.values(FR.list).filter(f=>f.s);
+  $("grpList").innerHTML=list.map(f=>`<label class="gpick"><input type="checkbox" value="${esc(f.k)}" checked><span class="av" style="background:${colorOf(f.k)};width:34px;height:34px;font-size:14px">${esc((f.name||"?")[0].toUpperCase())}</span><span>${esc(f.name)}</span></label>`).join("");
+  $("grpName").value=""; showSheet("grpSheet"); setTimeout(()=>$("grpName").focus(),300);
+}
+$("grpCreate").addEventListener("click",()=>{
+  const name=($("grpName").value||"").trim().slice(0,40)||"Общий чат";
+  const ks=[...$("grpList").querySelectorAll("input:checked")].map(i=>i.value);
+  if(ks.length<1){ toast("Отметьте хотя бы одного друга."); return; }
+  const id="g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  CHAT.groups[id]={id,name,members:[{k:SH.key,n:SH.name||"Я"},...ks.map(k=>({k,n:FR.list[k].name}))],by:SH.key,created:new Date().toISOString()};
+  saveChat(); hideSheet(true); setTimeout(()=>{ openGroup(id); chatSend(`👋 Создал(а) общий чат «${name}»`); }, 350);
+});
 renderChatBadge();
 setInterval(()=>{ if(!document.hidden&&!CH_OPEN&&Object.values(FR.list).some(f=>f.s)) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 3*60*1000);
 setTimeout(()=>{ if(SH.on) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 4000);
@@ -3074,6 +3502,7 @@ if(LN){
     AppP.addListener("backButton", ()=>{
       if(!$("moodPop").hidden){ foldMoodPop(); return; }                                  // the question is open: fold it
       if(openSheet){ if(openSheet.id==="mapSheet") stopPlay(); hideSheet(); return; }   // a window is open: close it
+      if(TAB!=="today"){ showTab("today"); return; }
       const now=Date.now();
       if(now-lastBack<2000){ AppP.exitApp(); return; }                                    // second press: leave
       lastBack=now; toast("Нажмите «Назад» ещё раз, чтобы выйти");
