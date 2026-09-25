@@ -348,6 +348,20 @@ footer{padding-bottom:64px}
 .tgl .rsw{flex:none}
 .grid2.one{grid-template-columns:1fr}
 .grid2.one .gauge{max-width:240px;margin-inline:auto}
+/* never wider than the screen */
+html,body{overflow-x:hidden;max-width:100%}
+header{min-width:0}
+.citybtn{min-width:0;flex:0 1 auto}
+#city{max-width:36vw!important}
+.hright{flex:0 1 auto;min-width:0;gap:6px!important}
+.upd{min-width:0;overflow:hidden;text-overflow:ellipsis;max-width:24vw}
+.rstatus{max-width:24vw!important}
+.sheet{width:100%;box-sizing:border-box}
+.tgl label{min-width:0}
+.tgl label>span:first-child{min-width:0}
+@media (max-width:380px){.upd{display:none}}
+.grid2 .card>.label{padding-right:58px}
+.grid2.one .card>.label{padding-right:0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:40;background:var(--ink);color:#0d1726;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:500;max-width:calc(100% - 48px);transition:all .3s;pointer-events:none}
 .toast.show{transform:translate(-50%,0);opacity:1}
 [hidden]{display:none!important}
