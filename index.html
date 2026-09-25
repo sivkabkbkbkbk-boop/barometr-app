@@ -240,6 +240,11 @@ footer a{color:var(--muted)}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
+.rmap .tiles img:not(.osm){filter:sepia(1) hue-rotate(175deg) saturate(2.2) brightness(1.35)}
+.rmap canvas.lab{z-index:2}
+.rmap .pin{z-index:3}
+.rmap .pin::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(127,214,200,.8);animation:pinPulse 2.2s ease-out infinite}
+@keyframes pinPulse{from{transform:scale(.4);opacity:1}to{transform:scale(1.6);opacity:0}}
 .rmap .tiles img.osm{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6)!important}
 .rmap .labels{z-index:1}
 .rmap .pin{z-index:1}
@@ -247,10 +252,10 @@ footer a{color:var(--muted)}
 .rmap .pin{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#eef3f8;border:3px solid #0d1726;box-shadow:0 0 0 2px rgba(238,243,248,.5);pointer-events:none}
 .rmap .pin::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1.5px solid rgba(238,243,248,.5);animation:ping 2s ease-out infinite}
 @keyframes ping{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
-.rmap .attr{z-index:2;position:absolute;right:6px;bottom:4px;font-size:9px;color:rgba(238,243,248,.55);pointer-events:none}
-.rmap .rstat{z-index:2;position:absolute;left:8px;top:8px;font-size:11px;color:var(--muted);background:rgba(13,23,38,.7);border-radius:8px;padding:3px 7px;pointer-events:none}
-.mapx{position:absolute;right:8px;top:8px;z-index:2;width:34px;height:34px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(13,23,38,.75);color:var(--ink);font-size:17px;cursor:pointer}
-.zbtns{position:absolute;right:8px;top:8px;z-index:2;display:flex;flex-direction:column;gap:6px}
+.rmap .attr{z-index:4;position:absolute;right:6px;bottom:4px;font-size:9px;color:rgba(238,243,248,.55);pointer-events:none}
+.rmap .rstat{z-index:4;position:absolute;left:8px;top:8px;font-size:11px;color:var(--muted);background:rgba(13,23,38,.7);border-radius:8px;padding:3px 7px;pointer-events:none}
+.mapx{position:absolute;right:8px;top:8px;z-index:2;width:34px;height:34px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(13,23,38,.75);color:var(--ink);font-size:17px;cursor:pointer;z-index:4}
+.zbtns{position:absolute;right:8px;top:8px;z-index:4;display:flex;flex-direction:column;gap:6px}
 .zbtns button{width:38px;height:38px;border-radius:10px;border:1px solid var(--glass-line);background:rgba(13,23,38,.8);color:var(--ink);font-size:18px;cursor:pointer}
 .rctl{display:flex;align-items:center;gap:10px;margin-top:10px}
 .rplay{width:36px;height:36px;flex:none;border-radius:50%;border:1px solid var(--glass-line);background:rgba(238,243,248,.08);color:var(--ink);font-size:13px;cursor:pointer}
@@ -360,6 +365,42 @@ header{min-width:0}
 .tgl label{min-width:0}
 .tgl label>span:first-child{min-width:0}
 @media (max-width:380px){.upd{display:none}}
+/* mood card on the main screen */
+.mchead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mchead .mlink{margin:0;padding:0}
+#cardMood .mtoday{margin-top:8px}
+#cardMood .mtoday:empty{display:none}
+/* 5-day strip is tappable */
+.d5 .dd{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
+.d5 .dd:active{background:rgba(238,243,248,.12)}
+.d5hint{font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px}
+/* day sheet */
+.dsum{display:flex;align-items:center;gap:12px;background:var(--sheet-2);border-radius:16px;padding:12px 14px}
+.dsum svg{width:56px;height:56px;flex:none}
+.dsum .dt{font-family:var(--f-mono);font-size:26px;font-weight:500;line-height:1}
+.dsum .dt small{font-size:15px;color:var(--muted)}
+.dsum .dc{font-size:14px;margin-top:4px}
+.dsum .dp{font-size:12px;color:var(--rain);margin-top:2px}
+.parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.part{background:var(--sheet-2);border-radius:14px;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.part.past{opacity:.45}
+.part .pn{font-size:11px;color:var(--muted);font-weight:600}
+.part svg{width:34px;height:34px}
+.part .pt{font-family:var(--f-mono);font-size:15px;font-weight:500}
+.part .pc{font-size:10.5px;color:var(--muted);line-height:1.15;min-height:2.3em;display:flex;align-items:center}
+.part .pr{font-size:11px;color:var(--rain);font-family:var(--f-mono)}
+.part .pr.dry{color:var(--muted);opacity:.6}
+.prow{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr));gap:6px 6px;align-items:center;background:var(--sheet-2);border-radius:14px;padding:10px 8px;font-size:12px}
+.prow .h{color:var(--muted);font-size:11px;white-space:nowrap}
+.prow .v{font-family:var(--f-mono);text-align:center;font-size:12px}
+.prow .v small{color:var(--muted);font-size:10px}
+.dnote{background:var(--sheet-2);border-radius:14px;padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:6px}
+.dnote .w{color:var(--kp-mid)}
+.dchart{background:var(--sheet-2);border-radius:16px;padding:8px 6px 4px}
+.dchart svg{display:block;width:100%;height:auto}
+.dchart .ct{font-size:11px;color:var(--muted);padding:0 6px 2px;display:flex;justify-content:space-between}
+/* settings sheet */
+#setSheet .ctitle:first-child{margin-top:0}
 .sbody>*{flex-shrink:0}
 .tab,.chip{line-height:1.25}
 #rmapBig,.sheet .rmap{touch-action:none}
@@ -389,7 +430,7 @@ header{min-width:0}
     <div class="hright">
       <div class="upd" id="upd">—</div>
       <div class="rstatus" id="rstatus" hidden></div>
-      <button class="gear" id="gearBtn" aria-label="Что показывать на главном экране"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="7" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="10" cy="17" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+      <button class="gear" id="gearBtn" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="7" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="10" cy="17" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
       <button class="refresh" id="refreshBtn" data-state="idle" aria-label="Обновить данные">
         <svg viewBox="0 0 32 32" aria-hidden="true">
           <circle class="track" cx="16" cy="16" r="13"/>
@@ -413,7 +454,13 @@ header{min-width:0}
   </section>
 
 
-  <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div></section>
+  <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
+    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><button class="mlink" id="cmOpen">дневник ›</button></div>
+    <div class="kgrid" id="kgMain"></div>
+    <div class="mtoday" id="mtMain"></div>
+  </section>
+
+  <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div><div class="d5hint">нажмите на день — подробный прогноз</div></section>
 
   <div class="grid2" id="grid2">
     <section class="card fade tap" id="cardPress" style="animation-delay:.08s" role="button" tabindex="0" data-metric="press" aria-label="Давление: открыть историю">
@@ -508,7 +555,7 @@ header{min-width:0}
       <label class="rsw"><input type="checkbox" id="remOn"><span class="knob" aria-hidden="true"></span>🔔 Напоминать в шторке в</label>
       <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
     </div>
-    <div class="ysync" id="ysync"></div>
+    <div class="src">Синхронизация с Яндекс Диском — в настройках (кнопка ⚙ вверху экрана).</div>
     <div class="ctitle">Друзья</div>
     <div class="friends" id="friends"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
@@ -543,10 +590,29 @@ header{min-width:0}
 <section class="sheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setTitle" hidden>
   <div class="grab"></div>
   <div class="shead">
-    <div><h2 id="setTitle">Главный экран</h2><div class="sc">Что показывать</div></div>
+    <div><h2 id="setTitle">Настройки</h2></div>
     <button class="xbtn" data-close aria-label="Закрыть">×</button>
   </div>
-  <div class="sbody"><div class="tgl" id="tglList"></div></div>
+  <div class="sbody">
+    <div class="ctitle">Главный экран · что показывать</div>
+    <div class="tgl" id="tglList"></div>
+    <div class="ctitle">Синхронизация и резервная копия</div>
+    <div class="ysync" id="ysync"></div>
+    <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+  </div>
+</section>
+
+<section class="sheet" id="daySheet" role="dialog" aria-modal="true" aria-labelledby="dayTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="dayTitle">Прогноз</h2><div class="sc" id="daySub"></div></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody">
+    <div class="tabs" role="tablist" id="dayTabs"></div>
+    <div id="dayBody" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="src">Прогноз модели Open-Meteo для координат города. Утро — 6–12 ч, день — 12–18 ч, вечер — 18–24 ч, ночь — 0–6 ч.</div>
+  </div>
 </section>
 
 <section class="sheet" id="cities" role="dialog" aria-modal="true" aria-labelledby="cityTitle" hidden>
@@ -1399,9 +1465,57 @@ function paintField(fld){
     } }
   ctx.putImageData(img,0,0);
 }
+/* Russian map labels: the base map has none of its own, so names are drawn here */
+const MAP_TOWNS="Таллин|59.44|24.75|8;Рига|56.95|24.11|8;Хельсинки|60.17|24.94|8;Вильнюс|54.69|25.28|8;Киев|50.45|30.52|8;Варшава|52.23|21.01|8;Стокгольм|59.33|18.07|8;Тарту|58.38|26.72|140;Нарва|59.38|28.19|150;Даугавпилс|55.87|26.54|150;Каунас|54.90|23.90|120;Пярну|58.39|24.50|200;Котка|60.47|26.95|220;Лаппеэнранта|61.06|28.19|200;Турку|60.45|22.27|150;Тампере|61.50|23.76|120;Полоцк|55.49|28.79|220;Орша|54.51|30.41|220;Резекне|56.51|27.33|240;Харьков|49.99|36.23|40;Валдай|57.98|33.24|330;Чудово|59.12|31.66|340;Малая Вишера|58.85|32.22|345;Окуловка|58.39|33.29|345;Пестово|58.60|35.80|350;Сольцы|58.12|30.32|350;Шимск|58.21|30.72|360;Холм|57.15|31.18|370;Демянск|57.64|32.47|370;Крестцы|58.25|32.52|365;Любытино|58.81|33.39|380;Хвойная|58.90|34.54|380;Парфино|57.98|31.66|390;Батецкий|58.64|30.31|390;Поддорье|57.47|31.12|400;Марёво|57.30|32.10|400;Мошенское|58.51|34.61|400;Луга|58.74|29.85|335;Кингисепп|59.37|28.61|335;Волхов|59.92|32.34|335;Лодейное Поле|60.73|33.55|350;Пикалёво|59.51|34.18|360;Бокситогорск|59.47|33.85|365;Кировск|59.88|30.99|360;Тосно|59.54|30.88|345;Любань|59.35|31.25|380;Приозерск|61.03|30.12|350;Сланцы|59.12|28.09|355;Порхов|57.77|29.56|350;Дно|57.83|29.96|360;Остров|57.34|28.35|350;Опочка|56.71|28.66|360;Невель|56.02|29.93|360;Печоры|57.81|27.61|365;Гдов|58.74|27.82|370;Новоржев|57.03|29.33|390;Локня|56.83|30.15|395;Бологое|57.88|34.05|340;Осташков|57.15|33.10|345;Кашин|57.36|37.61|360;Кимры|56.87|37.36|345;Бежецк|57.79|36.69|350;Нелидово|56.22|32.78|360;Удомля|57.88|35.01|355;Лихославль|57.13|35.47|370;Андреаполь|56.65|32.26|385;Весьегонск|58.66|37.26|385;Устюжна|58.84|36.43|370;Бабаево|59.39|35.94|370;Сокол|59.46|40.12|350;Белозерск|60.03|37.79|360;Кириллов|59.86|38.38|365;Великий Устюг|60.76|46.30|340;Тотьма|59.97|42.76|370;Олонец|60.98|32.97|365;Медвежьегорск|62.91|34.46|360;Пудож|61.80|36.53|375";
+const MAP_WATER="оз. Ильмень|58.27|31.30;Ладожское озеро|60.85|31.60;Онежское озеро|61.70|35.40;Чудское озеро|58.70|27.45;Финский залив|60.05|26.60;Балтийское море|57.80|19.80;Рижский залив|57.60|23.50;Рыбинское вдхр.|58.40|38.40;оз. Селигер|57.22|33.05;Белое озеро|60.18|37.63;Белое море|65.60|37.00;Баренцево море|71.00|40.00;Азовское море|46.00|36.50;Чёрное море|43.40|34.00;Каспийское море|42.50|50.50;оз. Байкал|53.50|108.00;Ботнический залив|62.50|20.50;Горьковское вдхр.|57.20|42.70;Куйбышевское вдхр.|54.90|48.90;Волгоградское вдхр.|50.00|45.60";
+const MAP_LABELS=(()=>{
+  const out=[], seen=new Set();
+  const add=(n,la,lo,r,w)=>{ const k=n+"|"+Math.round(la*10); if(seen.has(k)) return; seen.add(k); out.push({n,la,lo,r,w}); };
+  MAP_TOWNS.split(";").forEach(x=>{const [n,la,lo,r]=x.split("|"); if(r<100) add(n,+la,+lo,+r);});
+  PRESETS.forEach(([n,la,lo],i)=>add(n.replace(/ \(.*\)$/,""),la,lo,i));
+  MAP_TOWNS.split(";").forEach(x=>{const [n,la,lo,r]=x.split("|"); if(r>=100) add(n,+la,+lo,+r);});
+  MAP_WATER.split(";").forEach(x=>{const [n,la,lo]=x.split("|"); out.push({n,la:+la,lo:+lo,r:90,w:1});});
+  return out.sort((a,b)=>a.r-b.r);
+})();
+function drawMapLabels(ctx, w, h, z, x0, y0, home){
+  ctx.clearRect(0,0,w,h);
+  const boxes=[], hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
+  boxes.push([w-48,0,48,130],[w-120,h-16,120,16],[0,0,175,28]);                         // expand button, attribution
+  const limit = z<=5?45 : z===6?180 : 1e9;
+  const list=[];
+  if(home) list.push({n:home.name,la:home.lat,lo:home.lon,r:-1,home:true});
+  for(const c of Object.values(S.cities||{})) if(!home||c.lat!==home.lat||c.lon!==home.lon) list.push({n:c.name,la:c.lat,lo:c.lon,r:0});
+  list.push(...MAP_LABELS);
+  ctx.lineJoin="round"; ctx.textBaseline="middle";
+  const near=[];
+  for(const L of list){
+    if(L.r>limit) continue;
+    const x=lon2x(L.lo,z)-x0, y=lat2y(L.la,z)-y0; if(x<-60||y<-20||x>w+60||y>h+20) continue;
+    if(near.some(q=>Math.abs(q[0]-x)<3&&Math.abs(q[1]-y)<3)) continue;
+    const big=L.r<25, mid=L.r<150;
+    const font = L.w ? `italic 500 ${z>=7?11:10}px Onest, system-ui, sans-serif` : L.home ? "700 13px Onest, system-ui, sans-serif" : big ? "600 12px Onest, system-ui, sans-serif" : mid ? "500 11px Onest, system-ui, sans-serif" : "400 10.5px Onest, system-ui, sans-serif";
+    ctx.font=font; const tw=ctx.measureText(L.n).width, th=L.home?15:13;
+    let box=null, tx, align;
+    if(L.w){ box=[x-tw/2-2,y-th/2,tw+4,th]; tx=x; align="center"; if(hit(box)) continue; }
+    else {
+      const dot=[x-3,y-3,6,6];
+      const cand=L.home?[[x+11,y-th/2,"left"],[x-11-tw,y-th/2,"right"],[x-tw/2,y+10,"c-down"]]:[[x+5,y-th/2,"left"],[x-5-tw,y-th/2,"right"],[x-tw/2,y-th-4,"c-up"]];
+      for(const [bx,by,al] of cand){ const b=[bx-1,by,tw+2,th]; if(!hit(b)&&(L.home||!hit(dot))){ box=b; tx=al==="left"?bx:al==="right"?bx+tw:bx+tw/2; align=al; break; } }
+      if(!box) continue;
+      boxes.push(dot); near.push([x,y]);
+      if(!L.home){ ctx.fillStyle=big?"#eef3f8":"#c9d6e4"; ctx.strokeStyle="rgba(8,14,24,.9)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,big?3:2.2,0,6.283); ctx.fill(); ctx.stroke(); }
+    }
+    boxes.push(box);
+    ctx.textAlign = align==="left"?"left":align==="right"?"right":"center";
+    const ty=box[1]+th/2+.5;
+    ctx.font=font; ctx.strokeStyle="rgba(8,14,24,.85)"; ctx.lineWidth=3.2; ctx.strokeText(L.n,tx,ty);
+    ctx.fillStyle = L.w ? "#8ec3f0" : L.home ? "#ffffff" : big ? "#eef3f8" : mid ? "#d9e3ee" : "#b8c6d6";
+    ctx.fillText(L.n,tx,ty);
+  }
+}
 /* tiny slippy map (no library); tiles from Esri, OpenStreetMap if Esri is unreachable */
 const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null};
-function tilesToOsm(){ if(TILES.osm) return; TILES.osm=true; store.set("tiles","osm"); RAD.maps.forEach(mm=>{ mm.pool.forEach(i=>i.remove()); mm.pool.clear(); mm.lpool.forEach(i=>i.remove()); mm.lpool.clear(); mm.el.querySelector(".attr").textContent="© OpenStreetMap"; mm.draw(); }); }
+function tilesToOsm(){ if(TILES.osm) return; TILES.osm=true; store.set("tiles","osm"); RAD.maps.forEach(mm=>{ mm.pool.forEach(i=>i.remove()); mm.pool.clear(); mm.lpool.forEach(i=>i.remove()); mm.lpool.clear(); mm.el.querySelector(".attr").textContent="© OpenStreetMap"; mm.relabel(); mm.draw(); }); }
 const lon2x=(lo,z)=>(lo+180)/360*256*2**z, lat2y=(la,z)=>{const r=la*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*2**z;};
 function MiniMap(el, interactive){
   const tiles=document.createElement("div"); tiles.className="tiles"; el.prepend(tiles);
@@ -1409,8 +1523,9 @@ function MiniMap(el, interactive){
   const pin=document.createElement("div"); pin.className="pin"; el.appendChild(pin);
   const st=document.createElement("div"); st.className="rstat"; el.appendChild(st);
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
-  const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, HERE, Garmin, © OpenStreetMap"; el.appendChild(at);
-  const m={el,center:null,z:7,pool:new Map(),lpool:new Map(),home:null};
+  const lab=document.createElement("canvas"); lab.className="lab"; el.appendChild(lab); let labKey="";
+  const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
+  const m={el,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,relabel:()=>{labKey="";}};
   const ESRI="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
   m.setHome=(lat,lon)=>{ m.home=[lat,lon]; m.center=[lat,lon]; m.draw(); };
   m.draw=()=>{
@@ -1423,7 +1538,7 @@ function MiniMap(el, interactive){
       const tf=`translate(${Math.round(tx*256-x0)}px,${Math.round(ty*256-y0)}px)`;
       for(const [pool,box,layer] of [[m.pool,tiles,"World_Dark_Gray_Base"],[m.lpool,labels,"World_Dark_Gray_Reference"]]){
         let img=pool.get(key+"@"+tx);
-        if(TILES.osm && layer.endsWith("Reference")) continue;
+        if(layer.endsWith("Reference")) continue;             // English names: replaced by our own Russian labels
         if(!img){ img=new Image(); img.alt=""; img.decoding="async";
           img.onerror=()=>{ img.style.visibility="hidden"; if(!TILES.osm && ++TILES.fails>=3) tilesToOsm(); };
           img.onload=()=>{ TILES.ok++; };
@@ -1446,6 +1561,11 @@ function MiniMap(el, interactive){
       ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; ctx.filter="blur(6px)";
       ctx.drawImage(FIELD,X0,Y0,X1-X0,Y1-Y0); ctx.filter="none";
     }
+    // Russian labels (OpenStreetMap tiles already carry local names)
+    const lk=[w,h,z,Math.round(x0),Math.round(y0),TILES.osm,Object.keys(S.cities||{}).length].join(",");
+    if(lk!==labKey){ labKey=lk; if(lab.width!==w*dpr||lab.height!==h*dpr){ lab.width=w*dpr; lab.height=h*dpr; }
+      const lc=lab.getContext("2d"); lc.setTransform(dpr,0,0,dpr,0,0);
+      if(TILES.osm) lc.clearRect(0,0,w,h); else drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
     const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i]; st.textContent= v>=0.1?`над городом: ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо"; }
   };
   if(interactive){
@@ -1513,12 +1633,97 @@ function render5(){
     const wet=hs.filter(h=>new Date(h.t).getHours()>=8&&new Date(h.t).getHours()<=21).reduce((a,h)=>(h.pr||0)>(a?.pr||0)?h:a,null);
     const sym=(wet&&wet.pr>=0.3?wet.sym:noon.sym).replace("_night","_day");
     const dn=i===0?"сегодня":i===1?"завтра":new Intl.DateTimeFormat("ru-RU",{weekday:"short"}).format(new Date(d+"T12:00:00"));
-    out.push(`<div class="dd${d===today?" today":""}"><span class="dn">${dn}</span>${icon(sym)}<span class="tx">${Math.round(tx)}°</span><span class="tn">${Math.round(tn)}°</span><span class="pr">${pr>=0.5?pr.toFixed(0)+" мм":""}</span></div>`);
+    out.push(`<div class="dd${d===today?" today":""}" data-day="${d}" role="button" tabindex="0" aria-label="Подробный прогноз: ${dn}"><span class="dn">${dn}</span>${icon(sym)}<span class="tx">${Math.round(tx)}°</span><span class="tn">${Math.round(tn)}°</span><span class="pr">${pr>=0.5?pr.toFixed(0)+" мм":""}</span></div>`);
   }
   box.innerHTML=out.join("");
 }
+/* ---------- one day in detail: night / morning / day / evening ---------- */
+const PARTS=[["Ночь",0,6],["Утро",6,12],["День",12,18],["Вечер",18,24]];
+const DS={day:null};
+function dayHours(d){ const f=S.feed[S.slug]; return f&&f.hours ? f.hours.filter(h=>isoDay(new Date(h.t))===d) : []; }
+function pickSym(hs, mid){
+  const wet=hs.reduce((a,h)=>(h.pr||0)>(a?.pr||0)?h:a,null);
+  if(wet&&wet.pr>=0.3) return wet.sym;
+  return hs.reduce((a,h)=>Math.abs(new Date(h.t).getHours()-mid)<Math.abs(new Date(a.t).getHours()-mid)?h:a).sym;
+}
+const dAvg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const toMM=p=>p!=null?p*HPA2MM:null;
+function dayLabel(d){
+  const today=isoDay(new Date()), tm=isoDay(new Date(Date.now()+DAY));
+  const wd=new Intl.DateTimeFormat("ru-RU",{weekday:"long"}).format(new Date(d+"T12:00:00"));
+  const dm=new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"long"}).format(new Date(d+"T12:00:00"));
+  return {title:(d===today?"Сегодня":d===tm?"Завтра":wd[0].toUpperCase()+wd.slice(1)), sub:(d===today||d===tm?wd+", ":"")+dm};
+}
+function lineChart(pts, opt){
+  // pts: [{x:0..24, y}]; returns svg path strings
+  const W=360,Hh=opt.h,L=30,R=10,T=20,B=18, iw=W-L-R, ih=Hh-T-B;
+  const ys=pts.map(p=>p.y); let lo=Math.min(...ys), hi=Math.max(...ys); const pad=Math.max(opt.minSpan/2-(hi-lo)/2,0); lo-=pad; hi+=pad; if(hi===lo){hi+=1;lo-=1;}
+  const X=x=>L+x/24*iw, Y=y=>T+(1-(y-lo)/(hi-lo))*ih;
+  let g="";
+  for(const v of [lo,(lo+hi)/2,hi]) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(238,243,248,.08)"/><text x="${L-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9.5" fill="#9fb1c5" font-family="JetBrains Mono,monospace">${Math.round(v)}</text>`;
+  for(const h of [0,6,12,18]) g+=`<text x="${X(h)}" y="${Hh-4}" text-anchor="middle" font-size="9.5" fill="#9fb1c5" font-family="JetBrains Mono,monospace">${String(h%24).padStart(2,"0")}:00</text>`;
+  if(opt.bars){ const bm=Math.max(1,...opt.bars.map(b=>b.v)); for(const b of opt.bars) if(b.v>0){ const bh=Math.max(2,b.v/bm*ih*.55); g+=`<rect x="${X(b.x)+1}" y="${T+ih-bh}" width="${iw/24-2}" height="${bh}" rx="2" fill="#78adff" opacity=".55"/>`; } }
+  const d=pts.map((p,i)=>`${i?"L":"M"}${X(p.x+.5).toFixed(1)} ${Y(p.y).toFixed(1)}`).join(" ");
+  const area=d+` L${X(pts[pts.length-1].x+.5).toFixed(1)} ${T+ih} L${X(pts[0].x+.5).toFixed(1)} ${T+ih} Z`;
+  g+=`<path d="${area}" fill="${opt.color}" opacity=".12"/><path d="${d}" fill="none" stroke="${opt.color}" stroke-width="2" stroke-linejoin="round"/>`;
+  if(opt.now!=null) g+=`<line x1="${X(opt.now)}" x2="${X(opt.now)}" y1="${T}" y2="${T+ih}" stroke="#eef3f8" stroke-dasharray="3 3" opacity=".5"/>`;
+  const iMax=ys.indexOf(Math.max(...ys)), iMin=ys.indexOf(Math.min(...ys));
+  for(const i of new Set([iMax,iMin])) g+=`<circle cx="${X(pts[i].x+.5)}" cy="${Y(pts[i].y)}" r="3" fill="${opt.color}"/><text x="${Math.min(W-R-12,Math.max(L+12,X(pts[i].x+.5)))}" y="${Y(pts[i].y)-7}" text-anchor="middle" font-size="10" fill="#eef3f8" font-family="JetBrains Mono,monospace">${opt.fmt(pts[i].y)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${Hh}" aria-hidden="true">${g}</svg>`;
+}
+function renderDay(d){
+  DS.day=d;
+  const hs=dayHours(d); const L=dayLabel(d);
+  $("dayTitle").textContent=L.title; $("daySub").textContent=`${cityOf(S.slug).name} · ${L.sub}`;
+  // tabs for the 5 days
+  const days=[...$("d5").querySelectorAll("[data-day]")].map(e=>e.dataset.day);
+  $("dayTabs").innerHTML=days.map(x=>`<button class="tab" role="tab" data-dday="${x}" aria-selected="${x===d}">${(()=>{const l=dayLabel(x);return l.title==="Сегодня"||l.title==="Завтра"?l.title:new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric"}).format(new Date(x+"T12:00:00"));})()}</button>`).join("");
+  const box=$("dayBody");
+  if(hs.length<6){ box.innerHTML=`<div class="dnote">Для этого дня прогноза пока нет. Обновите данные (потяните экран вниз).</div>`; return; }
+  const T=hs.map(h=>h.temp), pr=hs.reduce((a,h)=>a+(h.pr||0),0), wetH=hs.filter(h=>h.pr>=0.1).length;
+  const sym=pickSym(hs.filter(h=>{const k=new Date(h.t).getHours();return k>=8&&k<=21;}).length?hs.filter(h=>{const k=new Date(h.t).getHours();return k>=8&&k<=21;}):hs,13).replace("_night","_day");
+  const now=Date.now(), nowH=d===isoDay(new Date())?new Date().getHours()+new Date().getMinutes()/60:null;
+  let h=`<div class="dsum">${icon(sym)}<div><div class="dt">${Math.round(Math.max(...T))}°<small> / ${Math.round(Math.min(...T))}°</small></div><div class="dc">${cond(sym).text}</div><div class="dp">${pr>=0.1?`осадки ${pr.toFixed(1).replace(".",",")} мм · ${wetH} ч`:"без осадков"}</div></div></div>`;
+  // four parts of the day
+  const P=PARTS.map(([name,a,b])=>{
+    const ph=hs.filter(x=>{const k=new Date(x.t).getHours();return k>=a&&k<b;}); if(!ph.length) return null;
+    const ps=ph.map(x=>toMM(x.p)).filter(v=>v!=null);
+    const mid=ph[Math.floor(ph.length/2)];
+    return {name, past:+new Date(d+"T00:00:00")+b*H<=now, sym:pickSym(ph,(a+b)/2), tmin:Math.min(...ph.map(x=>x.temp)), tmax:Math.max(...ph.map(x=>x.temp)),
+      pr:ph.reduce((x,y)=>x+(y.pr||0),0), p:ps.length?dAvg(ps):null, wind:Math.max(...ph.map(x=>x.wind||0)), wdir:mid.wdir, hum:dAvg(ph.map(x=>x.hum||0))};
+  });
+  h+=`<div class="parts">`+P.map(x=>!x?"":`<div class="part${x.past?" past":""}"><span class="pn">${x.name}</span>${icon(x.sym)}<span class="pt">${Math.round(x.tmax)===Math.round(x.tmin)?Math.round(x.tmax)+"°":Math.round(x.tmin)+"…"+Math.round(x.tmax)+"°"}</span><span class="pc">${cond(x.sym).text}</span><span class="pr${x.pr>=0.1?"":" dry"}">${x.pr>=0.1?x.pr.toFixed(1).replace(".",",")+" мм":"сухо"}</span></div>`).join("")+`</div>`;
+  const cell=(v,u)=>`<span class="v">${v}${u?`<small> ${u}</small>`:""}</span>`;
+  h+=`<div class="prow"><span class="h"></span>${P.map(x=>`<span class="h" style="text-align:center">${x?x.name:""}</span>`).join("")}
+    <span class="h">Давление</span>${P.map(x=>cell(x&&x.p!=null?Math.round(x.p):"—")).join("")}
+    <span class="h">Ветер, м/с</span>${P.map(x=>cell(x?Math.round(x.wind):"—",x?windDir(x.wdir):"")).join("")}
+    <span class="h">Влажность</span>${P.map(x=>cell(x?Math.round(x.hum)+"%":"—")).join("")}</div>`;
+  // what it means for wellbeing: pressure swing and geomagnetic forecast
+  const pp=hs.map(x=>toMM(x.p)).filter(v=>v!=null), notes=[];
+  if(pp.length>=6){
+    const dP=pp[pp.length-1]-pp[0]; let maxJ=0; for(let i=3;i<pp.length;i++) maxJ=Math.max(maxJ,Math.abs(pp[i]-pp[i-3]));
+    const word=Math.abs(dP)<1.5?"почти не меняется":dP>0?`растёт на ${Math.abs(dP).toFixed(0)} мм`:`падает на ${Math.abs(dP).toFixed(0)} мм`;
+    notes.push(`🧭 Давление ${Math.round(Math.min(...pp))}–${Math.round(Math.max(...pp))} мм рт. ст., за день ${word}.`);
+    if(maxJ>=3||Math.abs(dP)>=6) notes.push(`<span class="w">⚠️ Заметный перепад давления${maxJ>=3?` (до ${maxJ.toFixed(0)} мм за 3 часа)`:""} — метеозависимым стоит поберечься.</span>`);
+  }
+  const kp=(S.kpFc||[]).filter(x=>isoDay(new Date(x.t))===d).map(x=>x.kp);
+  if(kp.length){ const k=Math.max(...kp); notes.push(k>=5?`<span class="w">🧲 Магнитная буря: Kp до ${k.toFixed(0)}.</span>`:k>=4?`🧲 Геомагнитный фон неспокойный: Kp до ${k.toFixed(0)}.`:`🧲 Геомагнитный фон спокойный (Kp до ${k.toFixed(0)}).`); }
+  const tMax=Math.max(...T), tMin=Math.min(...T);
+  if(tMax-tMin>=10) notes.push(`🌡 Большая разница температур за день: ${Math.round(tMax-tMin)}°.`);
+  if(notes.length) h+=`<div class="dnote">${notes.map(n=>`<div>${n}</div>`).join("")}</div>`;
+  // charts
+  const X=x=>new Date(x.t).getHours();
+  h+=`<div class="dchart"><div class="ct"><span>Температура и осадки по часам</span><span>°C · мм</span></div>${lineChart(hs.map(x=>({x:X(x),y:x.temp})),{h:150,minSpan:6,color:"#ffb86b",fmt:v=>Math.round(v)+"°",bars:hs.map(x=>({x:X(x),v:x.pr||0})),now:nowH})}</div>`;
+  if(pp.length>=6) h+=`<div class="dchart"><div class="ct"><span>Давление по часам</span><span>мм рт. ст.</span></div>${lineChart(hs.filter(x=>x.p!=null).map(x=>({x:X(x),y:toMM(x.p)})),{h:120,minSpan:6,color:"#7fd6c8",fmt:v=>v.toFixed(0),now:nowH})}</div>`;
+  box.innerHTML=h;
+}
+function openDay(d){ renderDay(d); showSheet("daySheet"); const b=$("daySheet").querySelector(".sbody"); if(b) b.scrollTop=0; }
+$("d5").addEventListener("click",e=>{ const x=e.target.closest("[data-day]"); if(x) openDay(x.dataset.day); });
+$("d5").addEventListener("keydown",e=>{ if(e.key!=="Enter"&&e.key!==" ") return; const x=e.target.closest("[data-day]"); if(x){ e.preventDefault(); openDay(x.dataset.day); } });
+$("dayTabs").addEventListener("click",e=>{ const b=e.target.closest("[data-dday]"); if(b) renderDay(b.dataset.dday); });
 /* ---------- which cards are on the main screen ---------- */
 const CARDS=[
+  ["cardMood","Самочувствие","смайлики для быстрой отметки"],
   ["card5","Прогноз на 5 дней","температура и осадки по дням"],
   ["cardPress","Давление","стрелочный барометр и тенденция"],
   ["cardKp","Геомагнитный фон","индекс Kp и магнитные бури"],
@@ -1530,12 +1735,13 @@ function applyLayout(){
   for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
   const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
   $("grid2").hidden=!n; $("grid2").classList.toggle("one", n===1);
+  if(LAYOUT.cardMood) $("moodChip").hidden=true; else if($("moodPop").hidden && typeof renderMood==="function" && window.KIND_READY) $("moodChip").hidden=false;
 }
 function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-$("gearBtn").addEventListener("click",()=>{ renderToggles(); showSheet("setSheet"); });
+$("gearBtn").addEventListener("click",()=>{ renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
 /* ---------- refresh: straight from the sources ---------- */
@@ -1634,15 +1840,18 @@ function renderMood(){
   const today=isoDay(new Date()), rec=S.mood[today];
   const grid=$("mbtns");
   if(!grid.children.length) grid.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("");
+  const kg=$("kgMain"); if(!kg.children.length) kg.innerHTML=grid.innerHTML;
+  window.KIND_READY=true;
   const list=rec?rec.marks:[];
   $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
+  $("mtMain").innerHTML = $("mtoday").innerHTML;
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
   const chip=$("moodChip"), last=list[list.length-1];
   $("moodChipE").textContent = last ? KIND[last.k].e : "🙂";
   chip.classList.toggle("ask", !rec);
   chip.setAttribute("aria-label", last ? `Последняя отметка: ${KIND[last.k].l}. Добавить отметку` : "Отметить самочувствие");
-  if($("moodPop").hidden) chip.hidden=false;
+  if($("moodPop").hidden) chip.hidden=!!LAYOUT.cardMood;
 }
 /* the question pops up; after a tap it folds into the round chip in the corner */
 function showMoodPop(){
@@ -1672,6 +1881,15 @@ $("mbtns").addEventListener("click",e=>{
   setTimeout(()=>{ b.classList.remove("pop"); foldMoodPop(); }, 420);
 });
 $("mtoday").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b) removeMark(b.dataset.rm); });
+$("mtMain").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b) removeMark(b.dataset.rm); });
+$("kgMain").addEventListener("click",e=>{
+  const b=e.target.closest(".kbtn"); if(!b) return;
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  addMark(b.dataset.k);
+  toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
+  setTimeout(()=>b.classList.remove("pop"), 600);
+});
+$("cmOpen").addEventListener("click",()=>openMoodSheet());
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>showMoodPop());
@@ -2219,7 +2437,7 @@ render();
   if(Y.token) setTimeout(()=>ySync(false), 1500);
   scheduleReminders();
   renderMood();
-  if(!S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
+  if(!LAYOUT.cardMood && !S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
 })();
 setInterval(render, 10*60*1000);
 setInterval(()=>{ if(!document.hidden) refreshNow(true); }, 30*60*1000);
