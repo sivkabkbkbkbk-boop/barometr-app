@@ -240,9 +240,11 @@ footer a{color:var(--muted)}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
-.rmap .tiles img:not(.osm){filter:sepia(1) hue-rotate(175deg) saturate(2.2) brightness(1.35) contrast(.8);opacity:.72}
-.rmap{background:#1c2f4d!important}
+.rmap .tiles img:not(.osm){filter:url(#nolab)}
+.rmap{background:#8cc496!important}
 .rmap canvas.fx{z-index:1}
+.rmap .demob{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.rmap .demob.on{background:rgba(127,214,200,.9);color:#0d1726;font-weight:600;border-color:transparent}
 .rmap canvas.lab{z-index:2}
 .rleg{flex-wrap:wrap;gap:4px 10px!important}
 .rleg .b{display:inline-flex;align-items:center;gap:4px}
@@ -424,6 +426,7 @@ header{min-width:0}
 
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 26 26"><g class="ic"><path d="M18.5 8.5A6.5 6.5 0 1 0 19.5 13"/><path d="M19.2 4.8v4h-4"/></g><circle class="sp" cx="13" cy="13" r="8"/><path class="ck" d="M8 13.5l3.2 3.2L18 9.8"/></svg></div>
 <main class="app">
@@ -497,7 +500,7 @@ header{min-width:0}
       <input type="range" class="rrange" min="0" max="1" step="1" value="0" aria-label="Время">
       <span class="rtime">—</span>
     </div>
-    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span></div>
+    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span><span class="b"><i style="background:rgba(255,205,90,.55);outline:1px dashed #ffd66e"></i>ясно</span><span class="b"><i style="background:rgba(232,238,247,.5)"></i>облачно</span><span class="b"><i style="background:rgba(165,178,198,.8);outline:1px dashed #eef3f8"></i>пасмурно</span></div>
     <button class="mlink" data-metric="rain">Архив осадков ›</button>
     <div hidden><div id="prbars"></div><div id="praxis"></div></div>
   </section>
@@ -587,7 +590,7 @@ header{min-width:0}
       <input type="range" class="rrange" min="0" max="1" step="1" value="0" aria-label="Время">
       <span class="rtime">—</span>
     </div>
-    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span></div>
+    <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span><span class="b"><i style="background:rgba(255,205,90,.55);outline:1px dashed #ffd66e"></i>ясно</span><span class="b"><i style="background:rgba(232,238,247,.5)"></i>облачно</span><span class="b"><i style="background:rgba(165,178,198,.8);outline:1px dashed #eef3f8"></i>пасмурно</span></div>
     <div class="src">Прогноз численной модели по сетке точек вокруг города (Open-Meteo), от 3 часов назад до 12 часов вперёд. Это не снимок радара: положение отдельных ливней может отличаться на десятки километров. Карта © Esri, © участники OpenStreetMap.</div>
   </div>
 </section>
@@ -1395,6 +1398,7 @@ async function geoSearch(raw){
 }
 $("csearch").addEventListener("input",renderCities);
 function addCity(name, lat, lon, region){
+  if(/округ|район|поселение|муниципал/i.test(name||"")) name=shortPlace({name,lat,lon});
   let id=slugify(name); if(S.cities[id] && Math.abs(S.cities[id].lat-lat)>0.05) id+="-"+Math.round(lat*10);
   if(!S.cities[id]) S.cities[id]={id,name,region:region||"",lat,lon,order:Object.keys(S.cities).length,status:"ready"};
   saveCities(); return id;
@@ -1450,12 +1454,13 @@ async function loadRadar(id){
   const C=keep.map(([,k])=>arr.map(a=>a.hourly.cloud_cover[k]??0));
   const Wc=keep.map(([,k])=>arr.map(a=>a.hourly.weather_code?.[k]??0));
   RAD.loaded=Date.now();
+  RAD.demo=false; RAD.real=null;
   Object.assign(RAD,{id,times,lats,lons,P,C,W:Wc});
   const now=Date.now(); RAD.t=Math.min(Math.max(now,times[0]),times[times.length-1]);
   try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C,W:Wc,loaded:RAD.loaded})); }catch(e){}
   setupControls(); drawRadar();
 }
-function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,{W:null},r,{id}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
+function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,{W:null},r,{id,demo:false,real:null}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
 // field value at time t (linear between hours), grid index g
 function fieldAt(t){
   const T=RAD.times; if(!T.length) return null;
@@ -1472,7 +1477,9 @@ const PAL_RAIN=[[125,195,255,.42],[70,140,255,.55],[45,90,235,.66],[245,200,70,.
 const PAL_SNOW=[[236,238,255,.45],[210,195,255,.58],[180,150,255,.68],[160,120,245,.74],[150,100,235,.8]];
 const PTYPE=c=>c>=95?3:(c>=71&&c<=77)||c===85||c===86?2:1;      // 1 rain, 2 snow, 3 thunder
 const FM=120, FIELD=document.createElement("canvas"); FIELD.width=FIELD.height=FM;
-const FS=new Float32Array(FM*FM), FT=new Uint8Array(FM*FM), FE=new Float32Array(FM*FM);
+const FS=new Float32Array(FM*FM), FT=new Uint8Array(FM*FM), FE=new Float32Array(FM*FM), FC=new Float32Array(FM*FM);
+const CLOUD_LV=[30,70];            // % cloud cover: clear | partly cloudy | overcast
+const cloudClass=c=>c<CLOUD_LV[0]?0:c<CLOUD_LV[1]?1:2;
 function prLevel(v){ let l=-1; for(let i=0;i<LEVELS.length;i++) if(v>=LEVELS[i]) l=i; return l; }
 function paintField(fld){
   const ctx=FIELD.getContext("2d"), img=ctx.createImageData(FM,FM), d=img.data, s=(RN-1)/(FM-1);
@@ -1489,19 +1496,35 @@ function paintField(fld){
   const blur=(A,R,passes)=>{ for(let pass=0;pass<passes;pass++){
     for(let y=0;y<FM;y++) for(let x=0;x<FM;x++){ let a=0,n=0; for(let k=-R;k<=R;k++){ const xx=x+k; if(xx>=0&&xx<FM){ a+=A[y*FM+xx]; n++; } } tmp[y*FM+x]=a/n; }
     for(let y=0;y<FM;y++) for(let x=0;x<FM;x++){ let a=0,n=0; for(let k=-R;k<=R;k++){ const yy=y+k; if(yy>=0&&yy<FM){ a+=tmp[yy*FM+x]; n++; } } A[y*FM+x]=a/n; } } };
-  blur(FS,3,2); if(isS){ blur(SN,5,2); blur(TH,5,2); }
+  blur(FS,3,2); blur(C,4,2); FC.set(C); if(isS){ blur(SN,5,2); blur(TH,5,2); }
   for(let o=0;o<FM*FM;o++) FT[o]=SN[o]>=.5?2:TH[o]>=.5?3:1;
   for(let o=0;o<FM*FM;o++){
     const p=FS[o], lv=prLevel(p), c=C[o], i=o*4;
-    let r=205,g=215,b=232,a=Math.max(0,(c-40)/60)*0.22;         // light cloud veil
+    const cc=cloudClass(c); let [r,g,b,a]=cc===0?[255,214,80,.2]:cc===1?[255,255,255,.2]:[226,232,242,.42];         // light cloud veil
     if(lv>=0){ const col=(FT[o]===2?PAL_SNOW:PAL_RAIN)[lv]; r=col[0]; g=col[1]; b=col[2]; a=col[3]; }
     d[i]=r; d[i+1]=g; d[i+2]=b; d[i+3]=Math.round(a*255*FE[o]);
   }
   ctx.putImageData(img,0,0);
 }
 /* contour lines around each intensity band (marching squares on the smoothed field) */
+function isoLines(ctx, A, lv, X0, Y0, sx, sy){
+  ctx.beginPath();
+  for(let y=0;y<FM-1;y++) for(let x=0;x<FM-1;x++){
+    const o=y*FM+x; if(FE[o]<.35) continue;
+    const a=A[o],b=A[o+1],c=A[o+FM+1],e=A[o+FM];
+    const code=(a>=lv?8:0)|(b>=lv?4:0)|(c>=lv?2:0)|(e>=lv?1:0); if(code===0||code===15) continue;
+    const P=(v1,v2)=>(lv-v1)/((v2-v1)||1e-6);
+    const top=[x+P(a,b),y], right=[x+1,y+P(b,c)], bot=[x+P(e,c),y+1], left=[x,y+P(a,e)];
+    const seg={1:[left,bot],2:[bot,right],3:[left,right],4:[top,right],5:[left,top,bot,right],6:[top,bot],7:[left,top],8:[left,top],9:[top,bot],10:[top,right,left,bot],11:[top,right],12:[left,right],13:[bot,right],14:[left,bot]}[code];
+    for(let k=0;k<seg.length;k+=2){ ctx.moveTo(X0+(seg[k][0]+.5)*sx, Y0+(seg[k][1]+.5)*sy); ctx.lineTo(X0+(seg[k+1][0]+.5)*sx, Y0+(seg[k+1][1]+.5)*sy); }
+  }
+}
 function drawContours(ctx, X0, Y0, X1, Y1){
   const sx=(X1-X0)/FM, sy=(Y1-Y0)/FM;
+  ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=1.2;
+  isoLines(ctx,FC,CLOUD_LV[0],X0,Y0,sx,sy); ctx.strokeStyle="rgba(255,214,110,.6)"; ctx.stroke();
+  isoLines(ctx,FC,CLOUD_LV[1],X0,Y0,sx,sy); ctx.strokeStyle="rgba(235,242,250,.55)"; ctx.stroke();
+  ctx.restore();
   ctx.lineJoin="round"; ctx.lineCap="round";
   LEVELS.slice(0,4).forEach((lv,li)=>{
     ctx.beginPath();
@@ -1528,7 +1551,7 @@ function fieldSample(m, x, y){
   if(!m.fb) return null; const [X0,Y0,X1,Y1]=m.fb;
   const fx=Math.floor((x-X0)/(X1-X0)*FM), fy=Math.floor((y-Y0)/(Y1-Y0)*FM);
   if(fx<0||fy<0||fx>=FM||fy>=FM) return null; const o=fy*FM+fx;
-  return {p:FS[o]*FE[o], t:FT[o]};
+  return {p:FS[o]*FE[o], t:FT[o], c:FC[o], e:FE[o]};
 }
 /* animated drops, snowflakes and lightning inside the precipitation zones */
 const FX={raf:0,last:0};
@@ -1551,6 +1574,18 @@ function fxFrame(now){
       const dens=Math.min(1,.12+p/2.2); if(q.u>dens) continue;          // weak rain: few drops, heavy: many
       if(snow){ c.fillStyle="rgba(255,255,255,.95)"; c.beginPath(); c.arc(q.x,q.y,(1+q.s*1.1)*Math.min(1.3,sc),0,6.283); c.fill(); }
       else { const L=(5+Math.min(9,p*2))*q.s*sc; c.strokeStyle=`rgba(225,238,255,${.45+Math.min(.45,p/6)})`; c.lineWidth=p>=LEVELS[2]?1.5:1; c.beginPath(); c.moveTo(q.x,q.y); c.lineTo(q.x+L*.14,q.y-L); c.stroke(); }
+    }
+    // sun / cloud icons over dry zones: a sparse grid, gently animated
+    const step=78, t=now/1000;
+    for(let gy=step*.55; gy<h; gy+=step) for(let gx=step*.5+((Math.round(gy/step)%2)*step/2); gx<w; gx+=step){
+      if(Math.hypot(gx-w/2,gy-h/2)<34) continue;
+      const f=fieldSample(m,gx,gy); if(!f||f.e<.6||f.p>=LEVELS[0]) continue;
+      const cc=cloudClass(f.c); c.save(); c.translate(gx,gy); c.globalAlpha=.85*Math.min(1,(f.e-.6)*4);
+      if(cc===0){ c.rotate(t*.4); c.strokeStyle="#ffd36b"; c.lineWidth=1.6; c.beginPath(); for(let k=0;k<8;k++){ const a=k*Math.PI/4; c.moveTo(Math.cos(a)*8,Math.sin(a)*8); c.lineTo(Math.cos(a)*11.5,Math.sin(a)*11.5); } c.stroke(); c.fillStyle="#ffd36b"; c.beginPath(); c.arc(0,0,5.5,0,6.283); c.fill(); }
+      else { const dx=Math.sin(t*.6+gx)*3; c.translate(dx,0);
+        if(cc===1){ c.fillStyle="#ffd36b"; c.beginPath(); c.arc(-4,-4,5,0,6.283); c.fill(); }
+        c.fillStyle=cc===1?"rgba(245,248,252,.95)":"rgba(200,210,224,.95)"; c.beginPath(); c.arc(-4,2,5,0,6.283); c.arc(2,-1,6.5,0,6.283); c.arc(7,3,4.5,0,6.283); c.rect(-9,2,16,5.5); c.fill(); }
+      c.restore();
     }
     // lightning in thunderstorm cells
     m.nextFlash-=dt;
@@ -1586,6 +1621,7 @@ function shortPlace(c){
   const t=n.replace(/\s+(муниципальный|городской|сельский)\s+(округ|район)$/i,"").replace(/\s+(район|округ)$/i,"");
   return t.length>24 ? t.slice(0,23)+"…" : t;
 }
+for(const c of Object.values(S.cities||{})) if(/округ|район|поселение|муниципал/i.test(c.name||"")){ const n=shortPlace(c); if(n&&n!==c.name){ c.name=n; } }
 function drawMapLabels(ctx, w, h, z, x0, y0, home){
   ctx.clearRect(0,0,w,h);
   const boxes=[], hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
@@ -1602,7 +1638,7 @@ function drawMapLabels(ctx, w, h, z, x0, y0, home){
     const x=lon2x(L.lo,z)-x0, y=lat2y(L.la,z)-y0; if(x<-60||y<-20||x>w+60||y>h+20) continue;
     if(near.some(q=>Math.abs(q[0]-x)<3&&Math.abs(q[1]-y)<3)) continue;
     const big=L.r<25, mid=L.r<150;
-    const font = L.w ? `italic 500 ${z>=7?11:10}px Onest, system-ui, sans-serif` : L.home ? "700 13px Onest, system-ui, sans-serif" : big ? "600 12px Onest, system-ui, sans-serif" : mid ? "500 11px Onest, system-ui, sans-serif" : "400 10.5px Onest, system-ui, sans-serif";
+    const font = L.w ? `italic 500 ${z>=7?11.5:10.5}px system-ui, Roboto, sans-serif` : L.home ? "700 13.5px system-ui, Roboto, sans-serif" : big ? "600 12.5px system-ui, Roboto, sans-serif" : mid ? "500 11.5px system-ui, Roboto, sans-serif" : "400 11px system-ui, Roboto, sans-serif";
     ctx.font=font; const tw=ctx.measureText(L.n).width, th=L.home?15:13;
     let box=null, tx, align;
     if(L.w){ box=[x-tw/2-2,y-th/2,tw+4,th]; tx=x; align="center"; if(hit(box)) continue; }
@@ -1618,7 +1654,7 @@ function drawMapLabels(ctx, w, h, z, x0, y0, home){
     boxes.push(box);
     ctx.textAlign = align==="left"?"left":align==="right"?"right":"center";
     const ty=box[1]+th/2+.5;
-    ctx.font=font; ctx.strokeStyle="rgba(8,14,24,.85)"; ctx.lineWidth=3.2; ctx.strokeText(L.n,tx,ty);
+    ctx.font=font; ctx.shadowColor="rgba(5,10,20,.95)"; ctx.shadowBlur=4; ctx.strokeStyle="rgba(8,14,24,.7)"; ctx.lineWidth=1.6; ctx.strokeText(L.n,tx,ty); ctx.shadowBlur=0;
     ctx.fillStyle = L.w ? "#8ec3f0" : L.home ? "#ffffff" : big ? "#eef3f8" : mid ? "#d9e3ee" : "#b8c6d6";
     ctx.fillText(L.n,tx,ty);
   }
@@ -1635,6 +1671,7 @@ function MiniMap(el, interactive){
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
   const fx=document.createElement("canvas"); fx.className="fx"; el.appendChild(fx);
   const lab=document.createElement("canvas"); lab.className="lab"; el.appendChild(lab); let labKey="";
+  const demob=document.createElement("button"); demob.className="demob"; demob.hidden=true; demob.addEventListener("click",e=>{ e.stopPropagation(); demoToggle(); }); demob.addEventListener("pointerdown",e=>e.stopPropagation()); el.appendChild(demob);
   const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
   const m={el,fx,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,vis:false,relabel:()=>{labKey="";}};
   if("IntersectionObserver" in window) new IntersectionObserver(es=>{ m.vis=es[0].isIntersecting; if(m.vis) fxStart(); }).observe(el); else m.vis=true;
@@ -1679,7 +1716,7 @@ function MiniMap(el, interactive){
     if(lk!==labKey){ labKey=lk; if(lab.width!==w*dpr||lab.height!==h*dpr){ lab.width=w*dpr; lab.height=h*dpr; }
       const lc=lab.getContext("2d"); lc.setTransform(dpr,0,0,dpr,0,0);
       if(TILES.osm) lc.clearRect(0,0,w,h); else drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
-    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent= v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо"; }
+    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent=(RAD.demo?"пример · ":"")+(v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо · "+["ясно","переменная облачность","пасмурно"][cloudClass(fld.C[i])]); }
   };
   if(interactive){
     let drag=null;
@@ -1695,8 +1732,24 @@ function MiniMap(el, interactive){
 function mapNote(t){ document.querySelectorAll(".rmap .rstat").forEach(e=>{ e.hidden=false; e.textContent=t; }); }
 const mapSmall=MiniMap($("rmapSmall"), false);
 let mapBig=null;
+/* dry around the city: the map can show an example of rain, snow and a thunderstorm */
+function radarDry(){ const P=(RAD.demo?RAD.real.P:RAD.P)||[]; return !P.some(row=>row.some(v=>v>=0.1)); }
+function demoToggle(){
+  if(RAD.demo){ Object.assign(RAD,RAD.real); RAD.demo=false; RAD.real=null; drawRadar(); return; }
+  RAD.real={P:RAD.P,C:RAD.C,W:RAD.W}; RAD.demo=true;
+  const n=RN*RN, P=[],C=[],W=[];
+  RAD.times.forEach((t,k)=>{ const p=[],c=[],w=[];
+    for(let i=0;i<n;i++){ const r=Math.floor(i/RN), q=i%RN;
+      const main=6.5*Math.exp(-((r-3.2-k*.12)**2+(q-2+k*.28)**2)/4.2), side=1.3*Math.exp(-((r-6.8)**2+(q-6.5+k*.15)**2)/3);
+      p.push(+Math.max(0,main+side-.05).toFixed(2)); c.push(75);
+      w.push(r>=5.5&&q>=5 ? 73 : ((r-3.2-k*.12)**2+(q-2+k*.28)**2)<2.2 ? 95 : 63); }
+    P.push(p); C.push(c); W.push(w); });
+  Object.assign(RAD,{P,C,W}); drawRadar();
+}
 function drawRadar(){
   if(!RAD.times.length) return;
+  const dry=radarDry();
+  document.querySelectorAll(".rmap .demob").forEach(b=>{ b.hidden=!(dry||RAD.demo); b.textContent=RAD.demo?"✕ закрыть пример":"Осадков нет · показать пример"; b.classList.toggle("on",!!RAD.demo); });
   RAD.cur=fieldAt(RAD.t); paintField(RAD.cur);
   const c=cityOf(S.slug);
   for(const m of RAD.maps){ if(!m.home||m.home[0]!==c.lat||m.home[1]!==c.lon) m.setHome(c.lat,c.lon); else m.draw(); }
@@ -1856,7 +1909,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="25.09 · сборка с зонами осадков";
+const APP_VER="25.09 · сборка 4 (цветная карта)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
