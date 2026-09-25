@@ -389,6 +389,20 @@ footer{padding-bottom:64px}
 .stv{display:flex;flex-direction:column;gap:2px;font-size:13px}
 .stv .mono{font-family:var(--f-mono);font-size:17px}
 .stl{font-weight:600}
+/* connection check */
+.chk{display:flex;flex-direction:column;gap:6px}
+.ck{display:flex;gap:10px;align-items:flex-start;background:var(--sheet-2);border-radius:12px;padding:9px 11px}
+.ck b{font-size:17px;line-height:1.2}
+.ck>span{display:flex;flex-direction:column;gap:2px}
+.ck .ct{font-weight:600;font-size:14px}
+.ck .cd{font-size:12.5px;color:var(--muted);line-height:1.35}
+.ck.bad{box-shadow:inset 3px 0 0 #ff7a6b}.ck.warn{box-shadow:inset 3px 0 0 #f2c94c}.ck.ok{box-shadow:inset 3px 0 0 #8be38f}
+/* rearranging cards */
+
+.lifted{transform:scale(1.03);box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 2px rgba(127,214,200,.7);border-radius:20px;opacity:.97;pointer-events:none}
+.dragph{border:2px dashed rgba(127,214,200,.55);border-radius:20px;background:rgba(127,214,200,.06)}
+body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2:not(.lifted){animation:wig .35s ease-in-out infinite alternate}
+@keyframes wig{from{transform:rotate(-.35deg)}to{transform:rotate(.35deg)}}
 /* new friend popup */
 .frpop{position:fixed;inset:0;z-index:45;background:rgba(3,8,15,.6);display:flex;align-items:center;justify-content:center;padding:24px}
 .frcard{position:relative;width:100%;max-width:340px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:24px;padding:26px 20px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:frIn .45s cubic-bezier(.2,1.4,.4,1)}
@@ -834,6 +848,7 @@ header{min-width:0}
   <div class="sbody">
     <div class="ctitle">Главный экран · что показывать</div>
     <div class="tgl" id="tglList"></div>
+    <div class="src" hidden><button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
@@ -857,6 +872,12 @@ header{min-width:0}
 </section>
 
 
+
+<section class="sheet" id="chkSheet" role="dialog" aria-modal="true" aria-labelledby="chkTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="chkTitle">Проверка связи с друзьями</h2><div class="sc">по шагам: что работает, а что нет</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody"><div class="chk" id="chkOut"></div><button class="btn ghost" id="chkCopy">📋 Скопировать результат</button></div>
+</section>
 
 <section class="sheet" id="grpSheet" role="dialog" aria-modal="true" aria-labelledby="grpTitle" hidden>
   <div class="grab"></div>
@@ -923,7 +944,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel"];
+const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -2183,7 +2204,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 8 (общий график, новые друзья)";
+const APP_VER="26.09 · сборка 9 (проверка связи с друзьями)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2913,6 +2934,100 @@ $("frOk").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); 
 $("frChat").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); if(f){ FSEG="chats"; showTab("friends"); setTimeout(()=>openChat(f.k),250); } });
 $("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPop(); });
 
+/* ---------- rearrange the cards on the main screen: long press, then drag ---------- */
+const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain","cardHours"];
+const DRAG_ON=false;   // rearranging is switched off for now
+const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0};
+function orderGet(){ const o=(loadJSON("order",null)||[]).filter(id=>ORDER_DEF.includes(id)); for(const id of ORDER_DEF) if(!o.includes(id)) o.splice(Math.min(o.length,ORDER_DEF.indexOf(id)),0,id); return o; }
+function applyOrder(){ const main=$("pgToday"), foot=main.querySelector("footer"); for(const id of orderGet()){ const el=$(id); if(el) main.insertBefore(el,foot); } }
+function saveOrder(){ const ids=[...$("pgToday").children].map(e=>e.id).filter(id=>ORDER_DEF.includes(id)); store.set("order",JSON.stringify(ids)); }
+applyOrder();
+$("orderReset")?.addEventListener("click",()=>{ store.set("order",JSON.stringify(ORDER_DEF)); applyOrder(); toast("Порядок карточек сброшен."); });
+function dragItem(t){ const el=t.closest?.("#pgToday > .card, #pgToday > #grid2"); return el&&ORDER_DEF.includes(el.id)?el:null; }
+function dragStart(el,x,y){
+  DRAG.on=true; DRAG.el=el; const r=el.getBoundingClientRect(); DRAG.y0=y; DRAG.startY=y; DRAG.top=r.top; DRAG.lastY=y;
+  const ph=document.createElement("div"); ph.className="dragph"; ph.style.height=r.height+"px"; el.parentNode.insertBefore(ph,el); DRAG.ph=ph;
+  Object.assign(el.style,{position:"fixed",left:r.left+"px",top:r.top+"px",width:r.width+"px",zIndex:30,margin:0});
+  el.classList.add("lifted"); document.body.classList.add("reordering");
+  try{ navigator.vibrate&&navigator.vibrate(25); }catch(e){}
+  DRAG.raf=requestAnimationFrame(dragScroll);
+}
+function dragMove(y){
+  if(!DRAG.on) return; DRAG.lastY=y;
+  DRAG.el.style.top=(DRAG.top+y-DRAG.y0)+"px";
+  const sibs=[...$("pgToday").children].filter(e=>e!==DRAG.el&&e!==DRAG.ph&&ORDER_DEF.includes(e.id)&&!e.hidden);
+  for(const s2 of sibs){ const r=s2.getBoundingClientRect(), mid=r.top+r.height/2;
+    const phAbove=DRAG.ph.compareDocumentPosition(s2)&Node.DOCUMENT_POSITION_FOLLOWING;
+    if(phAbove&&y>mid){ s2.after(DRAG.ph); break; }
+    if(!phAbove&&y<mid){ s2.before(DRAG.ph); break; } }
+}
+function dragScroll(){ if(!DRAG.on) return; const y=DRAG.lastY, h=innerHeight, edge=90;
+  const v=Math.abs(y-DRAG.startY)<24?0:y<edge?-(edge-y)/5:y>h-edge-70?(y-(h-edge-70))/5:0;
+  if(v){ scrollBy(0,v); DRAG.y0-=v; dragMove(y); }
+  DRAG.raf=requestAnimationFrame(dragScroll); }
+function dragEnd(){
+  clearTimeout(DRAG.timer); if(!DRAG.on) return;
+  cancelAnimationFrame(DRAG.raf);
+  const el=DRAG.el, ph=DRAG.ph, r=ph.getBoundingClientRect();
+  el.style.transition="top .18s ease"; el.style.top=r.top+"px";
+  setTimeout(()=>{ ph.replaceWith(el); el.removeAttribute("style"); el.classList.remove("lifted"); document.body.classList.remove("reordering"); saveOrder(); if(el.id==="cardRain") drawRadar(); }, 190);
+  DRAG.on=false; DRAG.suppress=Date.now();
+}
+// touch: hold still ~0.45 s to pick up a card, then the page stops scrolling and the card follows the finger
+addEventListener("touchstart",e=>{
+  if(!DRAG_ON||TAB!=="today"||e.touches.length>1||openSheet) return;
+  const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input")) return;
+  const t=e.touches[0]; DRAG.x0=t.clientX; DRAG.y0=t.clientY;
+  clearTimeout(DRAG.timer); DRAG.timer=setTimeout(()=>dragStart(el,DRAG.x0,DRAG.y0),450);
+},{passive:true});
+addEventListener("touchmove",e=>{
+  const t=e.touches[0];
+  if(DRAG.on){ e.preventDefault(); dragMove(t.clientY); return; }
+  if(DRAG.timer&&(Math.abs(t.clientX-DRAG.x0)>8||Math.abs(t.clientY-DRAG.y0)>8)){ clearTimeout(DRAG.timer); DRAG.timer=0; }
+},{passive:false});
+addEventListener("touchend",dragEnd); addEventListener("touchcancel",dragEnd);
+// mouse (computer): the same with a long press of the button
+addEventListener("mousedown",e=>{ if(!DRAG_ON||TAB!=="today"||e.button!==0||openSheet) return; const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input")) return;
+  DRAG.x0=e.clientX; DRAG.y0=e.clientY; clearTimeout(DRAG.timer); DRAG.timer=setTimeout(()=>dragStart(el,DRAG.x0,DRAG.y0),450); });
+addEventListener("mousemove",e=>{ if(DRAG.on){ e.preventDefault(); dragMove(e.clientY); } else if(DRAG.timer&&(Math.abs(e.clientX-DRAG.x0)>6||Math.abs(e.clientY-DRAG.y0)>6)){ clearTimeout(DRAG.timer); DRAG.timer=0; } });
+addEventListener("mouseup",dragEnd);
+// a finished drag must not also "tap" the card (open history etc.)
+addEventListener("click",e=>{ if(Date.now()-DRAG.suppress<400){ e.stopPropagation(); e.preventDefault(); } },true);
+addEventListener("contextmenu",e=>{ if(DRAG.on||DRAG.timer) e.preventDefault(); });
+
+/* ---------- friends: step-by-step connection check ---------- */
+async function friendCheck(){
+  const out=$("chkOut"), rows=[]; showSheet("chkSheet");
+  const draw=()=>{ out.innerHTML=rows.map(r=>`<div class="ck ${r.s}"><b>${r.s==="ok"?"✅":r.s==="bad"?"❌":r.s==="warn"?"⚠️":"⏳"}</b><span><span class="ct">${r.t}</span>${r.d?`<span class="cd">${r.d}</span>`:""}</span></div>`).join(""); };
+  const add=(t)=>{ const r={t,s:"wait",d:""}; rows.push(r); draw(); return (s,d)=>{ r.s=s; r.d=d||""; draw(); }; };
+  add("Версия приложения")("ok", typeof APP_VER!=="undefined"?APP_VER:"");
+  let done=add("Яндекс Диск подключён");
+  if(!Y.token){ done("bad","Не подключён. ⚙ Настройки → «Войти через Яндекс». Без Диска друзья вас не увидят."); }
+  else { try{ const r=await yReq("GET","https://cloud-api.yandex.net/v1/disk/"); if(r.status===200) done("ok","вход действует"); else if(r.status===401||r.status===403) done("bad","вход устарел — отключите и войдите заново в ⚙ Настройках"); else done("bad","Яндекс ответил: "+r.status); }catch(e){ done("bad","нет связи с Яндексом"); } }
+  done=add("Вы делитесь состоянием с друзьями");
+  if(!SH.on) done("bad","Не включено. Вкладка «Друзья» → введите имя → «Поделиться».");
+  else done("ok",`имя «${esc(SH.name||"")}», ключ для чата ${SH.secret?"есть":"нет"}`);
+  if(SH.on){ done=add("Друзья могут прочитать ваши данные");
+    try{ await shareUpload(); const r=await yReq("GET",`https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(SH.key)}&path=${encodeURIComponent("/mood.json")}`,null,false);
+      done(r.status===200?"ok":"bad", r.status===200?"публичная папка открыта":"папка не открывается ("+r.status+"). Нажмите «Перестать делиться», затем «Поделиться» снова."); }catch(e){ done("bad","не удалось проверить: "+esc(e.message||"сеть")); } }
+  done=add("Сервис автодобавления друзей (ntfy.sh)");
+  try{ const topic="mtdtest"+Math.random().toString(36).slice(2,10), stamp=Date.now().toString(36);
+    const w=await textReq("POST",RELAY+topic,stamp); if(w.status>=300) throw new Error("запись: "+w.status);
+    const r=await textReq("GET",`${RELAY}${topic}/json?poll=1&since=1m`); if(r.status!==200) throw new Error("чтение: "+r.status);
+    done(String(r.text).includes(stamp)?"ok":"warn", String(r.text).includes(stamp)?"работает — друзья добавляются сами":"отвечает, но записка не вернулась");
+  }catch(e){ done("bad","недоступен ("+esc(e.message||"нет связи")+"). Друзей можно добавлять ответной ссылкой: друг жмёт «＋ Пригласить» и присылает вам свою ссылку."); }
+  const fl=Object.values(FR.list);
+  if(!fl.length) add("Друзья")("warn","пока никого нет. Отправьте приглашение кнопкой «＋ Пригласить».");
+  for(const f of fl){ done=add(`Друг: ${esc(f.name||"?")}`);
+    await fetchFriend(f).catch(()=>{});
+    const probs=[]; if(!f.s) probs.push("старое приглашение без ключа чата — нужно новое"); if(f.gone) probs.push("закрыл(а) доступ"); if(!f.data) probs.push("его данные не читаются");
+    if(SH.on&&f.s&&f.data&&!f.acked) probs.push("у него вы ещё не в друзьях — пусть откроет приложение (или пришлите ему приглашение ещё раз)");
+    done(probs.length?"warn":"ok", probs.length?probs.join("; "):"всё в порядке: видите друг друга, чат работает"); }
+  if(FR.replyTo) add("Ожидает")("warn",`вы приняли приглашение от ${esc(FR.replyTo)}, но ещё не нажали «Поделиться»`);
+}
+$("chkCopy").addEventListener("click",()=>{ const t=[...$("chkOut").querySelectorAll(".ck")].map(r=>`${r.querySelector("b").textContent} ${r.querySelector(".ct").textContent}${r.querySelector(".cd")?": "+r.querySelector(".cd").textContent:""}`).join("\n");
+  shareText("Проверка связи — Метеодневник", t); });
+
 /* ---------- bottom tabs ---------- */
 let TAB="today";
 const PAGES={today:"pgToday",health:"pgHealth",rep:"pgRep",friends:"pgFriends"};
@@ -3212,6 +3327,7 @@ function renderFriends(state){
   }
   if(SH.on) h+=`<div class="fbox"><label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
     <div class="hint">Вы делитесь как <b>${esc2(SH.name)}</b>. «＋ Пригласить» наверху откроет «Поделиться» — друг получит приглашение с вашим именем.</div><button class="btn ghost" data-f="stop">Перестать делиться</button></div>`;
+  h+=`<button class="btn ghost" data-f="check">🔧 Не получается добавить друга? Проверить связь</button>`;
   h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
   box.innerHTML=h;
   box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
@@ -3223,6 +3339,7 @@ $("friends").addEventListener("click",e=>{
   const b=e.target.closest("[data-f]"); if(!b) return;
   const a=b.dataset.f;
   if(a==="start") shareStart();
+  if(a==="check") friendCheck();
   if(a==="yandex"){ $("gearBtn").click(); }
   if(a==="send") shareSend();
   if(a==="stop") shareStop();
@@ -3529,6 +3646,7 @@ addEventListener("touchstart",e=>{
   }
 },{passive:true});
 addEventListener("touchmove",e=>{
+  if(DRAG.on){ G.mode=null; return; }
   if(!G.mode) return;
   const t=e.touches[0], dy=t.clientY-G.y0, dx=t.clientX-G.x0;
   if(G.mode.endsWith("?")){
