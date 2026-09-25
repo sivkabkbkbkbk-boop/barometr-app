@@ -398,9 +398,11 @@ footer{padding-bottom:64px}
 .ck .cd{font-size:12.5px;color:var(--muted);line-height:1.35}
 .ck.bad{box-shadow:inset 3px 0 0 #ff7a6b}.ck.warn{box-shadow:inset 3px 0 0 #f2c94c}.ck.ok{box-shadow:inset 3px 0 0 #8be38f}
 /* rearranging cards */
+#pgToday > .card, #pgToday > #grid2{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
-.lifted{transform:scale(1.03);box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 2px rgba(127,214,200,.7);border-radius:20px;opacity:.97;pointer-events:none}
+.lifted{animation:none!important;transform:scale(1.03);box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 2px rgba(127,214,200,.7);border-radius:20px;opacity:.97;pointer-events:none}
 .dragph{border:2px dashed rgba(127,214,200,.55);border-radius:20px;background:rgba(127,214,200,.06)}
+body.reordering{overflow-anchor:none}
 body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2:not(.lifted){animation:wig .35s ease-in-out infinite alternate}
 @keyframes wig{from{transform:rotate(-.35deg)}to{transform:rotate(.35deg)}}
 /* new friend popup */
@@ -848,7 +850,7 @@ header{min-width:0}
   <div class="sbody">
     <div class="ctitle">Главный экран · что показывать</div>
     <div class="tgl" id="tglList"></div>
-    <div class="src" hidden><button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
+    <div class="src">💡 Порядок карточек: удерживайте карточку на главном экране полсекунды и перетащите её выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
@@ -2204,7 +2206,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 10 (друзья без ntfy)";
+const APP_VER="26.09 · сборка 11 (перетаскивание карточек)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2942,7 +2944,7 @@ $("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPo
 
 /* ---------- rearrange the cards on the main screen: long press, then drag ---------- */
 const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain","cardHours"];
-const DRAG_ON=false;   // rearranging is switched off for now
+const DRAG_ON=true;
 const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0};
 function orderGet(){ const o=(loadJSON("order",null)||[]).filter(id=>ORDER_DEF.includes(id)); for(const id of ORDER_DEF) if(!o.includes(id)) o.splice(Math.min(o.length,ORDER_DEF.indexOf(id)),0,id); return o; }
 function applyOrder(){ const main=$("pgToday"), foot=main.querySelector("footer"); for(const id of orderGet()){ const el=$(id); if(el) main.insertBefore(el,foot); } }
@@ -2969,7 +2971,7 @@ function dragMove(y){
 }
 function dragScroll(){ if(!DRAG.on) return; const y=DRAG.lastY, h=innerHeight, edge=90;
   const v=Math.abs(y-DRAG.startY)<24?0:y<edge?-(edge-y)/5:y>h-edge-70?(y-(h-edge-70))/5:0;
-  if(v){ scrollBy(0,v); DRAG.y0-=v; dragMove(y); }
+  if(v){ scrollBy(0,v); dragMove(y); }
   DRAG.raf=requestAnimationFrame(dragScroll); }
 function dragEnd(){
   clearTimeout(DRAG.timer); if(!DRAG.on) return;
