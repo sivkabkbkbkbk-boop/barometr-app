@@ -311,6 +311,43 @@ footer{padding-bottom:64px}
 .fin{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .fin b{color:var(--ink)}
 .fin .x{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;flex:none}
+.kgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.kbtn{min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 1px 7px;border-radius:14px;border:1px solid var(--glass-line);background:rgba(238,243,248,.05);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.kbtn .e{font-size:30px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.kbtn .l{font-size:10.5px;line-height:1.15;color:var(--muted);text-align:center;min-height:1.2em;display:flex;align-items:center;justify-content:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbtn:active{transform:scale(.92)}
+.kbtn.pop .e{animation:pop .5s cubic-bezier(.3,1.8,.5,1)}
+.kbtn.pop{border-color:var(--press);background:rgba(127,214,200,.15)}
+.mtoday{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:0}
+.mtoday .tm{display:inline-flex;align-items:center;gap:4px;background:var(--sheet-2);border-radius:99px;padding:3px 4px 3px 9px;font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.mtoday .tm .e{font-size:15px;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.mtoday .tm button{border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:0 4px}
+@media (max-width:360px){.kbtn .e{font-size:26px}.kbtn .l{font-size:9.5px}}
+.picker .tm{display:inline-flex;align-items:center;gap:4px;background:var(--sheet);border-radius:99px;padding:3px 4px 3px 9px;font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.picker .tm .e{font-size:15px}
+.picker .tm button{border:0;background:none;color:var(--muted);font-size:14px;padding:0 4px;cursor:pointer}
+.picker .kmini{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.picker .kmini button{font-size:20px;padding:4px 6px;border:1px solid var(--glass-line);border-radius:10px;background:transparent;cursor:pointer}
+.symp{display:flex;flex-direction:column;gap:6px}
+/* 5-day strip */
+.days5{padding:10px 8px}
+.d5{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;text-align:center}
+.d5 .dd{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;border-radius:12px}
+.d5 .dd.today{background:rgba(238,243,248,.07)}
+.d5 .dn{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:capitalize}
+.d5 svg{width:30px;height:30px}
+.d5 .tx{font-family:var(--f-mono);font-size:13px;font-weight:500}
+.d5 .tn{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.d5 .pr{font-size:10px;color:var(--rain);font-family:var(--f-mono);min-height:12px}
+/* main screen settings */
+.gear{width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-line);background:rgba(238,243,248,.08);cursor:pointer;display:grid;place-items:center;padding:0;color:var(--ink)}
+.gear svg{width:20px;height:20px}
+.tgl{display:flex;flex-direction:column;gap:2px}
+.tgl label{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid var(--glass-line);cursor:pointer;font-size:15px}
+.tgl label small{display:block;color:var(--muted);font-size:12px}
+.tgl .rsw{flex:none}
+.grid2.one{grid-template-columns:1fr}
+.grid2.one .gauge{max-width:240px;margin-inline:auto}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;z-index:40;background:var(--ink);color:#0d1726;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:500;max-width:calc(100% - 48px);transition:all .3s;pointer-events:none}
 .toast.show{transform:translate(-50%,0);opacity:1}
 [hidden]{display:none!important}
@@ -332,6 +369,7 @@ footer{padding-bottom:64px}
     <div class="hright">
       <div class="upd" id="upd">—</div>
       <div class="rstatus" id="rstatus" hidden></div>
+      <button class="gear" id="gearBtn" aria-label="Что показывать на главном экране"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="7" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="10" cy="17" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
       <button class="refresh" id="refreshBtn" data-state="idle" aria-label="Обновить данные">
         <svg viewBox="0 0 32 32" aria-hidden="true">
           <circle class="track" cx="16" cy="16" r="13"/>
@@ -355,8 +393,10 @@ footer{padding-bottom:64px}
   </section>
 
 
-  <div class="grid2">
-    <section class="card fade tap" style="animation-delay:.08s" role="button" tabindex="0" data-metric="press" aria-label="Давление: открыть историю">
+  <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div></section>
+
+  <div class="grid2" id="grid2">
+    <section class="card fade tap" id="cardPress" style="animation-delay:.08s" role="button" tabindex="0" data-metric="press" aria-label="Давление: открыть историю">
       <span class="more">архив ›</span>
       <div class="label">Давление</div>
       <svg class="gauge" viewBox="0 0 120 68" id="gauge" aria-hidden="true"></svg>
@@ -364,7 +404,7 @@ footer{padding-bottom:64px}
       <div class="sub" id="ptrend"></div>
     </section>
 
-    <section class="card fade tap" style="animation-delay:.16s" role="button" tabindex="0" data-metric="kp" aria-label="Геомагнитный фон: открыть историю">
+    <section class="card fade tap" id="cardKp" style="animation-delay:.16s" role="button" tabindex="0" data-metric="kp" aria-label="Геомагнитный фон: открыть историю">
       <div class="aurora" id="aurora"></div>
       <span class="more">архив ›</span>
       <div class="label">Геомагнитный фон</div>
@@ -375,7 +415,7 @@ footer{padding-bottom:64px}
     </section>
   </div>
 
-  <section class="card fade" style="animation-delay:.24s" aria-label="Осадки">
+  <section class="card fade" id="cardRain" style="animation-delay:.24s" aria-label="Осадки">
     <div class="drops" id="drops"></div>
     <div class="prhead"><div class="label">Осадки · карта</div><div class="upd" id="prsum"></div></div>
     <div class="prnote" id="prnote"></div>
@@ -390,7 +430,7 @@ footer{padding-bottom:64px}
     <div hidden><div id="prbars"></div><div id="praxis"></div></div>
   </section>
 
-  <section class="card fade" style="animation-delay:.32s;padding-inline:10px" aria-label="Почасовой прогноз">
+  <section class="card fade" id="cardHours" style="animation-delay:.32s;padding-inline:10px" aria-label="Почасовой прогноз">
     <div class="hours" id="hours"></div>
   </section>
 
@@ -399,12 +439,9 @@ footer{padding-bottom:64px}
 
 <div class="mpop" id="moodPop" hidden>
   <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
-    <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете сегодня?</div></div>
-    <div class="mbtns" id="mbtns">
-      <button class="mbtn" data-mood="3" style="--mc:#8be38f" aria-pressed="false"><span class="e">😊</span><span class="l">Хорошо</span></button>
-      <button class="mbtn" data-mood="2" style="--mc:#f2c94c" aria-pressed="false"><span class="e">😐</span><span class="l">Так себе</span></button>
-      <button class="mbtn" data-mood="1" style="--mc:#ff7a6b" aria-pressed="false"><span class="e">😣</span><span class="l">Плохо</span></button>
-    </div>
+    <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете?</div></div>
+    <div class="kgrid" id="mbtns"></div>
+    <div class="mtoday" id="mtoday"></div>
     <div class="mfoot"><button class="mlink" id="moodLater">Позже</button><span class="mnote" id="mstreak"></span><button class="mlink" id="moodOpen">Самочувствие и погода ›</button></div>
   </div>
 </div>
@@ -456,6 +493,8 @@ footer{padding-bottom:64px}
     <div class="friends" id="friends"></div>
     <div class="ctitle">Что связано с вашим самочувствием</div>
     <div class="facs" id="mfacs"></div>
+    <div class="ctitle">Симптомы и погода</div>
+    <div class="facs" id="msymp"></div>
     <div class="src" id="backupNote" hidden>Отметки также попадают в резервную копию Android (если она включена в настройках телефона).</div>
     <div class="src">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>
   </div>
@@ -479,6 +518,15 @@ footer{padding-bottom:64px}
     <div class="rleg"><span>облачно</span><i class="lg"></i><span>ливень</span></div>
     <div class="src">Прогноз численной модели по сетке точек вокруг города (Open-Meteo), от 3 часов назад до 12 часов вперёд. Это не снимок радара: положение отдельных ливней может отличаться на десятки километров. Карта © Esri, © участники OpenStreetMap.</div>
   </div>
+</section>
+
+<section class="sheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="setTitle">Главный экран</h2><div class="sc">Что показывать</div></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody"><div class="tgl" id="tglList"></div></div>
 </section>
 
 <section class="sheet" id="cities" role="dialog" aria-modal="true" aria-labelledby="cityTitle" hidden>
@@ -509,7 +557,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["mood","moodDel","cities","city","remind","gpsDone","yandex","friends","share"];
+const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -692,7 +740,7 @@ const cityOf = id => S.cities[id] || {name:id, status:"ready"};
 /* ---- loaders ---- */
 async function loadForecast(id){
   const c=cityOf(id);
-  const d0=isoDay(new Date(Date.now()-2*DAY)), d1=isoDay(new Date(Date.now()+2*DAY));
+  const d0=isoDay(new Date(Date.now()-2*DAY)), d1=isoDay(new Date(Date.now()+6*DAY));
   const j=await getMirror("forecast", `latitude=${c.lat}&longitude=${c.lon}&hourly=${HOURLY}&start_date=${d0}&end_date=${d1}&timezone=GMT&wind_speed_unit=ms`);
   const rows=hourlyRows(j), now=Date.now();
   const hours=rows.map(r=>({t:r.t,p:r.Po,temp:r.T,hum:Math.round(r.f),wind:r.w,wdir:r.wdir,cloud:r.cl,sym:wmoSym(r.code,r.day),pr:r.pr||0}));
@@ -808,6 +856,7 @@ function render(){
   $("drops").innerHTML = reduce?"":Array.from({length:intensity},()=>`<span style="left:${Math.random()*100}%;animation-duration:${(0.7+Math.random()*0.6).toFixed(2)}s;animation-delay:-${(Math.random()*1.3).toFixed(2)}s;opacity:${(.25+Math.random()*.5).toFixed(2)}"></span>`).join("");
 
   $("hours").innerHTML=hrs.slice(i,i+25).map((x,n)=>`<div class="h${n===0?" now":""}"><div class="t">${n===0?"сейчас":fmtH(new Date(x.t))}</div>${icon(x.sym)}<div class="v">${Math.round(x.temp)}°</div></div>`).join("");
+  if(typeof render5==="function") render5();
   sky.set(c, cur);
   if(!$("hist").hidden) drawHistory();
 }
@@ -1017,7 +1066,7 @@ function drawHistory(){
   const moods=Object.entries(S.mood).filter(([d])=>{const t=+new Date(d+"T12:00:00");return t>=x0&&t<=x1;});
   if(moods.length && (x1-x0)/DAY<=45){
     const fs=(x1-x0)/DAY>20?9:11;
-    s+=moods.map(([d,r])=>`<text x="${X(+new Date(d+"T12:00:00"))}" y="${T+fs-1}" text-anchor="middle" font-size="${fs}">${MOOD[r.v].e}</text>`).join("");
+    s+=moods.map(([d,r])=>`<text x="${X(+new Date(d+"T12:00:00"))}" y="${T+fs-1}" text-anchor="middle" font-size="${fs}">${r.e}</text>`).join("");
   }
   s+=`<g id="cursor" style="display:none"><line id="cl" y1="${T}" y2="${T+ih}" stroke="#eef3f8" stroke-width="1" opacity=".5"/><circle id="cc" r="4" fill="${m.color}" stroke="#eef3f8" stroke-width="1.5"/></g><rect x="${L}" y="0" width="${iw}" height="${Hc}" fill="transparent" id="hit"/>`;
   svg.innerHTML=s;
@@ -1350,6 +1399,44 @@ $("mapExpand").addEventListener("click",e=>{
   requestAnimationFrame(()=>{ const c=cityOf(S.slug); mapBig.setHome(c.lat,c.lon); drawRadar(); });
 });
 
+/* ---------- 5-day forecast ---------- */
+function render5(){
+  const f=S.feed[S.slug], box=$("d5"); if(!f||!f.hours) { box.innerHTML=""; return; }
+  const by={}; for(const h of f.hours){ const d=isoDay(new Date(h.t)); (by[d]=by[d]||[]).push(h); }
+  const today=isoDay(new Date()), out=[];
+  for(let i=0;i<5;i++){
+    const d=isoDay(new Date(Date.now()+i*DAY)), hs=by[d]; if(!hs||hs.length<12) continue;
+    const tx=Math.max(...hs.map(h=>h.temp)), tn=Math.min(...hs.map(h=>h.temp)), pr=hs.reduce((a,h)=>a+(h.pr||0),0);
+    // icon: the midday hour, or the wettest hour if it rains
+    const noon=hs.reduce((a,h)=>Math.abs(new Date(h.t).getHours()-13)<Math.abs(new Date(a.t).getHours()-13)?h:a);
+    const wet=hs.filter(h=>new Date(h.t).getHours()>=8&&new Date(h.t).getHours()<=21).reduce((a,h)=>(h.pr||0)>(a?.pr||0)?h:a,null);
+    const sym=(wet&&wet.pr>=0.3?wet.sym:noon.sym).replace("_night","_day");
+    const dn=i===0?"сегодня":i===1?"завтра":new Intl.DateTimeFormat("ru-RU",{weekday:"short"}).format(new Date(d+"T12:00:00"));
+    out.push(`<div class="dd${d===today?" today":""}"><span class="dn">${dn}</span>${icon(sym)}<span class="tx">${Math.round(tx)}°</span><span class="tn">${Math.round(tn)}°</span><span class="pr">${pr>=0.5?pr.toFixed(0)+" мм":""}</span></div>`);
+  }
+  box.innerHTML=out.join("");
+}
+/* ---------- which cards are on the main screen ---------- */
+const CARDS=[
+  ["card5","Прогноз на 5 дней","температура и осадки по дням"],
+  ["cardPress","Давление","стрелочный барометр и тенденция"],
+  ["cardKp","Геомагнитный фон","индекс Kp и магнитные бури"],
+  ["cardRain","Карта осадков","движение туч на 12 часов"],
+  ["cardHours","Почасовой прогноз","на сутки вперёд"]
+];
+const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],true])), loadJSON("layout",{})||{});
+function applyLayout(){
+  for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
+  const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
+  $("grid2").hidden=!n; $("grid2").classList.toggle("one", n===1);
+}
+function renderToggles(){
+  $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
+}
+$("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
+$("gearBtn").addEventListener("click",()=>{ renderToggles(); showSheet("setSheet"); });
+applyLayout();
+
 /* ---------- refresh: straight from the sources ---------- */
 const T = { state:"idle", timer:null, seq:0 };
 function setTracker(state, text){
@@ -1383,28 +1470,77 @@ async function refreshNow(quiet){
 $("refreshBtn").addEventListener("click",()=>{ if(T.state!=="busy") refreshNow(); });
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ const f=S.feed[S.slug]; if(!f||Date.now()-new Date(f.fetched)>30*60*1000) refreshNow(true); } });
 
-/* ---------- mood: daily check-in, kept on this phone ---------- */
-const MOOD={3:{e:"😊",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
-S.mood={}; S.moodRef=null; S.moodDel=loadJSON("moodDel",{})||{};
-try{ S.mood=JSON.parse(store.get("mood")||"{}")||{}; }catch(e){ S.mood={}; }
-let moodChain=Promise.resolve();
-function saveMood(date, v){
-  const at=new Date().toISOString();
-  if(v){ S.mood[date]={v, city:S.slug, at}; delete S.moodDel[date]; } else { delete S.mood[date]; S.moodDel[date]=at; }
-  store.set("mood", JSON.stringify(S.mood)); store.set("moodDel", JSON.stringify(S.moodDel));
+/* ---------- marks: any number per day, each with time and kind ---------- */
+const KINDS=[
+  {k:"great",   e:"😄", l:"Отлично",          sl:"Отлично",  s:3},
+  {k:"good",    e:"🙂", l:"Нормально",        sl:"Норм",     s:3},
+  {k:"meh",     e:"😐", l:"Так себе",         sl:"Так себе", s:2},
+  {k:"sleepy",  e:"😴", l:"Сонливость",       sl:"Сонный",   s:2,   sym:true},
+  {k:"weak",    e:"🥴", l:"Слабость",         sl:"Слабость", s:1.5, sym:true},
+  {k:"head",    e:"🤕", l:"Болит голова",     sl:"Голова",   s:1,   sym:true},
+  {k:"dizzy",   e:"😵‍💫", l:"Головокружение",   sl:"Кружится", s:1,   sym:true},
+  {k:"heart",   e:"💓", l:"Давление, сердце", sl:"Сердце",   s:1,   sym:true},
+  {k:"joints",  e:"🦴", l:"Ломит суставы",    sl:"Суставы",  s:1.5, sym:true},
+  {k:"bad",     e:"😣", l:"Плохо",            sl:"Плохо",    s:1}
+];
+const KIND=Object.fromEntries(KINDS.map(x=>[x.k,x]));
+const OLDV={3:"good",2:"meh",1:"bad"};                     // marks from the first version (3 smileys)
+const MOOD={3:{e:"🙂",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
+const scoreColor=s=>s>=2.5?"#8be38f":s>=1.75?"#f2c94c":"#ff7a6b";
+S.marks=loadJSON("marks",null); S.marksDel=loadJSON("marksDel",{})||{};
+if(!Array.isArray(S.marks)){                                // migrate one-per-day marks
+  S.marks=[]; const old=loadJSON("mood",{})||{};
+  for(const [d,r] of Object.entries(old)) if(r&&OLDV[r.v]) S.marks.push({id:"m"+d.replace(/-/g,""),t:new Date(d+"T12:00:00").toISOString(),k:OLDV[r.v],city:r.city||S.slug});
+  try{ localStorage.setItem("marks",JSON.stringify(S.marks)); }catch(e){}
+}
+S.mood={}; S.moodDel={};
+// daily summary: average score, the most notable mark (lowest score, latest) and all kinds
+function rebuildMood(){
+  const by={};
+  for(const m of S.marks){ if(S.marksDel[m.id]||!KIND[m.k]) continue; const d=isoDay(new Date(m.t)); (by[d]=by[d]||[]).push(m); }
+  S.mood={};
+  for(const [d,list] of Object.entries(by)){
+    list.sort((a,b)=>a.t<b.t?-1:1);
+    const sc=list.reduce((x,m)=>x+KIND[m.k].s,0)/list.length;
+    const worst=list.reduce((a,m)=>KIND[m.k].s<=KIND[a.k].s?m:a);
+    S.mood[d]={v:sc, e:KIND[worst.k].e, l:KIND[worst.k].l, kinds:list.map(m=>m.k), marks:list, city:list[list.length-1].city, at:list[list.length-1].t};
+  }
+}
+rebuildMood();
+function saveMarks(){
+  store.set("marks", JSON.stringify(S.marks)); store.set("marksDel", JSON.stringify(S.marksDel));
+  rebuildMood();
   ySyncSoon(); if(typeof scheduleReminders==="function") scheduleReminders();
   renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); if(!$("hist").hidden) drawHistory();
 }
+function addMark(k, when){
+  const t=(when||new Date()).toISOString();
+  S.marks.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), t, k, city:S.slug});
+  saveMarks();
+}
+function removeMark(id){ S.marksDel[id]=new Date().toISOString(); S.marks=S.marks.filter(m=>m.id!==id); saveMarks(); }
+// compatibility with older calls: 3 / 2 / 1 / null for a whole day
+function saveMood(date, v){
+  if(v==null){ for(const m of S.marks.filter(m=>isoDay(new Date(m.t))===date)) S.marksDel[m.id]=new Date().toISOString(); S.marks=S.marks.filter(m=>isoDay(new Date(m.t))!==date); saveMarks(); return; }
+  const k=OLDV[v]||v; const when=date===isoDay(new Date())?new Date():new Date(date+"T12:00:00"); addMark(k, when);
+}
+function mergeMarks(a, b, da, db){
+  const del={...(da||{})}; for(const [id,t] of Object.entries(db||{})) if(!del[id]) del[id]=t;
+  const map=new Map(); for(const m of [...(a||[]),...(b||[])]) if(m&&m.id&&!del[m.id]) map.set(m.id,m);
+  return {marks:[...map.values()].sort((x,y)=>x.t<y.t?-1:1), del};
+}
 function renderMood(){
   const today=isoDay(new Date()), rec=S.mood[today];
-  const box=$("mbtns"); box.classList.toggle("chosen",!!rec);
-  box.querySelectorAll(".mbtn").forEach(b=>b.setAttribute("aria-pressed", String(!!rec && +b.dataset.mood===rec.v)));
+  const grid=$("mbtns");
+  if(!grid.children.length) grid.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("");
+  const list=rec?rec.marks:[];
+  $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
-  const chip=$("moodChip");
-  $("moodChipE").textContent = rec ? MOOD[rec.v].e : "🙂";
+  const chip=$("moodChip"), last=list[list.length-1];
+  $("moodChipE").textContent = last ? KIND[last.k].e : "🙂";
   chip.classList.toggle("ask", !rec);
-  chip.setAttribute("aria-label", rec ? `Сегодня: ${MOOD[rec.v].l}. Открыть «Самочувствие и погода»` : "Отметить самочувствие");
+  chip.setAttribute("aria-label", last ? `Последняя отметка: ${KIND[last.k].l}. Добавить отметку` : "Отметить самочувствие");
   if($("moodPop").hidden) chip.hidden=false;
 }
 /* the question pops up; after a tap it folds into the round chip in the corner */
@@ -1428,15 +1564,16 @@ function foldMoodPop(){
     chip.style.visibility=""; chip.classList.remove("land"); void chip.offsetWidth; chip.classList.add("land"); }, reduce?0:480);
 }
 $("mbtns").addEventListener("click",e=>{
-  const b=e.target.closest(".mbtn"); if(!b) return;
-  const today=isoDay(new Date()), v=+b.dataset.mood;
+  const b=e.target.closest(".kbtn"); if(!b) return;
   b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-  saveMood(today, v);
-  setTimeout(foldMoodPop, 380);
+  addMark(b.dataset.k);
+  toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
+  setTimeout(()=>{ b.classList.remove("pop"); foldMoodPop(); }, 420);
 });
+$("mtoday").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b) removeMark(b.dataset.rm); });
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
-$("moodChip").addEventListener("click",()=>{ const today=isoDay(new Date()); if(!S.mood[today]) showMoodPop(); else openMoodSheet(); });
+$("moodChip").addEventListener("click",()=>showMoodPop());
 function openMoodSheet(){ MS.sel=null; $("backupNote").hidden=!PREF; renderY(); renderFriends(); renderMoodSheet(); showSheet("moodSheet"); fetchFriends(false); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
@@ -1479,22 +1616,24 @@ function renderMoodSheet(){
   for(let i=0;i<dow;i++) h+=`<span></span>`;
   for(let i=0;i<28;i++){
     const d=isoDay(new Date(+start+i*DAY)), r=S.mood[d];
-    h+=`<button class="day${d===todayS?" today":""}${MS.sel===d?" sel":""}" data-d="${d}" aria-label="${fmtDMY(new Date(d+"T12:00:00"))}${r?": "+MOOD[r.v].l:""}">${r?`<span class="e">${MOOD[r.v].e}</span>`:`<span class="dot"></span>`}${+d.slice(8)}</button>`;
+    h+=`<button class="day${d===todayS?" today":""}${MS.sel===d?" sel":""}" data-d="${d}" aria-label="${fmtDMY(new Date(d+"T12:00:00"))}${r?": "+r.kinds.map(k=>KIND[k].l).join(", "):""}">${r?`<span class="e">${r.e}</span>`:`<span class="dot"></span>`}${+d.slice(8)}</button>`;
   }
   $("mdays").innerHTML=h;
   const pk=$("mpicker");
   if(MS.sel){ const r=S.mood[MS.sel]; pk.hidden=false;
-    pk.innerHTML=`<span class="pd">${fmtDMY(new Date(MS.sel+"T12:00:00"))}</span>`+[3,2,1].map(v=>`<button data-v="${v}" aria-label="${MOOD[v].l}" style="${r&&r.v===v?`border-color:${MOOD[v].c};background:color-mix(in srgb,${MOOD[v].c} 18%,transparent)`:""}">${MOOD[v].e}</button>`).join("")+(r?`<button class="x" data-v="0">Убрать</button>`:"");
+    pk.innerHTML=`<span class="pd">${fmtDMY(new Date(MS.sel+"T12:00:00"))}</span>`+
+      (r?r.marks.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join(""):"")+
+      `<div class="kmini">${KINDS.map(x=>`<button data-k="${x.k}" aria-label="Добавить: ${x.l}">${x.e}</button>`).join("")}</div>`;
   } else pk.hidden=true;
   // analysis
   const rows=Object.entries(S.mood).map(([d,r])=>({d,v:r.v,f:dayFeatures(d, r.city||S.slug)}));
   const out=FACTORS.map(([k,name,unit,dg,hiTxt,loTxt])=>{
     const pts=rows.filter(r=>r.f[k]!=null);
-    const good=pts.filter(r=>r.v===3), bad=pts.filter(r=>r.v===1);
+    const good=pts.filter(r=>r.v>=2.5), bad=pts.filter(r=>r.v<=1.5);
     const mean=a=>a.length?a.reduce((x,r)=>x+r.f[k],0)/a.length:null;
     const mg=mean(good), mb=mean(bad);
     const fmt=v=>v==null?"—":v.toFixed(dg).replace(".",",")+(unit?" "+unit:"");
-    const enough=pts.length>=7 && new Set(pts.map(p=>p.v)).size>1;
+    const enough=pts.length>=7 && new Set(pts.map(p=>Math.round(p.v*2))).size>1;
     const r=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>p.v)):0;
     return {k,name,pts,mg,mb,fmt,enough,r,hiTxt,loTxt};
   });
@@ -1508,10 +1647,34 @@ function renderMoodSheet(){
     else vd=`<b>${a>=0.4?"Заметная":"Слабая"} связь:</b> самочувствие лучше ${o.r>0?o.hiTxt:o.loTxt}.`;
     return `<div class="fac${o.enough&&a>=0.4?" strong":""}"><div class="top"><span class="nm">${o.name}</span><span class="vs">😊 <b>${o.fmt(o.mg)}</b> · 😣 <b>${o.fmt(o.mb)}</b></span></div>${o.enough?`<div class="rbar"><i style="${o.r>=0?`left:50%`:`right:50%`};width:${w}%;background:${col}"></i></div><div class="legend2"><span>хуже при росте</span><span>r = ${o.r.toFixed(2).replace(".",",")}</span><span>лучше при росте</span></div>`:""}<div class="vd">${vd}</div></div>`;
   }).join("");
+  // symptoms: weather on days with the symptom vs. days without it
+  const symHtml=KINDS.filter(x=>x.sym).map(x=>{
+    const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
+    if(withS.length<3) return withS.length?`<div class="fac"><div class="top"><span class="nm">${x.e} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">Мало данных: нужно хотя бы 3 дня с этим симптомом.</div></div>`:"";
+    const diffs=[];
+    for(const [k,name,unit,dg] of FACTORS){
+      const a=withS.map(r=>r.f[k]).filter(v=>v!=null), b=without.map(r=>r.f[k]).filter(v=>v!=null);
+      if(a.length<3||b.length<3) continue;
+      const ma=a.reduce((p,q)=>p+q,0)/a.length, mb=b.reduce((p,q)=>p+q,0)/b.length;
+      const all=[...a,...b], mu=all.reduce((p,q)=>p+q,0)/all.length, sd=Math.sqrt(all.reduce((p,q)=>p+(q-mu)**2,0)/all.length)||1;
+      diffs.push({name,unit,dg,ma,mb,eff:(ma-mb)/sd});
+    }
+    diffs.sort((p,q)=>Math.abs(q.eff)-Math.abs(p.eff));
+    const top=diffs.filter(d=>Math.abs(d.eff)>=0.5).slice(0,2);
+    const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?" "+d.unit:"");
+    const txt=top.length ? top.map(d=>`${d.name.toLowerCase()} ${d.eff>0?"выше":"ниже"} обычного: <b>${f(d.ma,d)}</b> против ${f(d.mb,d)}`).join("; ")
+                         : (diffs.length?"Заметной связи с погодой пока не видно.":"Подгружаю погоду за эти дни…");
+    return `<div class="fac${top.length&&Math.abs(top[0].eff)>=0.8?" strong":""}"><div class="top"><span class="nm">${x.e} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">В эти дни ${txt}.</div></div>`;
+  }).join("");
+  $("msymp").innerHTML = symHtml || `<div class="fac"><div class="vd">Отмечайте симптомы — 🤕 😵‍💫 💓 🦴 🥴 😴 — и здесь появится, при какой погоде они случаются чаще.</div></div>`;
   moodLoadArchive(rows);
 }
 $("mdays").addEventListener("click",e=>{ const b=e.target.closest("[data-d]"); if(!b) return; MS.sel = MS.sel===b.dataset.d?null:b.dataset.d; renderMoodSheet(); });
-$("mpicker").addEventListener("click",e=>{ const b=e.target.closest("[data-v]"); if(!b||!MS.sel) return; const v=+b.dataset.v; const d=MS.sel; MS.sel=null; saveMood(d, v||null); });
+$("mpicker").addEventListener("click",e=>{
+  const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); return; }
+  const b=e.target.closest("[data-k]"); if(!b||!MS.sel) return;
+  const d=MS.sel, when=d===isoDay(new Date())?new Date():new Date(d+"T12:00:00"); addMark(b.dataset.k, when);
+});
 // load only the archive days that marked days need (station obs of that city + Kp)
 function moodLoadArchive(rows){
   const g=$("mgap");
@@ -1567,21 +1730,22 @@ async function ySync(loud){
     if(dl.status===200 && dl.data?.href){ const f=await yReq("GET", dl.data.href, null, false); if(f.status===200) remote=typeof f.data==="string"?JSON.parse(f.data):f.data; }
     else if(dl.status!==404) throw new Error("net");
     // 2) merge
-    const before=JSON.stringify([S.mood,S.moodDel,S.cities]);
+    const before=JSON.stringify([S.marks,S.marksDel,S.cities]);
     if(remote){
-      const mm=mergeMood(S.mood, remote.mood, S.moodDel, remote.moodDel); S.mood=mm.mood; S.moodDel=mm.del;
+      let rm=remote.marks;
+      if(!Array.isArray(rm)){ rm=[]; for(const [d,r] of Object.entries(remote.mood||{})) if(r&&OLDV[r.v]) rm.push({id:"m"+d.replace(/-/g,""),t:new Date(d+"T12:00:00").toISOString(),k:OLDV[r.v],city:r.city}); }
+      const mm=mergeMarks(S.marks, rm, S.marksDel, remote.marksDel); S.marks=mm.marks; S.marksDel=mm.del; rebuildMood();
       for(const [id,c] of Object.entries(remote.cities||{})) if(!S.cities[id]) S.cities[id]={...c,status:"ready"};
     }
-    const changedHere=JSON.stringify([S.mood,S.moodDel,S.cities])!==before;
-    if(changedHere){ try{localStorage.setItem("mood",JSON.stringify(S.mood));localStorage.setItem("moodDel",JSON.stringify(S.moodDel));localStorage.setItem("cities",JSON.stringify(S.cities));}catch(e){}
-      if(PREF){ PREF.set({key:"mood",value:JSON.stringify(S.mood)}).catch(()=>{}); PREF.set({key:"moodDel",value:JSON.stringify(S.moodDel)}).catch(()=>{}); PREF.set({key:"cities",value:JSON.stringify(S.cities)}).catch(()=>{}); }
+    const changedHere=JSON.stringify([S.marks,S.marksDel,S.cities])!==before;
+    if(changedHere){ store.set("marks",JSON.stringify(S.marks)); store.set("marksDel",JSON.stringify(S.marksDel)); store.set("cities",JSON.stringify(S.cities));
       renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
     if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)) if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f;
     const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added};
-    const body=JSON.stringify({app:"Метеодневник",v:1,updated:new Date().toISOString(),mood:S.mood,moodDel:S.moodDel,cities,friends});
-    if(!remote || JSON.stringify(remote.mood)!==JSON.stringify(S.mood) || JSON.stringify(remote.moodDel||{})!==JSON.stringify(S.moodDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
+    const body=JSON.stringify({app:"Метеодневник",v:2,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,cities,friends});
+    if(!remote || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
       if(up.status===401||up.status===403) throw new Error("auth");
       if(up.status!==200||!up.data?.href) throw new Error("net");
@@ -1663,7 +1827,7 @@ function shareLink(){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=$
 async function shareUpload(){
   // only what friends need: name, city and the last 120 days of smileys
   const since=isoDay(new Date(Date.now()-120*DAY)), mood={};
-  for(const [d,r] of Object.entries(S.mood)) if(d>=since) mood[d]=r.v;
+  for(const [d,r] of Object.entries(S.mood)) if(d>=since) mood[d]={e:r.e, s:+r.v.toFixed(2), k:r.kinds};
   const body=JSON.stringify({app:"Метеодневник",v:1,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood});
   const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/mood.json")}&overwrite=true`);
   if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
@@ -1734,22 +1898,24 @@ function renderFriends(state){
   let h="";
   // sharing controls
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
-  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят только ваше имя, город и смайлики по дням. Нужен подключённый Яндекс Диск.</div>
+  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят только ваше имя, город и отметки по дням. Нужен подключённый Яндекс Диск.</div>
     <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div></div>`;
   else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">Отправить ссылку другу</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
     <div class="hint">Вы делитесь отметками как <b>${esc2(SH.name)}</b>. Отправьте ссылку во ВКонтакте, Telegram или по SMS.</div></div>`;
   // comparison grid
   const fl=Object.values(FR.list);
   if(fl.length){
-    const cell=(v,d)=>`<td class="${d===days[13]?"today":""}">${v?MOOD[v].e:""}</td>`;
-    const rows=[[`Я`, cityOf(S.slug).name, d=>S.mood[d]?.v]].concat(fl.map(f=>[f.name||"Друг", f.gone?"ссылка закрыта":(f.data?.city||"…"), d=>f.data?.mood?.[d]]));
+    const emo=v=>v==null?"":typeof v==="number"?(MOOD[v]?.e||""):(v.e||"");
+    const cell=(v,d)=>`<td class="${d===days[13]?"today":""}">${emo(v)}</td>`;
+    const rows=[[`Я`, cityOf(S.slug).name, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", f.gone?"ссылка закрыта":(f.data?.city||"…"), d=>f.data?.mood?.[d]]));
     h+=`<div class="fbox"><div class="fgrid"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
       rows.map(([n,c,get])=>`<tr><th class="nm">${esc2(n)}<small>${esc2(c)}</small></th>${days.map(d=>cell(get(d),d)).join("")}</tr>`).join("")+`</tbody></table></div>`;
     // coincidences over the last 60 days
     const since=isoDay(new Date(Date.now()-60*DAY));
     h+=`<div class="fins">`+fl.map(f=>{
       const fm=f.data?.mood||{}; let both=0,same=0,bad=[];
-      for(const [d,r] of Object.entries(S.mood)){ if(d<since||!fm[d]) continue; both++; if(fm[d]===r.v) same++; if(fm[d]===1&&r.v===1) bad.push(d); }
+      const sc=v=>typeof v==="number"?v:(v?.s??null);
+      for(const [d,r] of Object.entries(S.mood)){ const fs=sc(fm[d]); if(d<since||fs==null) continue; both++; if(Math.abs(fs-r.v)<0.75) same++; if(fs<=1.5&&r.v<=1.5) bad.push(d); }
       let t;
       if(f.gone) t=`${esc2(f.name)} закрыл(а) доступ.`;
       else if(!f.data) t=`${esc2(f.name)}: загружаю отметки…`;
@@ -1857,7 +2023,7 @@ async function scheduleReminders(){
     const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,hh,mm,0);
     if(d<=now) continue;
     if(i===0 && S.mood[isoDay(now)]) continue;             // already marked today: no reminder
-    list.push({id:100+i, title:"Как вы себя чувствуете сегодня?", body:"Нажмите на смайлик — отметка сохранится.",
+    list.push({id:100+i, title:"Как вы себя чувствуете сегодня?", body:"Нажмите на смайлик или откройте, чтобы выбрать симптом.",
       schedule:{at:d, allowWhileIdle:true}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr", iconColor:"#7fd6c8", extra:{kind:"mood"}});
   }
   if(list.length) try{ await LN.schedule({notifications:list}); }catch(e){}
@@ -1867,13 +2033,13 @@ if(LN){
   const r=loadJSON("remind",{on:false,time:"20:00"});
   $("remOn").checked=!!r.on; $("remTime").value=r.time||"20:00";
   LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Ежедневный вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
-  LN.registerActionTypes({types:[{id:"MOOD", actions:[{id:"m3",title:"😊 Хорошо"},{id:"m2",title:"😐 Так себе"},{id:"m1",title:"😣 Плохо"}]}]}).catch(()=>{});
+  LN.registerActionTypes({types:[{id:"MOOD", actions:[{id:"m3",title:"🙂 Нормально"},{id:"m2",title:"😐 Так себе"},{id:"m1",title:"😣 Плохо"}]}]}).catch(()=>{});
   // a smiley pressed in the notification shade: save it and put the app back
   LN.addListener("localNotificationActionPerformed", ev=>{
     const a=ev.actionId||"";
     if(/^m[123]$/.test(a)){
-      const v=+a[1]; saveMood(isoDay(new Date()), v); $("moodPop").hidden=true;
-      toast(`${MOOD[v].e} Записано на сегодня`);
+      const k=OLDV[+a[1]]; addMark(k); $("moodPop").hidden=true;
+      toast(`${KIND[k].e} ${KIND[k].l} — записано`);
       setTimeout(()=>window.Capacitor.Plugins?.App?.minimizeApp?.(), 1300);
     } else setTimeout(showMoodPop, 300);                    // the notification itself was tapped
   });
@@ -1917,16 +2083,16 @@ async function restoreFromBackup(){
   if(!PREF) return false;
   let changed=false;
   try{
+    if(!S.marks.length){ const {value}=await PREF.get({key:"mood"}); if(value){ const old=JSON.parse(value)||{}; for(const [d,r] of Object.entries(old)) if(r&&OLDV[r.v]) S.marks.push({id:"m"+d.replace(/-/g,""),t:new Date(d+"T12:00:00").toISOString(),k:OLDV[r.v],city:r.city||S.slug}); if(S.marks.length){ store.set("marks",JSON.stringify(S.marks)); changed=true; } } }
     for(const k of BACKUP_KEYS){
       const {value}=await PREF.get({key:k}); const local=store.get(k);
       if(value==null){ if(local!=null) PREF.set({key:k,value:local}).catch(()=>{}); continue; }   // first run of this version: copy up
-      if(k==="mood"){
-        // merge day by day, the later mark wins
-        const a=loadJSON("mood",{})||{}, b=JSON.parse(value)||{}, m={...a};
-        for(const [d,r] of Object.entries(b)) if(!m[d] || (r.at||"")>(m[d].at||"")) m[d]=r;
-        const out=JSON.stringify(m); if(out!==local){ try{localStorage.setItem("mood",out)}catch(e){} changed=true; }
-        if(out!==value) PREF.set({key:"mood",value:out}).catch(()=>{});
-        S.mood=m;
+      if(k==="marks"||k==="marksDel"){
+        if(k==="marksDel"){ const a=loadJSON("marksDel",{})||{}, b=JSON.parse(value)||{}; const m={...b,...a}; const out=JSON.stringify(m); if(out!==local){ try{localStorage.setItem(k,out)}catch(e){} changed=true; } S.marksDel=m; continue; }
+        const mm=mergeMarks(loadJSON("marks",[])||[], JSON.parse(value)||[], S.marksDel, {});
+        const out=JSON.stringify(mm.marks); if(out!==local){ try{localStorage.setItem("marks",out)}catch(e){} changed=true; }
+        if(out!==value) PREF.set({key:"marks",value:out}).catch(()=>{});
+        S.marks=mm.marks;
       } else if(local==null){ try{localStorage.setItem(k,value)}catch(e){} changed=true; }
     }
   }catch(e){}
@@ -1944,7 +2110,8 @@ render();
     const sl=store.get("city"); if(sl&&S.cities[sl]) S.slug=sl;
     S.feed[S.slug]=loadJSON("feed:"+S.slug,null)||undefined;
     renderMood(); render();
-    if(Object.keys(S.mood).length) toast(`Восстановлено из резервной копии: ${Object.keys(S.mood).length} дн. самочувствия`);
+    rebuildMood(); renderMood();
+    if(S.marks.length) toast(`Восстановлено из резервной копии: ${S.marks.length} отметок`);
   }
   refreshNow(true);
   if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); }
