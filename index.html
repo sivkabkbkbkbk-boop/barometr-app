@@ -306,6 +306,27 @@ footer a{color:var(--muted)}
 .mchip:active{transform:scale(.93)}
 .mchip:focus-visible{outline:2px solid var(--press);outline-offset:3px}
 footer{padding-bottom:64px}
+/* chat */
+.fact{display:flex;align-items:center;gap:2px;flex:none}
+.chatb{position:relative;border:1px solid var(--glass-line);background:rgba(238,243,248,.06);border-radius:10px;font-size:15px;padding:3px 8px;cursor:pointer;color:var(--ink)}
+.chatb i{position:absolute;top:-6px;right:-6px;background:#ff6b5e;color:#fff;font-style:normal;font-size:10px;font-weight:700;min-width:16px;height:16px;line-height:16px;border-radius:8px;padding:0 4px;text-align:center}
+.mcr{display:flex;align-items:center;gap:8px;flex:none}
+.mcr .mlink{white-space:nowrap}
+#chatSheet{height:calc(100% - 28px - env(safe-area-inset-top,0px))}
+#chatSheet .sbody{flex:1}
+.clist{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.cday{align-self:center;font-size:11px;color:var(--muted);background:var(--sheet-2);border-radius:99px;padding:2px 10px;margin:6px 0 2px}
+.msg{max-width:80%;align-self:flex-start;background:var(--sheet-2);border-radius:16px 16px 16px 4px;padding:7px 11px 5px;display:flex;flex-direction:column;gap:2px;font-size:14.5px;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
+.msg .tm{align-self:flex-end;font-size:10px;color:rgba(238,243,248,.6);font-family:var(--f-mono)}
+.msg .er{color:#ff8b7e;cursor:pointer;padding:0 3px}
+.cnote{align-self:center;text-align:center;font-size:13px;color:var(--muted);background:var(--sheet-2);border-radius:14px;padding:12px 14px;margin:10px 0;display:flex;flex-direction:column;gap:8px;align-items:center}
+.cfoot{flex:none;padding:6px 12px 10px;border-top:1px solid var(--glass-line);display:flex;flex-direction:column;gap:8px;background:var(--sheet)}
+.cquick .chip{font-size:12.5px}
+.cin{display:flex;gap:8px}
+.cin input{flex:1;min-width:0;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:22px;padding:10px 14px;color:var(--ink);font-size:15px}
+.csend{width:44px;height:44px;border-radius:50%;border:0;background:var(--press);color:#0d1726;font-size:18px;cursor:pointer;flex:none}
+.csend:disabled,.cin input:disabled{opacity:.4}
 /* friends */
 .friends{display:flex;flex-direction:column;gap:10px}
 .fbox{background:var(--sheet-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
@@ -463,7 +484,7 @@ header{min-width:0}
 
 
   <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
-    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><button class="mlink" id="cmOpen">дневник ›</button></div>
+    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="chatb" id="cmChat" hidden aria-label="Чат с друзьями">💬</button><button class="mlink" id="cmOpen">дневник ›</button></span></div>
     <div class="kgrid" id="kgMain"></div>
     <div class="mtoday" id="mtMain"></div>
   </section>
@@ -608,6 +629,19 @@ header{min-width:0}
     <div class="ysync" id="ysync"></div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+  </div>
+</section>
+
+<section class="sheet" id="chatSheet" role="dialog" aria-modal="true" aria-labelledby="chatTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="chatTitle">Чат</h2><div class="sc" id="chatSub"></div></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody"><div class="clist" id="chatList"></div></div>
+  <div class="cfoot">
+    <div class="chips cquick" id="chatQuick"></div>
+    <div class="cin"><input id="chatIn" placeholder="Сообщение" maxlength="1000" autocomplete="off" aria-label="Сообщение"><button class="csend" id="chatSend" aria-label="Отправить">➤</button></div>
   </div>
 </section>
 
@@ -1909,7 +1943,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="25.09 · сборка 4 (цветная карта)";
+const APP_VER="25.09 · сборка 5 (чат с друзьями)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2230,8 +2264,8 @@ async function ySync(loud){
       renderMood(); if(!$("moodSheet").hidden) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
-    if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)) if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f;
-    const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added};
+    if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)){ if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f; else if(FR.list[k]&&!FR.list[k].s&&f.s) FR.list[k].s=f.s; }
+    const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added,s:f.s||""};
     const body=JSON.stringify({app:"Метеодневник",v:2,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,cities,friends});
     if(!remote || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
@@ -2306,12 +2340,14 @@ $("ysync").addEventListener("click",async e=>{
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Y.token) ySync(false); });
 
 /* ---------- friends: a public folder on each person's Disk with only name, city and smileys ---------- */
-const SH = Object.assign({on:false, key:"", name:"", url:""}, loadJSON("share",{})||{});
+const SH = Object.assign({on:false, key:"", name:"", url:"", secret:""}, loadJSON("share",{})||{});
+function newSecret(){ const b=new Uint8Array(16); crypto.getRandomValues(b); return btoa(String.fromCharCode(...b)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+if(!SH.secret){ try{ SH.secret=newSecret(); store.set("share",JSON.stringify(SH)); }catch(e){} }
 const FR = {list: loadJSON("friends",{})||{}, removed: loadJSON("friendsRemoved",{})||{}, busy:false, lastFetch:0};
 const saveShare=()=>store.set("share",JSON.stringify(SH));
-function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
+function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched,s:f.s||""}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
 const FRIEND_PAGE="https://sivkabkbkbkbk-boop.github.io/barometr/friend.html";
-function shareLink(){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=${encodeURIComponent(SH.name||"")}`; }
+function shareLink(reply){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=${encodeURIComponent(SH.name||"")}&s=${encodeURIComponent(SH.secret||"")}${reply?"&r=1":""}`; }
 async function shareUpload(){
   // only what friends need: name, city and the last 120 days of smileys
   const since=isoDay(new Date(Date.now()-120*DAY)), mood={};
@@ -2333,14 +2369,18 @@ async function shareStart(){
     const info=await yReq("GET", `${YD}?path=${encodeURIComponent("app:/share")}&fields=public_key,public_url`);
     if(!info.data?.public_key) throw new Error("net");
     SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
-    shareSend();
+    shareSend(!!FR.replyTo); FR.replyTo=null;
   }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
 }
-async function shareSend(){
-  const text=`${SH.name} делится самочувствием в «Метеодневнике». Откройте ссылку, чтобы добавить в друзья:\n${shareLink()}`;
+async function shareSend(reply){
+  const nm=SH.name||"Друг";
+  const text = reply
+    ? `${nm} принял(а) твоё приглашение в «Метеодневнике» 🌦 Нажми на ссылку, чтобы видеть состояние друг друга и переписываться:\n${shareLink(true)}`
+    : `${nm} хочет с тобой подружиться и обмениваться своим состоянием в «Метеодневнике» 🌦\nНажми на ссылку, чтобы принять приглашение:\n${shareLink()}`;
   const Sh=window.Capacitor?.Plugins?.Share;
-  try{ if(Sh){ await Sh.share({title:"Метеодневник", text, dialogTitle:"Отправить другу"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
-  try{ if(navigator.share){ await navigator.share({title:"Метеодневник", text}); return; } }catch(e){ return; }
+  const title=`${nm} приглашает в «Метеодневник»`;
+  try{ if(Sh){ await Sh.share({title, text, dialogTitle:"Отправить приглашение"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
+  try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
   try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); }catch(e){ toast(shareLink()); }
 }
 async function shareStop(){
@@ -2350,17 +2390,25 @@ async function shareStop(){
 }
 function parseFriendLink(url){
   const s=String(url||""); const m=s.match(/[?&#]k=([^&#\s]+)/); if(!m) return null;
-  const n=s.match(/[?&#]n=([^&#\s]*)/); return {k:decodeURIComponent(m[1]), name:n?decodeURIComponent(n[1]).slice(0,40):""};
+  const n=s.match(/[?&#]n=([^&#\s]*)/), sc=s.match(/[?&#]s=([A-Za-z0-9_-]+)/);
+  return {k:decodeURIComponent(m[1]), name:n?decodeURIComponent(n[1]).slice(0,40):"", s:sc?sc[1]:"", reply:/[?&#]r=1/.test(s)};
 }
 async function addFriendFromLink(url){
   const f=parseFriendLink(url); if(!f){ toast("Это не похоже на ссылку «Метеодневника»."); return; }
   if(f.k===SH.key){ toast("Это ваша собственная ссылка."); return; }
   const had=!!FR.list[f.k];
-  FR.list[f.k]=Object.assign({k:f.k,name:f.name||"Друг",added:new Date().toISOString()}, FR.list[f.k]||{}); delete FR.removed[f.k]; saveFriends();
+  FR.list[f.k]=Object.assign({k:f.k,name:f.name||"Друг",added:new Date().toISOString()}, FR.list[f.k]||{}); delete FR.removed[f.k];
+  if(f.s) FR.list[f.k].s=f.s;
+  saveFriends();
   await fetchFriend(FR.list[f.k]);
-  toast(had?`${FR.list[f.k].name} уже в друзьях — обновил отметки.`:`${FR.list[f.k].name} добавлен(а) в друзья`);
+  const nm=FR.list[f.k].name;
   ySyncSoon();
   if($("moodSheet").hidden){ $("moodPop").hidden=true; openMoodSheet(); } else renderFriends();
+  if(had){ toast(`${nm} уже в друзьях — обновил отметки.`); return; }
+  if(f.reply){ toast(`${nm} принял(а) ваше приглашение — теперь вы видите друг друга и можете переписываться 💬`); return; }
+  // the friend can see us only after getting our own link back
+  if(SH.on){ toast(`${nm} теперь в друзьях. Отправьте ответное приглашение — тогда вы будете видеть друг друга и сможете переписываться.`); setTimeout(()=>shareSend(true), 1600); }
+  else { FR.replyTo=nm; renderFriends(); toast(`${nm} теперь в друзьях. Чтобы ${nm} видел(а) ваше состояние, введите своё имя и нажмите «Поделиться».`); setTimeout(()=>{ $("shName")?.scrollIntoView({block:"center"}); $("shName")?.focus(); }, 700); }
 }
 async function fetchFriend(f){
   try{
@@ -2371,6 +2419,7 @@ async function fetchFriend(f){
     const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
     if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name; }
   }catch(e){}
+  await chatFetch(f).catch(()=>{});
 }
 async function fetchFriends(force){
   if(FR.busy) return; if(!force && Date.now()-FR.lastFetch<10*60*1000) return;
@@ -2387,9 +2436,9 @@ function renderFriends(state){
   // sharing controls
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
   else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят только ваше имя, город и отметки по дням. Нужен подключённый Яндекс Диск.</div>
-    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div></div>`;
-  else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">Отправить ссылку другу</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
-    <div class="hint">Вы делитесь отметками как <b>${esc2(SH.name)}</b>. Отправьте ссылку во ВКонтакте, Telegram или по SMS.</div></div>`;
+    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div>${FR.replyTo?`<div class="hint">👋 Введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} получит ответное приглашение.</div>`:""}</div>`;
+  else h+=`<div class="fbox"><div class="row"><button class="btn" data-f="send">📨 Пригласить друга</button><button class="btn ghost" data-f="stop">Перестать делиться</button></div>
+    <div class="hint">Вы делитесь состоянием как <b>${esc2(SH.name)}</b>. Кнопка откроет «Поделиться» — выберите ВКонтакте, Telegram, WhatsApp или SMS, и друг получит приглашение с вашим именем.</div></div>`;
   // comparison grid
   const fl=Object.values(FR.list);
   if(fl.length){
@@ -2409,7 +2458,8 @@ function renderFriends(state){
       else if(!f.data) t=`${esc2(f.name)}: загружаю отметки…`;
       else if(both<3) t=`<b>${esc2(f.name)}</b>: пока мало общих дней (${both}).`;
       else t=`<b>${esc2(f.name)}</b>: совпало ${same} из ${both} дней (${Math.round(same/both*100)}%)`+(bad.length?`, обоим было плохо: ${bad.sort().slice(-4).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:"")+".";
-      return `<div class="fin"><span>${t}</span><button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>`;
+      const un=chatUnread(f);
+      return `<div class="fin"><span>${t}</span><span class="fact"><button class="chatb" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}">💬${un?`<i>${un}</i>`:""}</button><button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></span></div>`;
     }).join("")+`</div></div>`;
   }
   h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
@@ -2418,6 +2468,7 @@ function renderFriends(state){
 }
 $("friends").addEventListener("click",e=>{
   const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
+  const ch=e.target.closest("[data-chat]"); if(ch){ openChat(ch.dataset.chat); return; }
   const b=e.target.closest("[data-f]"); if(!b) return;
   const a=b.dataset.f;
   if(a==="start") shareStart();
@@ -2425,6 +2476,109 @@ $("friends").addEventListener("click",e=>{
   if(a==="stop") shareStop();
   if(a==="add"){ const v=$("frLink").value.trim(); if(v) addFriendFromLink(v); }
 });
+
+/* ---------- chat between friends: each person keeps an outbox in the public folder (app:/share/chat.json),
+   messages are encrypted with a key only the two friends have (both secrets from the invitation links) ---------- */
+const CHAT = Object.assign({out:{}, inb:{}, read:{}}, loadJSON("chat",{})||{});
+const saveChat=()=>{ for(const o of [CHAT.out,CHAT.inb]) for(const k of Object.keys(o)) o[k]=o[k].slice(-300); store.set("chat",JSON.stringify(CHAT)); };
+const QUICK=["Как ты? 🙂","У меня всё хорошо 😄","Голова болит 🤕","Давление скачет, держись 💪","Магнитная буря — береги себя 🧲","Обнимаю 🤗"];
+const enc=new TextEncoder(), dec=new TextDecoder();
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))), unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function sha(s){ return new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s))); }
+const hex=u=>[...u].map(x=>x.toString(16).padStart(2,"0")).join("");
+async function boxId(k){ return hex(await sha("mtd-box|"+k)).slice(0,20); }          // mailbox name, not the friend's folder key
+const KEYS={};
+async function pairKey(f){
+  if(!f.s||!SH.secret) return null; const id=[SH.secret,f.s].sort().join("|");
+  if(!KEYS[id]) KEYS[id]=await crypto.subtle.importKey("raw", await sha("mtd-chat|"+id), "AES-GCM", false, ["encrypt","decrypt"]);
+  return KEYS[id];
+}
+async function seal(f, obj){ const key=await pairKey(f), iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
+async function unseal(f, m){ const key=await pairKey(f); const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
+function chatUnread(f){ const r=CHAT.read[f.k]||""; return (CHAT.inb[f.k]||[]).filter(m=>m.t>r).length; }
+function chatUnreadAll(){ return Object.values(FR.list).reduce((a,f)=>a+chatUnread(f),0); }
+async function chatUpload(){
+  const boxes={};
+  for(const [k,list] of Object.entries(CHAT.out)){ const f=FR.list[k]; if(!f||!f.s||!list.length) continue; boxes[await boxId(k)]=list.slice(-100).map(m=>m.box).filter(Boolean); }
+  const body=JSON.stringify({app:"Метеодневник",v:1,updated:new Date().toISOString(),boxes});
+  const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/chat.json")}&overwrite=true`);
+  if(up.status!==200||!up.data?.href) throw new Error("net");
+  const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
+}
+async function chatFetch(f){
+  if(!f.s||!SH.key) return 0;
+  const dl=await yReq("GET", `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(f.k)}&path=${encodeURIComponent("/chat.json")}`, null, false);
+  if(dl.status!==200||!dl.data?.href) return 0;
+  const r=await yReq("GET", dl.data.href+(dl.data.href.includes("?")?"&":"?")+"_="+Date.now(), null, false); if(r.status!==200) return 0;
+  const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
+  const box=data?.boxes?.[await boxId(SH.key)]||[];
+  const have=new Set((CHAT.inb[f.k]||[]).map(m=>m.id)); let added=[];
+  for(const m of box){ try{ const o=await unseal(f,m); if(o&&o.id&&!have.has(o.id)){ added.push({id:o.id,t:o.t,x:String(o.x||"").slice(0,1000)}); have.add(o.id); } }catch(e){} }
+  if(added.length){
+    CHAT.inb[f.k]=(CHAT.inb[f.k]||[]).concat(added).sort((a,b)=>a.t<b.t?-1:1); saveChat();
+    if(CH_OPEN===f.k){ CHAT.read[f.k]=added[added.length-1].t; saveChat(); renderChat(); }
+    else { const last=added[added.length-1]; if(last.t>(CHAT.read[f.k]||"")) toast(`💬 ${f.name}: ${last.x.slice(0,60)}`); }
+    renderChatBadge(); if(!$("moodSheet").hidden) renderFriends();
+  }
+  return added.length;
+}
+let CH_OPEN=null, chatTimer=0;
+function openChat(k){
+  const f=FR.list[k]; if(!f) return;
+  CH_OPEN=k; $("chatTitle").textContent=f.name||"Друг";
+  const today=f.data?.mood?.[isoDay(new Date())];
+  $("chatSub").textContent=[f.data?.city, today?`сегодня ${today.e||""}`:""].filter(Boolean).join(" · ");
+  CHAT.read[k]=((CHAT.inb[k]||[]).slice(-1)[0]||{}).t||CHAT.read[k]||""; saveChat();
+  renderChat(); showSheet("chatSheet"); renderChatBadge();
+  clearInterval(chatTimer); chatFetch(f).catch(()=>{});
+  chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; renderFriends(); return; } if(!document.hidden) chatFetch(f).catch(()=>{}); }, 15000);
+}
+function renderChat(){
+  const f=FR.list[CH_OPEN]; if(!f) return;
+  const box=$("chatList");
+  let h="";
+  if(!Y.token||!SH.on) h+=`<div class="cnote">Чтобы переписываться, подключите Яндекс Диск в ⚙ Настройках и нажмите «Поделиться» в разделе «Друзья».</div>`;
+  else if(!f.s) h+=`<div class="cnote">У ${esc(f.name)} старое приглашение, без чата. Попросите ${esc(f.name)} прислать новое — или отправьте своё, кнопкой ниже.<br><button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
+  const all=[...(CHAT.out[f.k]||[]).map(m=>({...m,me:1})), ...(CHAT.inb[f.k]||[])].sort((a,b)=>a.t<b.t?-1:1);
+  let lastDay="";
+  for(const m of all){
+    const d=isoDay(new Date(m.t)); if(d!==lastDay){ lastDay=d; h+=`<div class="cday">${d===isoDay(new Date())?"сегодня":fmtDM(new Date(m.t))}</div>`; }
+    h+=`<div class="msg${m.me?" me":""}"><span class="tx">${esc(m.x)}</span><span class="tm">${fmtHM(new Date(m.t))}${m.me?(m.st==="err"?' <b class="er" data-retry>!</b>':m.st==="ok"?" ✓":" …"):""}</span></div>`;
+  }
+  if(!all.length&&f.s&&SH.on) h+=`<div class="cnote">Напишите ${esc(f.name)} первым 👋<br>Сообщения шифруются: прочитать их можете только вы двое.</div>`;
+  box.innerHTML=h;
+  $("chatQuick").innerHTML=[...QUICK,"__me"].map(q=>q==="__me"?`<button class="chip" data-q="__me">Моё состояние</button>`:`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
+  const can=!!(f.s&&SH.on&&Y.token); $("chatIn").disabled=!can; $("chatSend").disabled=!can; $("chatQuick").hidden=!can;
+  const sc=$("chatSheet").querySelector(".sbody"); requestAnimationFrame(()=>{ sc.scrollTop=sc.scrollHeight; });
+}
+async function chatSend(text){
+  const f=FR.list[CH_OPEN]; text=String(text||"").trim().slice(0,1000); if(!f||!text) return;
+  const m={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), t:new Date().toISOString(), x:text, st:"send"};
+  try{ m.box=await seal(f,{id:m.id,t:m.t,x:m.x}); }catch(e){ toast("Не получилось зашифровать сообщение."); return; }
+  (CHAT.out[f.k]=CHAT.out[f.k]||[]).push(m); saveChat(); renderChat();
+  await chatPush();
+}
+async function chatPush(){
+  const pend=Object.values(CHAT.out).flat().filter(m=>m.st!=="ok"); if(!pend.length) return;
+  try{ await chatUpload(); pend.forEach(m=>m.st="ok"); }catch(e){ pend.forEach(m=>m.st="err"); toast("Сообщение не отправилось — нет связи с Яндекс Диском. Нажмите «!», чтобы повторить."); }
+  saveChat(); if(CH_OPEN) renderChat();
+}
+function myStateText(){
+  const rec=S.mood[isoDay(new Date())]; const last=rec?.marks?.slice(-1)[0];
+  const c=cityOf(S.slug), f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours,Date.now())];
+  let t=last?`Моё состояние: ${KIND[last.k].e} ${KIND[last.k].l} (${fmtHM(new Date(last.t))})`:"Сегодня ещё не отмечал(а) самочувствие";
+  if(h&&h.p!=null) t+=` · ${c.name}: ${Math.round(h.temp)}°, давление ${Math.round(h.p*HPA2MM)} мм`;
+  return t;
+}
+function renderChatBadge(){ const n=chatUnreadAll(), b=$("cmChat"); if(!b) return; b.hidden=!Object.keys(FR.list).length; b.innerHTML=`💬${n?`<i>${n}</i>`:""}`; }
+$("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatSend(v); i.focus(); });
+$("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("chatSend").click(); } });
+$("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; chatSend(b.dataset.q==="__me"?myStateText():b.dataset.q); });
+$("chatList").addEventListener("click",e=>{ if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
+$("cmChat").addEventListener("click",()=>{ const fl=Object.values(FR.list); const withNew=fl.find(f=>chatUnread(f)); if(withNew) openChat(withNew.k); else if(fl.length===1) openChat(fl[0].k); else { openMoodSheet(); setTimeout(()=>$("friends").scrollIntoView({block:"start"}),400); } });
+renderChatBadge();
+setInterval(()=>{ if(!document.hidden&&!CH_OPEN&&Object.values(FR.list).some(f=>f.s)) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 3*60*1000);
+setTimeout(()=>{ if(SH.on) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 4000);
 // website version: friend.html leaves the link here
 try{ const pend=localStorage.getItem("pendingFriend"); if(pend){ localStorage.removeItem("pendingFriend"); setTimeout(()=>addFriendFromLink(pend), 1500); } }catch(e){}
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Приглашение в друзья — Метеодневник</title>
+<meta property="og:title" content="Приглашение в друзья в «Метеодневнике»">
+<meta property="og:description" content="Друг хочет с тобой подружиться и обмениваться своим состоянием. Нажми, чтобы принять.">
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0d1726;color:#eef3f8;font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px;box-sizing:border-box;text-align:center}
+  .box{max-width:380px;display:flex;flex-direction:column;gap:14px;align-items:center}
+  .em{font-size:44px;letter-spacing:6px}
+  h1{font-size:21px;margin:0}
+  p{margin:0;color:#9fb1c5;font-size:14px}
+  a.btn{display:block;width:100%;box-sizing:border-box;background:#eef3f8;color:#0d1726;text-decoration:none;font-weight:600;padding:13px 18px;border-radius:12px}
+  a.btn.ghost{background:transparent;color:#eef3f8;border:1px solid rgba(238,243,248,.2)}
+  small{color:#9fb1c5;font-size:12px}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <div class="em">😊😐😣</div>
+  <h1 id="h">Приглашение в «Метеодневник»</h1>
+  <p id="t">Открываю приложение…</p>
+</div>
+<script>
+(function(){
+  var h=new URLSearchParams(location.hash.slice(1)), k=h.get("k"), n=h.get("n")||"", sc=h.get("s")||"";
+  var box=document.getElementById("box");
+  if(!k){ document.getElementById("t").textContent="В ссылке нет данных приглашения. Попросите друга отправить её ещё раз."; return; }
+  var q="k="+encodeURIComponent(k)+"&n="+encodeURIComponent(n)+(sc?"&s="+encodeURIComponent(sc):"");
+  if(h.get("r")==="1") q+="&r=1";
+  var intent="intent://friend?"+q+"#Intent;scheme=barometr;package=ru.barometr.neba;end";
+  var who=n?("<b>"+n.replace(/[<>&"]/g,"")+"</b>"):"Твой друг";
+  document.title=(n?n.replace(/[<>&"]/g,""):"Друг")+" хочет с тобой подружиться";
+  box.innerHTML='<div class="em">🤝🌦</div><h1>'+who+(h.get("r")==="1"?' принял(а) твоё приглашение в друзья</h1>':' хочет с тобой подружиться и обмениваться своим состоянием</h1>')+
+    '<p>В «Метеодневнике» вы будете видеть самочувствие друг друга, сравнивать его с погодой и переписываться.</p>'+
+    '<a class="btn" href="'+intent+'">Принять приглашение</a>'+
+    '<a class="btn ghost" href="https://github.com/sivkabkbkbkbk-boop/barometr-app/releases/latest">Скачать приложение для Android</a>'+
+    '<a class="btn ghost" id="web" href="./">Открыть веб-версию</a>'+
+    '<small>Если приложения ещё нет: скачайте его, установите, вернитесь к этому сообщению и нажмите «Принять приглашение».</small>';
+  document.getElementById("web").addEventListener("click",function(){ try{ localStorage.setItem("pendingFriend", location.href); }catch(e){} });
+  if(/Android/i.test(navigator.userAgent)) setTimeout(function(){ location.href=intent; }, 300);
+})();
+</script>
+</body>
+</html>
