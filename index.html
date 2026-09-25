@@ -241,6 +241,7 @@ footer a{color:var(--muted)}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
 .rmap .tiles img:not(.osm){filter:url(#nolab)}
+.rmap .tiles img{width:258px!important;height:258px!important;margin:-1px 0 0 -1px}
 .rmap{background:#8cc496!important}
 .rmap canvas.fx{z-index:1}
 .rmap .demob{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
@@ -252,7 +253,7 @@ footer a{color:var(--muted)}
 .rmap .pin{z-index:3}
 .rmap .pin::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid rgba(127,214,200,.8);animation:pinPulse 2.2s ease-out infinite}
 @keyframes pinPulse{from{transform:scale(.4);opacity:1}to{transform:scale(1.6);opacity:0}}
-.rmap .tiles img.osm{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6)!important}
+.rmap .tiles img.osm{filter:url(#noosm)!important}
 .rmap .labels{z-index:1}
 .rmap .pin{z-index:1}
 .rmap canvas{width:100%;height:100%;pointer-events:none}
@@ -628,7 +629,7 @@ header{min-width:0}
 
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter><filter id="noosm" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="3.2"/><feMorphology operator="erode" radius="1.6"/><feComponentTransfer><feFuncR type="table" tableValues="0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.377 0.515 0.561 0.576 0.592 0.608 0.624 0.639 0.655 0.667"/><feFuncG type="table" tableValues="0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.668 0.749 0.775 0.783 0.792 0.800 0.808 0.817 0.825 0.831"/><feFuncB type="table" tableValues="0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.745 0.620 0.596 0.607 0.617 0.627 0.638 0.648 0.659 0.667"/></feComponentTransfer></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 26 26"><g class="ic"><path d="M18.5 8.5A6.5 6.5 0 1 0 19.5 13"/><path d="M19.2 4.8v4h-4"/></g><circle class="sp" cx="13" cy="13" r="8"/><path class="ck" d="M8 13.5l3.2 3.2L18 9.8"/></svg></div>
 <main class="app page" id="pgToday">
@@ -729,6 +730,7 @@ header{min-width:0}
   <div class="ptitle"><h1>Здоровье</h1></div>
   <div class="seg3" id="hSeg"><button data-hs="bp">🩺 Давление</button><button data-hs="glu">🩸 Сахар</button><button data-hs="mood">😊 Состояние</button></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div class="src">«Метеодневник» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
 </main>
 <main class="app page" id="pgRep" hidden>
   <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare">📤 Врачу</button></div>
@@ -739,7 +741,7 @@ header{min-width:0}
   <div class="card"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
   <div class="rpanels" id="repPanels"></div>
   <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
-  <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — подсказка, а не диагноз.</div>
+  <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
 </main>
 <main class="app page" id="pgFriends" hidden>
   <div class="ptitle"><h1>Друзья</h1><button class="chip on" id="frInvite">＋ Пригласить</button></div>
@@ -853,6 +855,9 @@ header{min-width:0}
     <div class="src">💡 Порядок карточек: удерживайте карточку на главном экране полсекунды и перетащите её выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
+    <div class="ctitle">О приложении</div>
+    <div class="src">«Метеодневник» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
+    <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ — эти сервисы получают только координаты выбранного города.</div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
   </div>
@@ -2010,7 +2015,7 @@ function MiniMap(el, interactive){
     const lk=[w,h,z,Math.round(x0),Math.round(y0),TILES.osm,Object.keys(S.cities||{}).length].join(",");
     if(lk!==labKey){ labKey=lk; if(lab.width!==w*dpr||lab.height!==h*dpr){ lab.width=w*dpr; lab.height=h*dpr; }
       const lc=lab.getContext("2d"); lc.setTransform(dpr,0,0,dpr,0,0);
-      if(TILES.osm) lc.clearRect(0,0,w,h); else drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
+      drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
     const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent=(RAD.demo?"пример · ":"")+(v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо · "+["ясно","переменная облачность","пасмурно"][cloudClass(fld.C[i])]); }
   };
   if(interactive){
@@ -2206,7 +2211,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 11 (перетаскивание карточек)";
+const APP_VER="26.09 · сборка 12 (подготовка к RuStore)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2925,7 +2930,7 @@ function showFriendPop(){
   $("frAv").innerHTML=`<span class="av" style="background:${colorOf(SH.key||"me")}">${esc((SH.name||"Я")[0].toUpperCase())}</span><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}</span>`;
   $("frT").innerHTML = how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
   $("frP").innerHTML = how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
-    : how==="wait" ? `${nm} увидит вас сразу, как только откроет приложение — ему придёт такое же оповещение.`
+    : how==="wait" ? `Отправьте ${nm} ответ, чтобы и он(а) увидел(а) вас.`
     : how==="reply" ? `Остался один шаг, чтобы и ${nm} увидел(а) вас: нажмите «Отправить ответ» и выберите ваш чат с ${nm}. Когда ${nm} нажмёт на ссылку — вы станете друзьями у обоих.`
     : `Теперь вы видите состояние друг друга и можете переписываться.`;
   $("frChat").textContent = how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
@@ -3022,21 +3027,12 @@ async function friendCheck(){
   if(SH.on){ done=add("Друзья могут прочитать ваши данные");
     try{ await shareUpload(); const r=await yReq("GET",`https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(SH.key)}&path=${encodeURIComponent("/mood.json")}`,null,false);
       done(r.status===200?"ok":"bad", r.status===200?"публичная папка открыта":"папка не открывается ("+r.status+"). Нажмите «Перестать делиться», затем «Поделиться» снова."); }catch(e){ done("bad","не удалось проверить: "+esc(e.message||"сеть")); } }
-  done=add("Сервис автодобавления друзей (ntfy.sh)");
-  try{ const topic="mtdtest"+Math.random().toString(36).slice(2,10), stamp=Date.now().toString(36);
-    const w=await textReq("POST",RELAY+topic,stamp); let wj=null; try{ wj=JSON.parse(w.text); }catch(e){}
-    if(w.status>=300||!wj||!wj.id) throw new Error(`запись не прошла (код ${w.status}, ответ: «${esc(String(w.text||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,70))}»)`);
-    await new Promise(r=>setTimeout(r,800));
-    const r=await textReq("GET",`${RELAY}${topic}/json?poll=1&since=all`); if(r.status!==200) throw new Error("чтение: код "+r.status);
-    if(String(r.text).includes(stamp)) done("ok","работает — друзья добавляются сами");
-    else done("bad",`не работает у вашего интернета (ответ: «${esc(String(r.text||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,70))}»). Не страшно: друзья добавятся ответной ссылкой — приложение само предложит её отправить.`);
-  }catch(e){ done("bad","недоступен ("+esc(e.message||"нет связи")+"). Друзей можно добавлять ответной ссылкой: друг жмёт «＋ Пригласить» и присылает вам свою ссылку."); }
   const fl=Object.values(FR.list);
   if(!fl.length) add("Друзья")("warn","пока никого нет. Отправьте приглашение кнопкой «＋ Пригласить».");
   for(const f of fl){ done=add(`Друг: ${esc(f.name||"?")}`);
     await fetchFriend(f).catch(()=>{});
     const probs=[]; if(!f.s) probs.push("старое приглашение без ключа чата — нужно новое"); if(f.gone) probs.push("закрыл(а) доступ"); if(!f.data) probs.push("его данные не читаются");
-    if(SH.on&&f.s&&f.data&&!f.acked) probs.push("у него вы ещё не в друзьях — пусть откроет приложение (или пришлите ему приглашение ещё раз)");
+    if(SH.on&&f.s&&f.data&&!f.acked) probs.push("у него вы ещё не в друзьях — отправьте ему приглашение кнопкой «＋ Пригласить»");
     done(probs.length?"warn":"ok", probs.length?probs.join("; "):"всё в порядке: видите друг друга, чат работает"); }
   if(FR.replyTo) add("Ожидает")("warn",`вы приняли приглашение от ${esc(FR.replyTo)}, но ещё не нажали «Поделиться»`);
 }
@@ -3265,7 +3261,7 @@ async function addFriendFromLink(url){
   $("moodPop").hidden=true; if(openSheet) hideSheet(true); showTab("friends","friends");
   if(had){ toast(`${nm} уже в друзьях — обновил отметки.`); return; }
   if(f.reply){ friendWelcome(FR.list[f.k],"accepted"); return; }
-  // the inviter adds us automatically: a short encrypted note through a free relay (ntfy.sh); the old reply link is the fallback
+  // the inviter adds us automatically: the friend confirms with a reply link
   if(SH.on){
     const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
     if(ok) friendWelcome(FR.list[f.k],"wait");
@@ -3286,7 +3282,7 @@ async function fetchFriend(f){
     if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated, wx:data.wx||null}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name;
       if(SH.key) f.acked=Array.isArray(data.ack)&&data.ack.includes(await boxId(SH.key));
       if(data.hm&&f.s){ try{ f.data.hm=await aesOpen(await shareKey(f.s), data.hm); }catch(e){} }
-      if(SH.on&&f.s&&!f.acked&&Date.now()-(f.notified||0)>6*H) notifyInviter(f).catch(()=>{});
+
     }
   }catch(e){}
   await chatFetch(f).catch(()=>{});
@@ -3323,7 +3319,7 @@ function renderFriends(state){
         <button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>
       ${f.data?`<div class="ftiles">${tile(lb?`А/Д · ${shortWhen(lb.t)}`:"А/Д",lb?`${lb.sys}/${lb.dia}`:"—",lb?bpCat(lb.sys,lb.dia):null,lb?"":"нет данных")}${tile(lg?`Сахар · ${shortWhen(lg.t)}`:"Сахар",lg?fmtNum(lg.v):"—",lg?gluCat(lg.v,lg.ctx):null,lg?"":"нет данных")}${tile("4 дня",`<span class="wk4">${wk.join("")}</span>`,null,tm?tm.l||"":"сегодня без отметки")}</div>`:""}
       ${L?`<button class="flast" data-chat="${esc2(f.k)}"><b>${L.me?"Вы":esc2(f.name)}:</b> ${L.c?"📋 состояние":esc2(L.x)} <span class="fhm">· ${shortWhen(L.t)}</span></button>`:""}
-      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">⏳ ${esc2(f.name)} ещё не открыл(а) приложение — добавит вас автоматически.</div>`:""}
+      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">⏳ У ${esc2(f.name)} вас пока нет в друзьях. <button class="mlink" data-f="send" style="padding:0">Отправить приглашение</button></div>`:""}
       ${!f.s?`<div class="fhm">Для чата и давления нужно новое приглашение от ${esc2(f.name)}.</div>`:""}
     </div>`;
   }
@@ -3382,8 +3378,8 @@ async function aesKey(label, secret){ const id=label+"|"+secret; if(!KEYS[id]) K
 const shareKey=sec=>aesKey("mtd-share",sec), helloKey=sec=>aesKey("mtd-hello",sec);
 async function aesSeal(key,obj){ const iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
 async function aesOpen(key,m){ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
-/* "I accepted your invitation": a tiny encrypted note on a free relay (ntfy.sh), readable only with the inviter's secret */
-const RELAY="https://ntfy.sh/";
+/* optional relay for "I accepted your invitation" (switched off) */
+const RELAY=null;   // no foreign relay: the friend confirms with a reply link
 async function relayTopic(sec){ return "mtd"+hex(await sha("mtd-topic|"+sec)).slice(0,30); }
 async function textReq(method,url,body){
   const Hc=window.Capacitor?.Plugins?.CapacitorHttp;
@@ -3392,6 +3388,7 @@ async function textReq(method,url,body){
   try{ const r=await fetch(url,{method,body:body??undefined,signal:ac.signal}); return {status:r.status,text:await r.text()}; } finally{ clearTimeout(to); }
 }
 async function notifyInviter(f){
+  if(!RELAY) return false;
   if(!SH.on||!SH.key||!f||!f.s) return false;
   const note=await aesSeal(await helloKey(f.s), {k:SH.key, n:SH.name||"Друг", s:SH.secret, t:new Date().toISOString()});
   const r=await textReq("POST", RELAY+await relayTopic(f.s), JSON.stringify(note));
@@ -3401,7 +3398,7 @@ async function notifyInviter(f){
 }
 let helloBusy=false;
 async function pollHello(){
-  if(!SH.on||!SH.secret||helloBusy) return; helloBusy=true;
+  if(!RELAY||!SH.on||!SH.secret||helloBusy) return; helloBusy=true;
   try{
     const r=await textReq("GET", `${RELAY}${await relayTopic(SH.secret)}/json?poll=1&since=${encodeURIComponent(SH.hsince||"12h")}`);
     if(r.status!==200) return;
