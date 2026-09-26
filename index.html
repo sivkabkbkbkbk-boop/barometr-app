@@ -246,7 +246,17 @@ footer a{color:var(--muted)}
 .rmap canvas.fx{z-index:1}
 .rmap .demob{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .rmap .demob.on{background:rgba(127,214,200,.9);color:#0d1726;font-weight:600;border-color:transparent}
-.rmap canvas.lab{z-index:2}
+.rmap .labs{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.rmap .tiles img{transform-origin:0 0}
+.mlab{position:absolute;white-space:nowrap;line-height:16px;color:#fff;letter-spacing:.1px;text-shadow:0 0 2px rgba(8,16,30,.95),0 1px 3px rgba(8,16,30,.85),0 0 7px rgba(8,16,30,.5);-webkit-font-smoothing:antialiased}
+.mlab.h{font-weight:700;font-size:14px;line-height:18px}
+.mlab.b{font-weight:600;font-size:12.5px}
+.mlab.m{font-weight:500;font-size:12px;color:#f3f7fb}
+.mlab.s{font-weight:400;font-size:11.5px;color:#e8eef5}
+.mlab.w{font-style:italic;font-weight:500;font-size:11.5px;color:#eaf4ff}
+.mdot{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(8,16,30,.85)}
+.mdot.b{width:7px;height:7px;margin:-3.5px 0 0 -3.5px}
+#rmapSmall{cursor:pointer}
 .rleg{flex-wrap:wrap;gap:4px 10px!important}
 .rleg .b{display:inline-flex;align-items:center;gap:4px}
 .rleg .b i{width:12px;height:8px;border-radius:3px;display:inline-block}
@@ -1922,42 +1932,41 @@ function shortPlace(c){
   return t.length>24 ? t.slice(0,23)+"…" : t;
 }
 for(const c of Object.values(S.cities||{})) if(/округ|район|поселение|муниципал/i.test(c.name||"")){ const n=shortPlace(c); if(n&&n!==c.name){ c.name=n; } }
-function drawMapLabels(ctx, w, h, z, x0, y0, home){
-  ctx.clearRect(0,0,w,h);
-  const boxes=[], hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
-  boxes.push([w-48,0,48,130],[w-120,h-16,120,16],[0,0,175,28]);                         // expand button, attribution
-  const limit = z<=5?45 : z===6?180 : 1e9;
+const LBL_MEASURE=document.createElement("canvas").getContext("2d");
+function labelFont(){ return (getComputedStyle(document.body).fontFamily||"system-ui"); }
+function drawMapLabels(box, w, h, z, x0, y0, home){
+  const fam=labelFont(), boxes=[], out=[];
+  const hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
+  boxes.push([w-52,0,52,140],[w-130,h-18,130,18],[0,0,200,30]);                 // buttons, attribution, status
+  const limit = z<5.5?45 : z<6.5?180 : 1e9;
+  const norm=t=>String(t||"").toLowerCase().replace(/ё/g,"е").trim();
+  const homeName=home?shortPlace(home):"", seen=new Set(homeName?[norm(homeName)]:[]);
   const list=[];
-  if(home) list.push({n:shortPlace(home),la:home.lat,lo:home.lon,r:-1,home:true});
-  for(const c of Object.values(S.cities||{})) if(!home||c.lat!==home.lat||c.lon!==home.lon) list.push({n:c.name,la:c.lat,lo:c.lon,r:0});
+  if(home) list.push({n:homeName,la:home.lat,lo:home.lon,r:-1,home:true});
+  for(const c of Object.values(S.cities||{})){ if(home&&Math.hypot((c.lat-home.lat)*111,(c.lon-home.lon)*111*Math.cos(home.lat*Math.PI/180))<20) continue; list.push({n:shortPlace(c),la:c.lat,lo:c.lon,r:0}); }
   list.push(...MAP_LABELS);
-  ctx.lineJoin="round"; ctx.textBaseline="middle";
-  const near=[];
+  const kind=L=>L.w?"w":L.home?"h":L.r<25?"b":L.r<150?"m":"s";
+  const FONT={h:`700 14px ${fam}`,b:`600 12.5px ${fam}`,m:`500 12px ${fam}`,s:`400 11.5px ${fam}`,w:`italic 500 11.5px ${fam}`};
   for(const L of list){
     if(L.r>limit) continue;
+    if(!L.home){ const k=norm(L.n); if(seen.has(k)) continue; }
     const x=lon2x(L.lo,z)-x0, y=lat2y(L.la,z)-y0; if(x<-60||y<-20||x>w+60||y>h+20) continue;
-    if(near.some(q=>Math.abs(q[0]-x)<3&&Math.abs(q[1]-y)<3)) continue;
-    const big=L.r<25, mid=L.r<150;
-    const font = L.w ? `italic 500 ${z>=7?11.5:10.5}px system-ui, Roboto, sans-serif` : L.home ? "700 13.5px system-ui, Roboto, sans-serif" : big ? "600 12.5px system-ui, Roboto, sans-serif" : mid ? "500 11.5px system-ui, Roboto, sans-serif" : "400 11px system-ui, Roboto, sans-serif";
-    ctx.font=font; const tw=ctx.measureText(L.n).width, th=L.home?15:13;
-    let box=null, tx, align;
-    if(L.w){ box=[x-tw/2-2,y-th/2,tw+4,th]; tx=x; align="center"; if(hit(box)) continue; }
+    const k=kind(L); LBL_MEASURE.font=FONT[k]; const tw=Math.ceil(LBL_MEASURE.measureText(L.n).width)+2, th=k==="h"?18:16;
+    let box=null, dot=!L.home&&!L.w;
+    if(L.w){ const b=[x-tw/2,y-th/2,tw,th]; if(hit(b)) continue; box=b; }
     else {
-      const dot=[x-3,y-3,6,6];
-      const cand=L.home?[[x+11,y-th/2,"left"],[x-11-tw,y-th/2,"right"],[x-tw/2,y+10,"c-down"]]:[[x+5,y-th/2,"left"],[x-5-tw,y-th/2,"right"],[x-tw/2,y-th-4,"c-up"]];
-      for(const [bx,by,al] of cand){ const b=[bx-1,by,tw+2,th]; const inside=bx>=2&&bx+tw<=w-2&&by>=0&&by+th<=h; if(inside&&!hit(b)&&(L.home||!hit(dot))){ box=b; tx=al==="left"?bx:al==="right"?bx+tw:bx+tw/2; align=al; break; } }
-      if(!box&&L.home){ const bx=Math.max(4,Math.min(w-tw-4,x-tw/2)), by=Math.min(h-th-2,y+10); box=[bx-1,by,tw+2,th]; tx=bx; align="left"; }
+      const d=[x-4,y-4,8,8], gap=L.home?12:6;
+      const cand=[[x+gap,y-th/2],[x-gap-tw,y-th/2],[x-tw/2,y-th-5],[x-tw/2,y+6]];
+      for(const [bx,by] of cand){ const b=[bx,by,tw,th]; if(bx<2||bx+tw>w-2||by<0||by+th>h) continue; if(!hit(b)&&(L.home||!hit(d))){ box=b; break; } }
+      if(!box&&L.home){ box=[Math.max(4,Math.min(w-tw-4,x-tw/2)),Math.min(h-th-2,y+12),tw,th]; }
       if(!box) continue;
-      boxes.push(dot); near.push([x,y]);
-      if(!L.home){ ctx.fillStyle=big?"#eef3f8":"#c9d6e4"; ctx.strokeStyle="rgba(8,14,24,.9)"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(x,y,big?3:2.2,0,6.283); ctx.fill(); ctx.stroke(); }
+      boxes.push(d);
     }
-    boxes.push(box);
-    ctx.textAlign = align==="left"?"left":align==="right"?"right":"center";
-    const ty=box[1]+th/2+.5;
-    ctx.font=font; ctx.shadowColor="rgba(5,10,20,.95)"; ctx.shadowBlur=4; ctx.strokeStyle="rgba(8,14,24,.7)"; ctx.lineWidth=1.6; ctx.strokeText(L.n,tx,ty); ctx.shadowBlur=0;
-    ctx.fillStyle = L.w ? "#8ec3f0" : L.home ? "#ffffff" : big ? "#eef3f8" : mid ? "#d9e3ee" : "#b8c6d6";
-    ctx.fillText(L.n,tx,ty);
+    boxes.push(box); seen.add(norm(L.n));
+    if(dot) out.push(`<i class="mdot${k==="b"?" b":""}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px"></i>`);
+    out.push(`<span class="mlab ${k}" style="left:${box[0].toFixed(1)}px;top:${box[1].toFixed(1)}px">${esc(L.n)}</span>`);
   }
+  box.innerHTML=out.join("");
 }
 /* tiny slippy map (no library); tiles from Esri, OpenStreetMap if Esri is unreachable */
 const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null};
@@ -1970,7 +1979,7 @@ function MiniMap(el, interactive){
   const st=document.createElement("div"); st.className="rstat"; el.appendChild(st);
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
   const fx=document.createElement("canvas"); fx.className="fx"; el.appendChild(fx);
-  const lab=document.createElement("canvas"); lab.className="lab"; el.appendChild(lab); let labKey="";
+  const lab=document.createElement("div"); lab.className="labs"; el.appendChild(lab); let labKey="";
   const demob=document.createElement("button"); demob.className="demob"; demob.hidden=true; demob.addEventListener("click",e=>{ e.stopPropagation(); demoToggle(); }); demob.addEventListener("pointerdown",e=>e.stopPropagation()); el.appendChild(demob);
   const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
   const m={el,fx,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,vis:false,relabel:()=>{labKey="";}};
@@ -1980,11 +1989,12 @@ function MiniMap(el, interactive){
   m.draw=()=>{
     if(!m.center) return;
     const w=el.clientWidth,h=el.clientHeight; if(!w||!h) return;
-    const z=m.z, cx=lon2x(m.center[1],z), cy=lat2y(m.center[0],z), x0=cx-w/2, y0=cy-h/2, n=2**z;
+    const z=m.z, zi=Math.max(1,Math.min(12,Math.round(z))), sc=2**(z-zi), T=256*sc;
+    const cx=lon2x(m.center[1],z), cy=lat2y(m.center[0],z), x0=cx-w/2, y0=cy-h/2, n=2**zi;
     const want=new Set();
-    for(let tx=Math.floor(x0/256);tx<=Math.floor((x0+w)/256);tx++) for(let ty=Math.floor(y0/256);ty<=Math.floor((y0+h)/256);ty++){
-      if(ty<0||ty>=n) continue; const wx=((tx%n)+n)%n, key=`${z}/${wx}/${ty}`; want.add(key+"@"+tx);
-      const tf=`translate(${Math.round(tx*256-x0)}px,${Math.round(ty*256-y0)}px)`;
+    for(let tx=Math.floor(x0/T);tx<=Math.floor((x0+w)/T);tx++) for(let ty=Math.floor(y0/T);ty<=Math.floor((y0+h)/T);ty++){
+      if(ty<0||ty>=n) continue; const wx=((tx%n)+n)%n, key=`${zi}/${wx}/${ty}`; want.add(key+"@"+tx);
+      const tf=`translate(${(tx*T-x0).toFixed(1)}px,${(ty*T-y0).toFixed(1)}px) scale(${sc.toFixed(4)})`;
       for(const [pool,box,layer] of [[m.pool,tiles,"World_Dark_Gray_Base"],[m.lpool,labels,"World_Dark_Gray_Reference"]]){
         let img=pool.get(key+"@"+tx);
         if(layer.endsWith("Reference")) continue;             // English names: replaced by our own Russian labels
@@ -1993,7 +2003,7 @@ function MiniMap(el, interactive){
           img.onload=()=>{ TILES.ok++; };
           // a blocked host never answers: if no Esri tile arrives within 7 s, use OpenStreetMap
           if(!TILES.osm && !TILES.timer) TILES.timer=setTimeout(()=>{ if(!TILES.ok) tilesToOsm(); }, 7000);
-          img.src = TILES.osm ? `https://tile.openstreetmap.org/${z}/${wx}/${ty}.png` : `${ESRI}${layer}/MapServer/tile/${z}/${ty}/${wx}`;
+          img.src = TILES.osm ? `https://tile.openstreetmap.org/${zi}/${wx}/${ty}.png` : `${ESRI}${layer}/MapServer/tile/${zi}/${ty}/${wx}`;
           if(TILES.osm) img.className="osm";
           box.appendChild(img); pool.set(key+"@"+tx,img); }
         img.style.transform=tf;
@@ -2012,25 +2022,46 @@ function MiniMap(el, interactive){
       m.fb=[X0,Y0,X1,Y1]; drawContours(ctx,X0,Y0,X1,Y1); drawThunderMarks(ctx,X0,Y0,X1,Y1); fxStart();
     }
     // Russian labels (OpenStreetMap tiles already carry local names)
-    const lk=[w,h,z,Math.round(x0),Math.round(y0),TILES.osm,Object.keys(S.cities||{}).length].join(",");
-    if(lk!==labKey){ labKey=lk; if(lab.width!==w*dpr||lab.height!==h*dpr){ lab.width=w*dpr; lab.height=h*dpr; }
-      const lc=lab.getContext("2d"); lc.setTransform(dpr,0,0,dpr,0,0);
-      drawMapLabels(lc,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
+    const lk=[w,h,z.toFixed(3),Math.round(x0),Math.round(y0),Object.keys(S.cities||{}).length].join(",");
+    if(lk!==labKey){ labKey=lk; drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
     const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent=(RAD.demo?"пример · ":"")+(v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо · "+["ясно","переменная облачность","пасмурно"][cloudClass(fld.C[i])]); }
   };
+  const unproj=(px,py,z)=>{ const W=256*2**z, lon=px/W*360-180, nn=Math.PI-2*Math.PI*py/W; return [180/Math.PI*Math.atan(0.5*(Math.exp(nn)-Math.exp(-nn))), lon]; };
+  const ZMIN=4, ZMAX=11, clampZ=z=>Math.min(ZMAX,Math.max(ZMIN,z));
+  // zoom keeping the point under (px,py) — relative to the map box — in place
+  m.zoomAt=(nz,px,py)=>{ nz=clampZ(nz); const w=el.clientWidth,h=el.clientHeight, z=m.z;
+    const ax=lon2x(m.center[1],z)-w/2+px, ay=lat2y(m.center[0],z)-h/2+py, [la,lo]=unproj(ax,ay,z);
+    const nx=lon2x(lo,nz)-px+w/2, ny=lat2y(la,nz)-py+h/2; m.z=nz; m.center=unproj(nx,ny,nz); m.draw(); };
   if(interactive){
-    let drag=null;
-    el.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; drag={x:e.clientX,y:e.clientY,c:m.center.slice()}; el.setPointerCapture(e.pointerId); });
-    el.addEventListener("pointermove",e=>{ if(!drag) return; const z=m.z, cx=lon2x(drag.c[1],z)-(e.clientX-drag.x), cy=lat2y(drag.c[0],z)-(e.clientY-drag.y);
-      const lon=cx/(256*2**z)*360-180, nn=Math.PI-2*Math.PI*cy/(256*2**z), lat=180/Math.PI*Math.atan(0.5*(Math.exp(nn)-Math.exp(-nn))); m.center=[lat,lon]; m.draw(); });
-    const end=()=>{drag=null;}; el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
-    el.querySelector(".zbtns")?.addEventListener("click",e=>{ const b=e.target.closest("[data-z]"); if(!b) return; const dz=+b.dataset.z; if(dz===0){ m.center=m.home.slice(); m.z=7; } else m.z=Math.min(10,Math.max(5,m.z+dz)); m.draw(); });
+    const P=new Map(); let pan=null, pinch=null, lastTap=0, moved=false;
+    const rel=e=>{ const r=el.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; };
+    const startPan=e=>{ pan={x:e.clientX,y:e.clientY,c:m.center.slice()}; };
+    el.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; el.setPointerCapture(e.pointerId); P.set(e.pointerId,e); moved=false;
+      if(P.size===1) startPan(e);
+      if(P.size===2){ const [a,b]=[...P.values()]; const r=el.getBoundingClientRect(); pinch={d0:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1,z0:m.z,mx:(a.clientX+b.clientX)/2-r.left,my:(a.clientY+b.clientY)/2-r.top,c:m.center.slice()}; pan=null; } });
+    el.addEventListener("pointermove",e=>{ if(!P.has(e.pointerId)) return; P.set(e.pointerId,e);
+      if(pinch&&P.size>=2){ const [a,b]=[...P.values()], d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+        m.center=pinch.c.slice(); m.z=pinch.z0; m.zoomAt(pinch.z0+Math.log2(d/pinch.d0),pinch.mx,pinch.my); moved=true; return; }
+      if(!pan) return; const dx=e.clientX-pan.x, dy=e.clientY-pan.y; if(Math.abs(dx)+Math.abs(dy)>4) moved=true;
+      const z=m.z, cx=lon2x(pan.c[1],z)-dx, cy=lat2y(pan.c[0],z)-dy; m.center=unproj(cx,cy,z); m.draw(); });
+    const end=e=>{ const had=P.has(e.pointerId); P.delete(e.pointerId);
+      if(pinch&&P.size<2){ pinch=null; m.z=Math.round(m.z*4)/4; m.draw(); if(P.size===1) startPan([...P.values()][0]); moved=true; return; }
+      if(!P.size){ pan=null;
+        if(had&&!moved&&e.type==="pointerup"){ const t=Date.now(); if(t-lastTap<320){ const [px,py]=rel(e); m.zoomAt(Math.round(m.z)+1,px,py); lastTap=0; } else lastTap=t; } } };
+    el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
+    el.addEventListener("wheel",e=>{ e.preventDefault(); const [px,py]=rel(e); m.zoomAt(m.z-e.deltaY/400,px,py); },{passive:false});
+    el.querySelector(".zbtns")?.addEventListener("click",e=>{ const b=e.target.closest("[data-z]"); if(!b) return; const dz=+b.dataset.z; if(dz===0){ m.center=m.home.slice(); m.z=7; m.draw(); } else m.zoomAt(Math.round(m.z)+dz, el.clientWidth/2, el.clientHeight/2); });
+  } else {
+    // the small map on the main screen opens the big one with a tap
+    let t0=null; el.addEventListener("pointerdown",e=>{ t0=[e.clientX,e.clientY,Date.now()]; });
+    el.addEventListener("click",e=>{ if(e.target.closest("button")||!t0) return; if(Math.hypot(e.clientX-t0[0],e.clientY-t0[1])<8&&Date.now()-t0[2]<400) $("mapExpand").click(); });
   }
   new ResizeObserver(()=>m.draw()).observe(el);
   RAD.maps.push(m); return m;
 }
 function mapNote(t){ document.querySelectorAll(".rmap .rstat").forEach(e=>{ e.hidden=false; e.textContent=t; }); }
 const mapSmall=MiniMap($("rmapSmall"), false);
+try{ document.fonts&&document.fonts.ready.then(()=>RAD.maps.forEach(m=>{ m.relabel(); m.draw(); })); }catch(e){}
 let mapBig=null;
 /* dry around the city: the map can show an example of rain, snow and a thunderstorm */
 function radarDry(){ const P=(RAD.demo?RAD.real.P:RAD.P)||[]; return !P.some(row=>row.some(v=>v>=0.1)); }
@@ -2211,7 +2242,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 12 (подготовка к RuStore)";
+const APP_VER="26.09 · сборка 13 (карта: шрифт и масштаб)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
