@@ -819,10 +819,10 @@ header{position:relative}
   <div id="repData" class="rsec">
   <div class="chips" id="repPer"></div>
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
+  <div class="rpanels" id="repPanels"></div>
+  <div class="card"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
-  <div class="card"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
-  <div class="rpanels" id="repPanels"></div>
   <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
@@ -2389,7 +2389,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 24 (приглашение друзей по шагам)";
+const APP_VER="26.09 · сборка 26 (в отчётах сначала график)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3362,7 +3362,7 @@ function yAuthUrl(manual){
   return manual ? base+"&redirect_uri="+encodeURIComponent("https://oauth.yandex.ru/verification_code")
                 : base+"&redirect_uri="+encodeURIComponent(Y_REDIRECT)+"&state="+(PREF?"app":"web");
 }
-function openLink(url){ if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }
+function openLink(url){ if(/^barometr:\/\/update/.test(url)){ setTimeout(()=>checkUpdate(true), 600); return; } if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }   // barometr://update comes from the "new version" notification
 // the login page sends the user back with barometr://auth?access_token=…
 function yTakeToken(url){
   const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
@@ -4215,6 +4215,7 @@ $("updCheck").addEventListener("click",()=>checkUpdate(true));
   scheduleReminders();
   renderMood();
   setTimeout(()=>checkUpdate(false), 4000);
+  try{ APKU?.autoCheck?.({on:UPDATE_FROM_GITHUB})?.catch?.(()=>{}); }catch(e){}   // daily background check with a notification (build 25+)
   if(!LAYOUT.cardMood && !S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
 })();
 setInterval(render, 10*60*1000);
