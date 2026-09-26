@@ -38,6 +38,9 @@ jobs:
           # the build number becomes the Android version: a new APK installs over the old one as an update
           sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
           grep -E "versionCode|versionName" android/app/build.gradle
+          # always sign with the debug.keystore from this repository, so every new APK installs over the old one
+          sed -i '0,/^android {/s//android {\n    signingConfigs {\n        debug {\n            storeFile rootProject.file("..\/debug.keystore")\n            storePassword "android"\n            keyAlias "androiddebugkey"\n            keyPassword "android"\n        }\n    }/' android/app/build.gradle
+          grep -A7 "signingConfigs" android/app/build.gradle
           npx cap sync android
 
       - name: Разрешения, цвета, иконка
@@ -215,6 +218,10 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk ../barometr.apk
+          # stop if the APK is not signed with our key: such a build could not update the installed app
+          AS=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)apksigner
+          $AS verify --print-certs ../barometr.apk | tee /tmp/cert.txt
+          grep -qi "7483879ca8e5bbb41b6e3ad7f9c08c38ae821f041876aab5cb920c53d94dbb71" /tmp/cert.txt || { echo "APK подписан не тем ключом"; exit 1; }
 
       - name: Файл для скачивания (Actions)
         uses: actions/upload-artifact@v4
