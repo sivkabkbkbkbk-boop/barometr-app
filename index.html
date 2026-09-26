@@ -822,6 +822,12 @@ header{position:relative}
   <div class="ptitle"><h1>Здоровье</h1></div>
   <div class="seg3" id="hSeg"><button data-hs="bp">🩺 Давление</button><button data-hs="glu">🩸 Сахар</button><button data-hs="mood">😊 Состояние</button></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div class="card" id="moodDaysC" hidden><div class="label" style="margin-bottom:10px">Последние 7 дней</div>
+    <div class="days" id="mdays"></div>
+    <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
+    <button class="mlink" id="moodToRep" style="margin-top:10px;align-self:flex-start">📊 Что влияет на самочувствие — в отчётах ›</button>
+    <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
+  </div>
   <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
 </main>
 <main class="app page" id="pgRep" hidden>
@@ -829,16 +835,10 @@ header{position:relative}
   <div id="repData" class="rsec">
   <div class="chips" id="repPer"></div>
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
-  <div class="card" id="repSelC"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
+  <div class="card" id="repSelC"><div class="label" style="margin-bottom:8px">Что показать</div><div class="rselw" id="repSel"></div></div>
   <div class="rpanels" id="repPanels"></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
-  <div class="card" id="moodDaysC"><div class="label">Последние 7 дней</div>
-    <div class="sc" style="margin:4px 0 10px"><span id="moodSub"></span> · нажмите на день, чтобы отметить</div>
-    <div class="days" id="mdays"></div>
-    <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
-    <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
-  </div>
   <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="facs" id="mfacs"></div><div class="fhm" style="margin-top:10px">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div></div>
   <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
@@ -2418,7 +2418,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 30 (значок меняется по погоде)";
+const APP_VER="26.09 · сборка 31 (сообщения быстрее, свайп проверяет всё, 7 дней в «Здоровье»)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2573,8 +2573,9 @@ $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new 
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>showMoodPop());
 let RSEG="data";   // reports have one part now: everything is in "Показатели"
-const moodShown=()=>TAB==="rep";
-function openMoodSheet(){ if(openSheet) hideSheet(true); showTab("rep"); setTimeout(()=>$("moodDaysC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
+const moodShown=()=>TAB==="rep"||(TAB==="health"&&HSEG==="mood");
+function openMoodSheet(){ if(openSheet) hideSheet(true); HSEG="mood"; store.set("hseg",HSEG); showTab("health"); setTimeout(()=>$("moodDaysC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
+function openMoodAnalysis(){ if(openSheet) hideSheet(true); showTab("rep"); setTimeout(()=>$("moodFacC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
 function renderRepSeg(){ $("repData").hidden=false; drawReport(); MS.sel=null; renderMoodSheet(); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
@@ -2610,7 +2611,7 @@ const MS={sel:null};
 function renderMoodSheet(){
   const today=new Date(), todayS=isoDay(today);
   const n=Object.keys(S.mood).length;
-  if($("mdays")){ $("moodSub").textContent = n ? `Отмечено дней: ${n}` : "Пока нет отметок";
+  if($("mdays")){
   // last 7 days: up to 3 smileys per day, the more often one was pressed that day, the bigger it is
   let h="";
   const SZ=n=>[0,17,22,27,31][Math.min(n,4)], POS=[[50,40],[22,78],[78,78]];
@@ -2622,7 +2623,7 @@ function renderMoodSheet(){
     const col=!r?"":r.v>=2.5?"#8be38f":r.v>=1.8?"#f2c94c":"#ff7a6b";
     h+=`<button class="d7${d===todayS?" today":""}${MS.sel===d?" sel":""}" data-d="${d}" aria-label="${fmtDMY(dd)}${r?": "+r.kinds.map(k=>KIND[k].l).join(", "):": нет отметок"}">
       <span class="dw">${d===todayS?"сег.":WD[dd.getUTCDay()]}</span><span class="dn">${dd.getUTCDate()}</span>
-      <span class="clu">${top.length?top.map(([k,n],j)=>`<span class="ce" style="left:${POS[j][0]}%;top:${POS[j][1]}%;font-size:${j?Math.min(20,SZ(n)):Math.max(27,SZ(n)+4)}px;z-index:${3-j}">${KIND[k].e}</span>`).join(""):`<span class="ce plus" style="left:50%;top:55%">＋</span>`}</span>
+      <span class="clu">${top.length?top.map(([k,n],j)=>`<span class="ce" style="left:${POS[j][0]}%;top:${POS[j][1]}%;font-size:${j?Math.min(20,SZ(n)):Math.max(27,SZ(n)+4)}px;z-index:${3-j}">${KIND[k].e}</span>`).join(""):`<span class="ce plus" style="left:50%;top:55%">·</span>`}</span>
       <span class="strip" style="background:${col||"transparent"}"></span></button>`;
   }
   $("mdays").innerHTML=h;
@@ -2632,7 +2633,7 @@ function renderMoodSheet(){
   if(MS.sel){ const r=S.mood[MS.sel]; pk.hidden=false;
     pk.innerHTML=`<span class="pd">${fmtDMY(new Date(MS.sel+"T12:00:00"))}</span>`+
       (r?r.marks.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join(""):"")+
-      `<div class="kmini">${KINDS.map(x=>`<button data-k="${x.k}" aria-label="Добавить: ${x.l}">${x.e}</button>`).join("")}</div>`;
+      (r?"":`<span class="fhm">В этот день отметок нет</span>`);
   } else pk.hidden=true;
   }
   // analysis
@@ -2787,7 +2788,7 @@ let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=set
 /* ---------- report: any combination of indicators on one time axis ---------- */
 const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
-const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:store.get("repMode")||"one"};
+const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:"one"};   // one chart with all lines (the "separately" view was removed)
 function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
   return [REP.from, REP.to];
@@ -3031,8 +3032,6 @@ async function shareText(title, text){
   try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
 }
 $("pgRep").addEventListener("click",e=>{
-  if(e.composedPath().some(n=>n.id==="moodDaysC")) return; // the mood picker re-renders on click, so check the original path
-  const md=e.target.closest("[data-rm]"); if(md){ REP.mode=md.dataset.rm; store.set("repMode",REP.mode); drawReport(); return; }
   const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
   const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
   if(e.target.closest("#repShare")) shareText("Отчёт о самочувствии", reportText());
@@ -3105,15 +3104,12 @@ function weekCompare(type){
 function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-+new Date(t))<=3*H); return ms.length?KIND[ms[ms.length-1].k].e:""; }
 function renderHealthPage(){
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
+  $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
   const box=$("hBody"); let h="";
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
     h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("")}</div>
       <div class="mtoday" style="margin-top:8px">${(rec?.marks||[]).map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join("")}</div></div>`;
-    const days=[]; for(let i=0;i<14;i++) days.push(isoDay(new Date(Date.now()-i*DAY)));
-    h+=`<div class="card" style="padding:6px 14px"><div class="label" style="padding:6px 0">Последние 2 недели</div>`+days.map(d=>{ const r=S.mood[d]; const dd=new Date(d+"T12:00:00");
-      return `<div class="dayrow"><span class="dl">${d===isoDay(new Date())?"сегодня":new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric"}).format(dd)}</span><span class="de">${r?r.marks.map(m=>`<span title="${KIND[m.k].l} ${fmtHM(new Date(m.t))}">${KIND[m.k].e}</span>`).join(""):`<span class="fhm">—</span>`}</span></div>`; }).join("")+`</div>`;
-    h+=`<button class="btn ghost" data-hact="diary">📊 Самочувствие и погода — в отчётах ›</button>`;
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
   const type=HSEG, last=lastOf(type);
@@ -3138,7 +3134,7 @@ $("hBody").addEventListener("click",e=>{
   const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); renderHealthPage(); return; }
   const d=e.target.closest("[data-mdel]"); if(d){ HM.del[d.dataset.mdel]=new Date().toISOString(); saveHM(); renderHealthPage(); renderHealth(); return; }
   const a=e.target.closest("[data-hact]"); if(!a) return;
-  if(a.dataset.hact==="diary") openMoodSheet();
+  if(a.dataset.hact==="diary") openMoodAnalysis();
   if(a.dataset.hact==="rep"){ REP.per="30"; openReport(HSEG==="bp"?["bp","pulse","mood","press"]:["glu","mood"]); }
 });
 
@@ -3176,13 +3172,13 @@ const DRAG_ON=true;
 // every place where blocks can be rearranged: the main screen and both parts of the reports
 const ZONES=[
   {tab:"today", box:"pgToday", ids:ORDER_DEF, key:"order", before:()=>$("pgToday").querySelector("footer")},
-  {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","moodDaysC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
+  {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
 ];
 const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0,zone:null};
 function orderGet(z){ z=z||ZONES[0]; const o=(loadJSON(z.key,null)||[]).filter(id=>z.ids.includes(id)); for(const id of z.ids) if(!o.includes(id)) o.splice(Math.min(o.length,z.ids.indexOf(id)),0,id); return o; }
 function applyOrder(){ for(const z of ZONES){ const box=$(z.box); if(!box) continue; const ref=z.before(); for(const id of orderGet(z)){ const el=$(id); if(el&&el.parentNode===box) box.insertBefore(el,ref||null); } } }
 function saveOrder(z){ z=z||ZONES[0]; const ids=[...$(z.box).children].map(e=>e.id).filter(id=>z.ids.includes(id)); store.set(z.key,JSON.stringify(ids)); }
-if(store.get("repOrderV")!=="4"){ store.set("order_rep",""); store.set("repOrderV","4"); }   // new default: "what to show" above the chart
+if(store.get("repOrderV")!=="5"){ store.set("order_rep",""); store.set("repOrderV","5"); }   // new default: "what to show" above the chart
 applyOrder();
 $("orderReset")?.addEventListener("click",()=>{ for(const z of ZONES) store.set(z.key,JSON.stringify(z.ids)); applyOrder(); toast("Порядок блоков сброшен."); });
 function dragItem(t){
@@ -3812,6 +3808,9 @@ async function chatFetch(f){
   return added.length;
 }
 let CH_OPEN=null, chatTimer=0;
+// the app is on screen: look for new messages every minute (the open chat itself refreshes every 15 s)
+setInterval(()=>{ if(document.hidden||!SH.key) return; for(const f of Object.values(FR.list)) if(f.s&&f.k!==CH_OPEN) chatFetch(f).catch(()=>{}); }, 60000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&SH.key) for(const f of Object.values(FR.list)) if(f.s) chatFetch(f).catch(()=>{}); });
 function chatPollStart(list){
   clearInterval(chatTimer); list.forEach(f=>chatFetch(f).catch(()=>{}));
   chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; if(TAB==="friends") renderFriendsPage(); return; } if(!document.hidden) list.forEach(f=>chatFetch(f).catch(()=>{})); }, 15000);
@@ -3990,6 +3989,8 @@ function ptrHide(){ ptr.classList.remove("drag","ready","busy","done"); ptr.styl
 function ptrSet(d){ ptr.style.transform=`translate(-50%, ${d-50}px)`; ptr.style.opacity=Math.min(1,d/50); ptr.querySelector(".ic").style.transform=`rotate(${d*4}deg)`; ptr.classList.toggle("ready",d>=PULL); }
 async function pullRefresh(){
   ptr.classList.remove("drag","ready"); ptr.classList.add("busy"); ptr.style.transform="translate(-50%, 14px)"; ptr.style.opacity=1;
+  // messages and a new version are checked at the same time, without waiting for the usual intervals
+  fetchFriends(true).catch(()=>{}); if(typeof checkUpdate==="function") checkUpdate(false,true).catch?.(()=>{});
   const ok=await refreshNow();
   if(!ok) ptrHide();
 }
@@ -4147,6 +4148,7 @@ for(const id of ["remFrom","remTo"]) $(id).addEventListener("change",()=>{ const
   if(r.every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); renderRemind(); return; } saveRemind(r); });
 $("remTest").addEventListener("click",async()=>{ if(MN){ try{ await MN.test(); toast("Опустите шторку — там пример вопроса"); }catch(e){} }
   else if(LN){ try{ await LN.schedule({notifications:[{id:99, title:"Как себя чувствуешь?", body:"Так будет выглядеть вопрос", schedule:{at:new Date(Date.now()+1500)}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr"}]}); }catch(e){} } });
+$("moodToRep").addEventListener("click",()=>openMoodAnalysis());
 $("remGo")?.addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
 $("gearBtn").addEventListener("click",()=>{ renderRemind(); setTimeout(renderRemind,60); });
 if(LN){
@@ -4248,10 +4250,10 @@ render();
    do not allow apps to download their own installers. */
 const UPDATE_FROM_GITHUB = true;
 const UPD_API = "https://api.github.com/repos/sivkabkbkbkbk-boop/barometr-app/releases/latest";
-async function checkUpdate(loud){
+async function checkUpdate(loud, force){
   const AppU = PREF ? window.Capacitor.Plugins?.App : null;
   if(!UPDATE_FROM_GITHUB || !AppU?.getInfo) return;
-  if(!loud && store.get("updChk")===isoDay(new Date())) return;
+  if(!loud && !force && store.get("updChk")===isoDay(new Date())) return;
   try{
     const mine = +(await AppU.getInfo()).build || 0;
     const r = await fetch(UPD_API, {cache:"no-store"}); if(!r.ok) throw new Error("http");
