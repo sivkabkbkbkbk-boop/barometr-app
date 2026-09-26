@@ -46,11 +46,12 @@ jobs:
       - name: Разрешения, цвета, иконка
         run: |
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
-          # in-app update: download the APK inside the app and hand it to the Android installer
+          # native parts: in-app update and the "how do you feel" notification with all smileys
           J=android/app/src/main/java/ru/barometr/neba
-          mkdir -p $J
+          L=android/app/src/main/res/layout
+          mkdir -p $J $L
           cat > $J/ApkUpdatePlugin.java <<'JAVA'
           package ru.barometr.neba;
 
@@ -178,6 +179,300 @@ jobs:
               }
           }
           JAVA
+          cat > $J/MoodNotify.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.AlarmManager;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Build;
+          import android.view.View;
+          import android.widget.RemoteViews;
+          import androidx.core.app.NotificationCompat;
+          import java.util.Calendar;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          // "How do you feel?" in the notification shade: all smileys right in the notification,
+          // repeated every N minutes within the hours the user chose.
+          public class MoodNotify {
+              static final String PREFS = "mood_notify";
+              static final String CH = "mood_ask";
+              static final int NID = 7301;
+              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+              static final String DEF_KINDS = "[{\"k\":\"great\",\"e\":\"😄\",\"l\":\"Отлично\"},{\"k\":\"good\",\"e\":\"🙂\",\"l\":\"Норм\"},{\"k\":\"meh\",\"e\":\"😐\",\"l\":\"Так себе\"},{\"k\":\"sleepy\",\"e\":\"😴\",\"l\":\"Сонный\"},{\"k\":\"weak\",\"e\":\"🥴\",\"l\":\"Слабость\"},{\"k\":\"head\",\"e\":\"🤕\",\"l\":\"Голова\"},{\"k\":\"dizzy\",\"e\":\"😵‍💫\",\"l\":\"Кружится\"},{\"k\":\"heart\",\"e\":\"💓\",\"l\":\"Сердце\"},{\"k\":\"joints\",\"e\":\"🦴\",\"l\":\"Суставы\"},{\"k\":\"bad\",\"e\":\"😣\",\"l\":\"Плохо\"}]";
+
+              static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              static JSONArray kinds(Context c) {
+                  try { return new JSONArray(prefs(c).getString("kinds", DEF_KINDS)); }
+                  catch (Exception e) { try { return new JSONArray(DEF_KINDS); } catch (Exception e2) { return new JSONArray(); } }
+              }
+
+              static JSONObject kind(Context c, String k) {
+                  JSONArray a = kinds(c);
+                  for (int i = 0; i < a.length(); i++) { JSONObject o = a.optJSONObject(i); if (o != null && k.equals(o.optString("k"))) return o; }
+                  return null;
+              }
+
+              // next moment to ask: every `every` minutes from `from` to `to` (minutes of the day); every >= 1440 means once a day at `from`
+              static long nextAt(Context c, long now) {
+                  SharedPreferences s = prefs(c);
+                  int every = s.getInt("every", 0);
+                  if (every <= 0) return -1;
+                  int from = s.getInt("from", 540), to = s.getInt("to", 1320);
+                  for (int day = 0; day < 3; day++) {
+                      Calendar d = Calendar.getInstance();
+                      d.setTimeInMillis(now);
+                      d.add(Calendar.DAY_OF_YEAR, day);
+                      d.set(Calendar.HOUR_OF_DAY, 0); d.set(Calendar.MINUTE, 0); d.set(Calendar.SECOND, 0); d.set(Calendar.MILLISECOND, 0);
+                      if (every >= 1440) {
+                          d.add(Calendar.MINUTE, from);
+                          if (d.getTimeInMillis() > now + 30000) return d.getTimeInMillis();
+                          continue;
+                      }
+                      for (int m = from; m <= to; m += every) {
+                          Calendar t = (Calendar) d.clone();
+                          t.add(Calendar.MINUTE, m);
+                          if (t.getTimeInMillis() > now + 30000) return t.getTimeInMillis();
+                      }
+                  }
+                  return -1;
+              }
+
+              static void schedule(Context c) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 1, new Intent(c, MoodAlarmReceiver.class), FLAGS);
+                  am.cancel(pi);
+                  long t = nextAt(c, System.currentTimeMillis());
+                  if (t <= 0) return;
+                  if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                  else am.set(AlarmManager.RTC_WAKEUP, t, pi);
+              }
+
+              static void channel(Context c) {
+                  if (Build.VERSION.SDK_INT >= 26) {
+                      NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                      NotificationChannel ch = new NotificationChannel(CH, "Как вы себя чувствуете", NotificationManager.IMPORTANCE_HIGH);
+                      ch.setDescription("Вопрос о самочувствии со смайликами прямо в шторке");
+                      nm.createNotificationChannel(ch);
+                  }
+              }
+
+              static PendingIntent markIntent(Context c, String k, int rc) {
+                  Intent i = new Intent(c, MoodMarkReceiver.class);
+                  i.putExtra("k", k);
+                  return PendingIntent.getBroadcast(c, 100 + rc, i, FLAGS);
+              }
+
+              static PendingIntent openApp(Context c) {
+                  Intent open = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+                  if (open == null) open = new Intent(c, MainActivity.class);
+                  open.putExtra("moodAsk", true);
+                  return PendingIntent.getActivity(c, 2, open, FLAGS);
+              }
+
+              static final int[] SMALL = {R.id.s0, R.id.s1, R.id.s2, R.id.s3, R.id.s4};
+              static final int[] SMALL_PICK = {0, 1, 2, 5, 9};
+              static final int[] CELL = {R.id.c0, R.id.c1, R.id.c2, R.id.c3, R.id.c4, R.id.c5, R.id.c6, R.id.c7, R.id.c8, R.id.c9};
+              static final int[] EMO = {R.id.e0, R.id.e1, R.id.e2, R.id.e3, R.id.e4, R.id.e5, R.id.e6, R.id.e7, R.id.e8, R.id.e9};
+              static final int[] LAB = {R.id.l0, R.id.l1, R.id.l2, R.id.l3, R.id.l4, R.id.l5, R.id.l6, R.id.l7, R.id.l8, R.id.l9};
+
+              static void post(Context c) {
+                  channel(c);
+                  JSONArray a = kinds(c);
+                  RemoteViews small = new RemoteViews(c.getPackageName(), R.layout.mood_small);
+                  for (int i = 0; i < SMALL.length; i++) {
+                      JSONObject o = a.optJSONObject(SMALL_PICK[i]);
+                      if (o == null) { small.setViewVisibility(SMALL[i], View.GONE); continue; }
+                      small.setTextViewText(SMALL[i], o.optString("e"));
+                      small.setOnClickPendingIntent(SMALL[i], markIntent(c, o.optString("k"), i));
+                  }
+                  RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
+                  for (int i = 0; i < CELL.length; i++) {
+                      JSONObject o = a.optJSONObject(i);
+                      if (o == null) { big.setViewVisibility(CELL[i], View.INVISIBLE); continue; }
+                      big.setTextViewText(EMO[i], o.optString("e"));
+                      big.setTextViewText(LAB[i], o.optString("l"));
+                      big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
+                  }
+                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle("Как себя чувствуешь?")
+                      .setContentText("Нажми на смайлик")
+                      .setSubText("Как себя чувствуешь?")
+                      .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+                      .setCustomContentView(small)
+                      .setCustomBigContentView(big)
+                      .setContentIntent(openApp(c))
+                      .setAutoCancel(true)
+                      .setPriority(NotificationCompat.PRIORITY_HIGH)
+                      .setCategory(NotificationCompat.CATEGORY_REMINDER);
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  try { nm.notify(NID, b.build()); } catch (SecurityException e) { /* notifications not allowed */ }
+              }
+
+              static void confirm(Context c, String k) {
+                  JSONObject o = kind(c, k);
+                  String title = (o != null ? o.optString("e") + " " + o.optString("l") : "Отметка") + " — записано";
+                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle(title)
+                      .setContentText("Сохранено в дневнике самочувствия")
+                      .setContentIntent(openApp(c))
+                      .setOnlyAlertOnce(true)
+                      .setAutoCancel(true)
+                      .setTimeoutAfter(4000)
+                      .setPriority(NotificationCompat.PRIORITY_LOW);
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  try { nm.notify(NID, b.build()); } catch (SecurityException e) { }
+              }
+          }
+          JAVA
+          cat > $J/MoodNotifyPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.SharedPreferences;
+          import com.getcapacitor.JSArray;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          @CapacitorPlugin(name = "MoodNotify")
+          public class MoodNotifyPlugin extends Plugin {
+              static MoodNotifyPlugin inst;
+
+              @Override
+              public void load() { inst = this; }
+
+              // tells the open app that a smiley was pressed in the shade; the app then calls takePending
+              static void emit() {
+                  MoodNotifyPlugin p = inst;
+                  if (p != null) p.notifyListeners("mark", new JSObject());
+              }
+
+              @PluginMethod
+              public void configure(PluginCall call) {
+                  SharedPreferences.Editor e = MoodNotify.prefs(getContext()).edit();
+                  e.putInt("every", call.getInt("every", 0));
+                  e.putInt("from", call.getInt("from", 540));
+                  e.putInt("to", call.getInt("to", 1320));
+                  JSArray k = call.getArray("kinds");
+                  if (k != null && k.length() > 0) e.putString("kinds", k.toString());
+                  e.apply();
+                  MoodNotify.channel(getContext());
+                  MoodNotify.schedule(getContext());
+                  JSObject r = new JSObject();
+                  r.put("next", MoodNotify.nextAt(getContext(), System.currentTimeMillis()));
+                  call.resolve(r);
+              }
+
+              @PluginMethod
+              public void noteMark(PluginCall call) {
+                  MoodNotify.prefs(getContext()).edit().putLong("lastMark", System.currentTimeMillis()).apply();
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void test(PluginCall call) {
+                  MoodNotify.post(getContext());
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void takePending(PluginCall call) {
+                  SharedPreferences s = MoodNotify.prefs(getContext());
+                  String v = s.getString("pending", "[]");
+                  s.edit().putString("pending", "[]").apply();
+                  JSObject r = new JSObject();
+                  try { r.put("marks", new JSArray(v)); } catch (Exception ex) { r.put("marks", new JSArray()); }
+                  call.resolve(r);
+              }
+          }
+          JAVA
+          cat > $J/MoodAlarmReceiver.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import java.util.Calendar;
+
+          // fires at each chosen time: asks unless the user marked their mood very recently, then plans the next time
+          public class MoodAlarmReceiver extends BroadcastReceiver {
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  int every = s.getInt("every", 0);
+                  long last = s.getLong("lastMark", 0), now = System.currentTimeMillis();
+                  boolean recent;
+                  if (every >= 1440) {
+                      Calendar a = Calendar.getInstance(), b = Calendar.getInstance();
+                      a.setTimeInMillis(last); b.setTimeInMillis(now);
+                      recent = a.get(Calendar.YEAR) == b.get(Calendar.YEAR) && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
+                  } else {
+                      recent = now - last < every * 60000L / 2;
+                  }
+                  if (every > 0 && !recent) MoodNotify.post(c);
+                  MoodNotify.schedule(c);
+              }
+          }
+          JAVA
+          cat > $J/MoodMarkReceiver.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          // a smiley pressed in the notification: keep it until the app picks it up, show "recorded"
+          public class MoodMarkReceiver extends BroadcastReceiver {
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  String k = intent.getStringExtra("k");
+                  if (k == null) return;
+                  long now = System.currentTimeMillis();
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  try {
+                      JSONArray a = new JSONArray(s.getString("pending", "[]"));
+                      JSONObject o = new JSONObject();
+                      o.put("k", k);
+                      o.put("t", now);
+                      a.put(o);
+                      s.edit().putString("pending", a.toString()).putLong("lastMark", now).apply();
+                  } catch (Exception e) { }
+                  MoodNotify.confirm(c, k);
+                  MoodNotifyPlugin.emit();
+              }
+          }
+          JAVA
+          cat > $J/MoodBootReceiver.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+
+          // alarms are lost on reboot and on app update: plan the next question again
+          public class MoodBootReceiver extends BroadcastReceiver {
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  MoodNotify.schedule(c);
+              }
+          }
+          JAVA
           cat > $J/MainActivity.java <<'JAVA'
           package ru.barometr.neba;
 
@@ -188,10 +483,121 @@ jobs:
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   registerPlugin(ApkUpdatePlugin.class);
+                  registerPlugin(MoodNotifyPlugin.class);
                   super.onCreate(savedInstanceState);
               }
           }
           JAVA
+          cat > $L/mood_small.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent" android:layout_height="wrap_content"
+              android:orientation="horizontal" android:gravity="center_vertical">
+              <TextView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
+                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
+                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
+                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
+                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
+                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+          </LinearLayout>
+          XML
+          cat > $L/mood_big.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+              <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Как себя чувствуешь?"
+                  android:textAppearance="@style/TextAppearance.Compat.Notification.Title" android:paddingBottom="6dp" />
+              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                  <LinearLayout android:id="@+id/c0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e0" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l0" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l1" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l2" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l3" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l4" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+              </LinearLayout>
+              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                  <LinearLayout android:id="@+id/c5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l5" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l6" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l7" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l8" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+                  <LinearLayout android:id="@+id/c9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                      android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
+                      android:background="?android:attr/selectableItemBackground">
+                      <TextView android:id="@+id/e9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <TextView android:id="@+id/l9" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+                  </LinearLayout>
+              </LinearLayout>
+          </LinearLayout>
+          XML
+          sed -i 's|</application>|    <receiver android:name=".MoodAlarmReceiver" android:exported="false" />\n        <receiver android:name=".MoodMarkReceiver" android:exported="false" />\n        <receiver android:name=".MoodBootReceiver" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED" />\n                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n            </intent-filter>\n        </receiver>\n    </application>|' $M
           mkdir -p android/app/src/main/res/xml
           printf '<?xml version="1.0" encoding="utf-8"?>\n<paths xmlns:android="http://schemas.android.com/apk/res/android">\n  <external-path name="my_images" path="." />\n  <cache-path name="my_cache_images" path="." />\n</paths>\n' > android/app/src/main/res/xml/file_paths.xml
           grep -q "fileprovider" $M || sed -i 's|</application>|    <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">\n            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />\n        </provider>\n    </application>|' $M
