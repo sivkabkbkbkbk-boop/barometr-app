@@ -48,7 +48,7 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
-          # native parts: in-app update, daily update check and the "how do you feel" notification with all smileys
+          # native parts: in-app update, daily update check, chat notifications and the "how do you feel" notification
           J=android/app/src/main/java/ru/barometr/neba
           L=android/app/src/main/res/layout
           mkdir -p $J $L
@@ -300,6 +300,217 @@ jobs:
                   new Thread(new Runnable() { public void run() {
                       try { UpdateCheck.check(c); } catch (Exception e) { } finally { res.finish(); }
                   }}).start();
+              }
+          }
+          JAVA
+          cat > $J/ChatWatch.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.AlarmManager;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.util.Base64;
+          import androidx.core.app.NotificationCompat;
+          import java.io.BufferedReader;
+          import java.io.InputStreamReader;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
+          import java.net.URLEncoder;
+          import java.util.ArrayList;
+          import java.util.List;
+          import javax.crypto.Cipher;
+          import javax.crypto.spec.GCMParameterSpec;
+          import javax.crypto.spec.SecretKeySpec;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          // New chat messages while the app is closed: every ~15 minutes read each friend's chat.json on
+          // Yandex Disk, open the messages meant for us with the key both friends share, and show them in the shade.
+          public class ChatWatch {
+              static final String PREFS = "chat_watch";
+              static final String CH = "chat";
+              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+
+              static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              static void schedule(Context c) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 5, new Intent(c, ChatWatchReceiver.class), FLAGS);
+                  am.cancel(pi);
+                  if (!prefs(c).getBoolean("on", false)) return;
+                  am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                      AlarmManager.INTERVAL_FIFTEEN_MINUTES, pi);
+              }
+
+              static int nid(String k) { return 7500 + (k.hashCode() & 0x3ff); }
+
+              static String get(String url) throws Exception {
+                  HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+                  con.setConnectTimeout(20000);
+                  con.setReadTimeout(20000);
+                  con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
+                  try {
+                      if (con.getResponseCode() != 200) return null;
+                      StringBuilder sb = new StringBuilder();
+                      BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                      String line;
+                      while ((line = r.readLine()) != null) sb.append(line);
+                      r.close();
+                      return sb.toString();
+                  } finally { con.disconnect(); }
+              }
+
+              static JSONObject open(byte[] key, JSONObject m) throws Exception {
+                  Cipher ci = Cipher.getInstance("AES/GCM/NoPadding");
+                  ci.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"),
+                      new GCMParameterSpec(128, Base64.decode(m.getString("iv"), Base64.DEFAULT)));
+                  return new JSONObject(new String(ci.doFinal(Base64.decode(m.getString("c"), Base64.DEFAULT)), "UTF-8"));
+              }
+
+              // runs on a background thread
+              static void check(Context c) throws Exception {
+                  SharedPreferences p = prefs(c);
+                  if (!p.getBoolean("on", false)) return;
+                  JSONArray fr = new JSONArray(p.getString("friends", "[]"));
+                  SharedPreferences.Editor ed = p.edit();
+                  for (int i = 0; i < fr.length(); i++) {
+                      JSONObject f = fr.optJSONObject(i);
+                      if (f == null) continue;
+                      String k = f.optString("k"), since = f.optString("since"), last = p.getString("n:" + k, "");
+                      if (last.compareTo(since) > 0) since = last;
+                      try {
+                          String meta = get("https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key="
+                              + URLEncoder.encode(k, "UTF-8") + "&path=" + URLEncoder.encode("/chat.json", "UTF-8"));
+                          if (meta == null) continue;
+                          String body = get(new JSONObject(meta).getString("href"));
+                          if (body == null) continue;
+                          JSONObject boxes = new JSONObject(body).optJSONObject("boxes");
+                          JSONArray box = boxes == null ? null : boxes.optJSONArray(f.optString("box"));
+                          if (box == null) continue;
+                          byte[] key = Base64.decode(f.optString("key"), Base64.DEFAULT);
+                          List<String> lines = new ArrayList<String>();
+                          String newest = since;
+                          for (int j = 0; j < box.length(); j++) {
+                              JSONObject o;
+                              try { o = open(key, box.getJSONObject(j)); } catch (Exception e) { continue; }
+                              String t = o.optString("t");
+                              if (t.compareTo(since) <= 0) continue;
+                              String x = o.has("c") ? "📋 поделился(ась) состоянием" : o.optString("x");
+                              if (x.length() > 120) x = x.substring(0, 120) + "…";
+                              lines.add(x);
+                              if (t.compareTo(newest) > 0) newest = t;
+                          }
+                          if (!lines.isEmpty()) {
+                              int total = p.getInt("c:" + k, 0) + lines.size();
+                              post(c, k, f.optString("n", "Друг"), lines, total);
+                              ed.putString("n:" + k, newest).putInt("c:" + k, total);
+                          }
+                      } catch (Exception e) { }
+                  }
+                  ed.apply();
+              }
+
+              static void post(Context c, String k, String name, List<String> lines, int total) {
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  if (Build.VERSION.SDK_INT >= 26) {
+                      NotificationChannel ch = new NotificationChannel(CH, "Сообщения от друзей", NotificationManager.IMPORTANCE_HIGH);
+                      ch.setDescription("Новые сообщения в чате");
+                      ch.setShowBadge(true);
+                      nm.createNotificationChannel(ch);
+                  }
+                  Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("barometr://chat?k=" + Uri.encode(k)));
+                  i.setPackage(c.getPackageName());
+                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  NotificationCompat.InboxStyle st = new NotificationCompat.InboxStyle();
+                  for (String l : lines) st.addLine(l);
+                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle(name)
+                      .setContentText(lines.get(lines.size() - 1))
+                      .setStyle(st)
+                      .setNumber(total)
+                      .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
+                      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                      .setContentIntent(PendingIntent.getActivity(c, nid(k), i, FLAGS))
+                      .setAutoCancel(true)
+                      .setPriority(NotificationCompat.PRIORITY_HIGH);
+                  try { nm.notify(nid(k), b.build()); } catch (SecurityException e) { }
+              }
+
+              // the app has shown these messages: drop the notification and the counter
+              static void clear(Context c, String k) {
+                  prefs(c).edit().putInt("c:" + k, 0).apply();
+                  ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(nid(k));
+              }
+          }
+          JAVA
+          cat > $J/ChatWatchReceiver.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+
+          public class ChatWatchReceiver extends BroadcastReceiver {
+              @Override
+              public void onReceive(final Context c, Intent intent) {
+                  final PendingResult res = goAsync();
+                  new Thread(new Runnable() { public void run() {
+                      try { ChatWatch.check(c); } catch (Exception e) { } finally { res.finish(); }
+                  }}).start();
+              }
+          }
+          JAVA
+          cat > $J/ChatWatchPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import com.getcapacitor.JSArray;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import org.json.JSONObject;
+
+          @CapacitorPlugin(name = "ChatWatch")
+          public class ChatWatchPlugin extends Plugin {
+              // friends: [{k, n, box, key, since}] — what to watch and what the app has already shown
+              @PluginMethod
+              public void configure(PluginCall call) {
+                  JSArray fr = call.getArray("friends");
+                  boolean on = Boolean.TRUE.equals(call.getBoolean("on", true)) && fr != null && fr.length() > 0;
+                  ChatWatch.prefs(getContext()).edit().putBoolean("on", on).putString("friends", fr == null ? "[]" : fr.toString()).apply();
+                  // messages the app already has: no notification for them
+                  if (fr != null) for (int i = 0; i < fr.length(); i++) {
+                      JSONObject f = fr.optJSONObject(i);
+                      if (f == null) continue;
+                      String k = f.optString("k");
+                      if (f.optString("since").compareTo(ChatWatch.prefs(getContext()).getString("n:" + k, "")) >= 0) ChatWatch.clear(getContext(), k);
+                  }
+                  ChatWatch.schedule(getContext());
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void clear(PluginCall call) {
+                  String k = call.getString("k");
+                  if (k != null) ChatWatch.clear(getContext(), k);
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void checkNow(PluginCall call) {
+                  new Thread(new Runnable() { public void run() {
+                      try { ChatWatch.check(getContext()); } catch (Exception e) { }
+                  }}).start();
+                  call.resolve();
               }
           }
           JAVA
@@ -595,6 +806,7 @@ jobs:
               public void onReceive(Context c, Intent intent) {
                   MoodNotify.schedule(c);
                   UpdateCheck.reschedule(c);
+                  ChatWatch.schedule(c);
               }
           }
           JAVA
@@ -609,6 +821,7 @@ jobs:
               public void onCreate(Bundle savedInstanceState) {
                   registerPlugin(ApkUpdatePlugin.class);
                   registerPlugin(MoodNotifyPlugin.class);
+                  registerPlugin(ChatWatchPlugin.class);
                   super.onCreate(savedInstanceState);
               }
           }
@@ -722,7 +935,7 @@ jobs:
               </LinearLayout>
           </LinearLayout>
           XML
-          sed -i 's|</application>|    <receiver android:name=".MoodAlarmReceiver" android:exported="false" />\n        <receiver android:name=".MoodMarkReceiver" android:exported="false" />\n        <receiver android:name=".UpdateCheckReceiver" android:exported="false" />\n        <receiver android:name=".MoodBootReceiver" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED" />\n                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n            </intent-filter>\n        </receiver>\n    </application>|' $M
+          sed -i 's|</application>|    <receiver android:name=".MoodAlarmReceiver" android:exported="false" />\n        <receiver android:name=".MoodMarkReceiver" android:exported="false" />\n        <receiver android:name=".UpdateCheckReceiver" android:exported="false" />\n        <receiver android:name=".ChatWatchReceiver" android:exported="false" />\n        <receiver android:name=".MoodBootReceiver" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED" />\n                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n            </intent-filter>\n        </receiver>\n    </application>|' $M
           mkdir -p android/app/src/main/res/xml
           printf '<?xml version="1.0" encoding="utf-8"?>\n<paths xmlns:android="http://schemas.android.com/apk/res/android">\n  <external-path name="my_images" path="." />\n  <cache-path name="my_cache_images" path="." />\n</paths>\n' > android/app/src/main/res/xml/file_paths.xml
           grep -q "fileprovider" $M || sed -i 's|</application>|    <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">\n            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />\n        </provider>\n    </application>|' $M
