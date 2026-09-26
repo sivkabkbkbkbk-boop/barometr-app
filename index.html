@@ -632,6 +632,13 @@ header{min-width:0}
 .tgl label{min-width:0}
 .tgl label>span:first-child{min-width:0}
 @media (max-width:380px){.upd{display:none}}
+/* city pill across the whole width; "updated …" sits inside it on the right */
+header{position:relative}
+.citybtn{flex:1 1 auto;width:100%;box-sizing:border-box;padding-right:104px}
+#city{max-width:none!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.hright{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;max-width:92px}
+.hright .upd{max-width:92px}
+@media (max-width:380px){.citybtn{padding-right:12px}}
 /* mood card on the main screen */
 .mchead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .mchead .mlink{margin:0;padding:0}
@@ -2361,7 +2368,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 22 (крутилка частоты, настройки в нижнем меню)";
+const APP_VER="26.09 · сборка 23 (город во всю ширину)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
