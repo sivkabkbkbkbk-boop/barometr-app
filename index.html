@@ -820,22 +820,22 @@ header{position:relative}
   <div class="chips" id="repPer"></div>
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
   <div class="rpanels" id="repPanels"></div>
-  <div class="card"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
+  <div class="card" id="repSelC"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
   <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
   <div id="repMood" class="rsec" hidden>
-    <div class="card"><div class="label">Последние 4 недели</div>
+    <div class="card" id="moodDaysC"><div class="label">Последние 4 недели</div>
       <div class="sc" style="margin:4px 0 10px"><span id="moodSub"></span> · нажмите на день, чтобы отметить</div>
       <div class="days" id="mdays"></div>
       <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
       <div class="gap" id="mgap" hidden></div>
       <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
     </div>
-    <div class="card"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="facs" id="mfacs"></div></div>
-    <div class="card"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
+    <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="facs" id="mfacs"></div></div>
+    <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
     <div class="src" id="backupNote" hidden>Отметки также попадают в резервную копию Android (если она включена в настройках телефона). Синхронизация с Яндекс Диском — в ⚙ настройках.</div>
     <div class="src">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>
   </div>
@@ -922,7 +922,7 @@ header{position:relative}
   <div class="sbody">
     <div class="ctitle">Главный экран · что показывать</div>
     <div class="tgl" id="tglList"></div>
-    <div class="src">💡 Порядок карточек: удерживайте карточку на главном экране полсекунды и перетащите её выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
+    <div class="src">💡 Порядок блоков: на главном экране и в «Отчётах» удерживайте блок полсекунды и перетащите его выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
     <div class="ctitle">Спрашивать о самочувствии</div>
     <div class="remw" id="remW">
       <div class="wheel" id="remWheel">
@@ -2389,7 +2389,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 26 (в отчётах сначала график)";
+const APP_VER="26.09 · сборка 27 (перетаскивание блоков в отчётах)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3138,13 +3138,24 @@ $("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPo
 /* ---------- rearrange the cards on the main screen: long press, then drag ---------- */
 const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain","cardHours"];
 const DRAG_ON=true;
-const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0};
-function orderGet(){ const o=(loadJSON("order",null)||[]).filter(id=>ORDER_DEF.includes(id)); for(const id of ORDER_DEF) if(!o.includes(id)) o.splice(Math.min(o.length,ORDER_DEF.indexOf(id)),0,id); return o; }
-function applyOrder(){ const main=$("pgToday"), foot=main.querySelector("footer"); for(const id of orderGet()){ const el=$(id); if(el) main.insertBefore(el,foot); } }
-function saveOrder(){ const ids=[...$("pgToday").children].map(e=>e.id).filter(id=>ORDER_DEF.includes(id)); store.set("order",JSON.stringify(ids)); }
+// every place where blocks can be rearranged: the main screen and both parts of the reports
+const ZONES=[
+  {tab:"today", box:"pgToday", ids:ORDER_DEF, key:"order", before:()=>$("pgToday").querySelector("footer")},
+  {tab:"rep", box:"repData", ids:["repPanels","repSelC","repKpi","repInsC","repCalC"], key:"order_rep", before:()=>$("repData").querySelector(".src")},
+  {tab:"rep", box:"repMood", ids:["moodDaysC","moodFacC","moodSymC"], key:"order_repm", before:()=>$("repMood").querySelector(".src")}
+];
+const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0,zone:null};
+function orderGet(z){ z=z||ZONES[0]; const o=(loadJSON(z.key,null)||[]).filter(id=>z.ids.includes(id)); for(const id of z.ids) if(!o.includes(id)) o.splice(Math.min(o.length,z.ids.indexOf(id)),0,id); return o; }
+function applyOrder(){ for(const z of ZONES){ const box=$(z.box); if(!box) continue; const ref=z.before(); for(const id of orderGet(z)){ const el=$(id); if(el&&el.parentNode===box) box.insertBefore(el,ref||null); } } }
+function saveOrder(z){ z=z||ZONES[0]; const ids=[...$(z.box).children].map(e=>e.id).filter(id=>z.ids.includes(id)); store.set(z.key,JSON.stringify(ids)); }
 applyOrder();
-$("orderReset")?.addEventListener("click",()=>{ store.set("order",JSON.stringify(ORDER_DEF)); applyOrder(); toast("Порядок карточек сброшен."); });
-function dragItem(t){ const el=t.closest?.("#pgToday > .card, #pgToday > #grid2"); return el&&ORDER_DEF.includes(el.id)?el:null; }
+$("orderReset")?.addEventListener("click",()=>{ for(const z of ZONES) store.set(z.key,JSON.stringify(z.ids)); applyOrder(); toast("Порядок блоков сброшен."); });
+function dragItem(t){
+  for(const z of ZONES){ if(TAB!==z.tab) continue; const box=$(z.box); if(!box||box.hidden) continue;
+    let el=t; while(el&&el.parentNode!==box) el=el.parentNode;
+    if(el&&el.parentNode===box&&z.ids.includes(el.id)){ DRAG.zone=z; return el; } }
+  return null;
+}
 function dragStart(el,x,y){
   DRAG.on=true; DRAG.el=el; const r=el.getBoundingClientRect(); DRAG.y0=y; DRAG.startY=y; DRAG.top=r.top; DRAG.lastY=y;
   const ph=document.createElement("div"); ph.className="dragph"; ph.style.height=r.height+"px"; el.parentNode.insertBefore(ph,el); DRAG.ph=ph;
@@ -3156,7 +3167,7 @@ function dragStart(el,x,y){
 function dragMove(y){
   if(!DRAG.on) return; DRAG.lastY=y;
   DRAG.el.style.top=(DRAG.top+y-DRAG.y0)+"px";
-  const sibs=[...$("pgToday").children].filter(e=>e!==DRAG.el&&e!==DRAG.ph&&ORDER_DEF.includes(e.id)&&!e.hidden);
+  const z=DRAG.zone, sibs=[...$(z.box).children].filter(e=>e!==DRAG.el&&e!==DRAG.ph&&z.ids.includes(e.id)&&!e.hidden);
   for(const s2 of sibs){ const r=s2.getBoundingClientRect(), mid=r.top+r.height/2;
     const phAbove=DRAG.ph.compareDocumentPosition(s2)&Node.DOCUMENT_POSITION_FOLLOWING;
     if(phAbove&&y>mid){ s2.after(DRAG.ph); break; }
@@ -3169,15 +3180,16 @@ function dragScroll(){ if(!DRAG.on) return; const y=DRAG.lastY, h=innerHeight, e
 function dragEnd(){
   clearTimeout(DRAG.timer); if(!DRAG.on) return;
   cancelAnimationFrame(DRAG.raf);
-  const el=DRAG.el, ph=DRAG.ph, r=ph.getBoundingClientRect();
+  const el=DRAG.el, ph=DRAG.ph, r=ph.getBoundingClientRect(), z=DRAG.zone;
   el.style.transition="top .18s ease"; el.style.top=r.top+"px";
-  setTimeout(()=>{ ph.replaceWith(el); el.removeAttribute("style"); el.classList.remove("lifted"); document.body.classList.remove("reordering"); saveOrder(); if(el.id==="cardRain") drawRadar(); }, 190);
+  setTimeout(()=>{ ph.replaceWith(el); el.removeAttribute("style"); el.classList.remove("lifted"); document.body.classList.remove("reordering"); saveOrder(z);
+    if(el.id==="cardRain") drawRadar(); if(z.tab==="rep") renderRepSeg(); }, 190);
   DRAG.on=false; DRAG.suppress=Date.now();
 }
 // touch: hold still ~0.45 s to pick up a card, then the page stops scrolling and the card follows the finger
 addEventListener("touchstart",e=>{
-  if(!DRAG_ON||TAB!=="today"||e.touches.length>1||openSheet) return;
-  const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input")) return;
+  if(!DRAG_ON||e.touches.length>1||openSheet) return;
+  const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input,#chart,.rpanels svg,.rpanels canvas,.chips,.fgrid")) return;
   const t=e.touches[0]; DRAG.x0=t.clientX; DRAG.y0=t.clientY;
   clearTimeout(DRAG.timer); DRAG.timer=setTimeout(()=>dragStart(el,DRAG.x0,DRAG.y0),450);
 },{passive:true});
@@ -3188,7 +3200,7 @@ addEventListener("touchmove",e=>{
 },{passive:false});
 addEventListener("touchend",dragEnd); addEventListener("touchcancel",dragEnd);
 // mouse (computer): the same with a long press of the button
-addEventListener("mousedown",e=>{ if(!DRAG_ON||TAB!=="today"||e.button!==0||openSheet) return; const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input")) return;
+addEventListener("mousedown",e=>{ if(!DRAG_ON||e.button!==0||openSheet) return; const el=dragItem(e.target); if(!el||e.target.closest(".rmap,.rctl,input,.rpanels svg,.rpanels canvas,.chips")) return;
   DRAG.x0=e.clientX; DRAG.y0=e.clientY; clearTimeout(DRAG.timer); DRAG.timer=setTimeout(()=>dragStart(el,DRAG.x0,DRAG.y0),450); });
 addEventListener("mousemove",e=>{ if(DRAG.on){ e.preventDefault(); dragMove(e.clientY); } else if(DRAG.timer&&(Math.abs(e.clientX-DRAG.x0)>6||Math.abs(e.clientY-DRAG.y0)>6)){ clearTimeout(DRAG.timer); DRAG.timer=0; } });
 addEventListener("mouseup",dragEnd);
