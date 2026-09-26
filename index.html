@@ -1773,17 +1773,19 @@ $("clist").addEventListener("click",async e=>{
   if(b.dataset.slug){ selectCity(b.dataset.slug); hideSheet(); return; }
   if(b.dataset.add){ const id=addCity(b.dataset.add, +b.dataset.lat, +b.dataset.lon, b.dataset.reg); selectCity(id); hideSheet(); }
 });
+let LOCATING=false;
 function locate(){
   if(!navigator.geolocation){ toast("Этот браузер не умеет определять местоположение."); return; }
-  toast("Определяю местоположение…");
+  toast("Определяю местоположение…"); LOCATING=true;
   navigator.geolocation.getCurrentPosition(async pos=>{
     const lat=+pos.coords.latitude.toFixed(3), lon=+pos.coords.longitude.toFixed(3);
     let name="Моё место", region="";
     try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
     catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
-    selectCity(id); hideSheet();
+    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet();   // only the city list closes; a welcome or other window stays
   }, err=>{
+    LOCATING=false;
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
   }, {enableHighAccuracy:false, timeout:15000, maximumAge:30*60*1000});
 }
@@ -2334,7 +2336,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 17 (обновление без переустановки, новая иконка)";
+const APP_VER="26.09 · сборка 18 (обновление скачивается внутри приложения)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3357,7 +3359,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Y.toke
 /* first run: offer Yandex Disk sync once; waits until the mood popup and other windows are closed */
 function showWelcome(tries=0){
   if(Y.token || store.get("welcomeY")) return;
-  const busy=openSheet || !$("moodPop").hidden;
+  const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
   if(busy){ if(tries<40) setTimeout(()=>showWelcome(tries+1), 1500); return; }
   $("welGo").href=yAuthUrl(false);
   showSheet("welSheet");
@@ -3998,7 +4000,26 @@ async function checkUpdate(loud){
   }catch(e){ if(loud) toast("Не удалось проверить обновления — нет связи с GitHub."); }
 }
 $("updX").addEventListener("click",()=>{ store.set("updSkip", $("updBar").dataset.n||""); $("updBar").hidden=true; });
-$("updGo").addEventListener("click",()=>{ $("updBar").hidden=true; toast("Скачайте файл и откройте его — Android предложит «Обновить». Ваши данные останутся."); });
+const APKU = PREF ? (window.Capacitor.Plugins?.ApkUpdate || null) : null;   // native part added in build 18+
+let updBusy=false, updWaitPerm=false;
+function updText(t){ $("updBar").querySelector(".ut").textContent=t; }
+async function updInstall(){
+  try{
+    const ok=(await APKU.canInstall()).ok;
+    if(!ok){ updWaitPerm=true; updText("Разрешите установку для «Не18мнеуже» и вернитесь назад"); await APKU.openInstallSettings(); return; }
+    updText("Подтвердите «Обновить» в окне Android"); await APKU.install();
+  }catch(e){ updText("Не удалось открыть установку"); }
+}
+$("updGo").addEventListener("click",async e=>{
+  if(!APKU){ $("updBar").hidden=true; toast("Скачайте файл и откройте его — Android предложит «Обновить». Ваши данные останутся."); return; }   // older builds: the browser downloads it
+  e.preventDefault(); if(updBusy) return; updBusy=true;
+  const go=$("updGo"); go.hidden=true; updText("Скачиваю обновление…");
+  let h=null; try{ h=await APKU.addListener("progress",p=>{ if(p.pct>=0) updText("Скачиваю обновление… "+p.pct+"%"); }); }catch(_){}
+  try{ await APKU.download({url:go.href}); h?.remove?.(); updText("Готово, открываю установку…"); await updInstall(); }
+  catch(err){ h?.remove?.(); updText("Не получилось скачать. Проверьте интернет (VPN лучше выключить)"); go.hidden=false; go.textContent="Ещё раз"; }
+  finally{ updBusy=false; }
+});
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && updWaitPerm && APKU){ updWaitPerm=false; updInstall(); } });
 $("updCheck").hidden = !(UPDATE_FROM_GITHUB && PREF);
 $("updCheck").addEventListener("click",()=>checkUpdate(true));
 (async()=>{
