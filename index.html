@@ -270,6 +270,9 @@ footer a{color:var(--muted)}
 .rmap canvas.fx{z-index:1}
 .rmap .demob{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .rmap .demob.on{background:rgba(127,214,200,.9);color:#0d1726;font-weight:600;border-color:transparent}
+.mscale{position:absolute;left:10px;bottom:10px;z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:2px;pointer-events:none;font:600 11px/1 var(--f-mono,monospace);color:#eef3f8;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.mscale .sb{height:6px;border:2px solid #eef3f8;border-top:0;box-shadow:0 1px 3px rgba(0,0,0,.6)}
+.mscale[hidden]{display:none}
 .medot{position:absolute;z-index:3;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#3b8cff;border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(59,140,255,.25),0 2px 6px rgba(0,0,0,.4);pointer-events:none}
 .rmap.detail > canvas:not(.fx){opacity:.58}
 .rmap.detail > canvas.fx{opacity:.8}
@@ -2110,6 +2113,7 @@ function MiniMap(el, interactive){
   const lab=document.createElement("div"); lab.className="labs"; el.appendChild(lab); let labKey="";
   const meDot=document.createElement("div"); meDot.className="medot"; meDot.hidden=true; el.appendChild(meDot);
   const demob=document.createElement("button"); demob.className="demob"; demob.hidden=true; demob.addEventListener("click",e=>{ e.stopPropagation(); demoToggle(); }); demob.addEventListener("pointerdown",e=>e.stopPropagation()); el.appendChild(demob);
+  const scaleEl=document.createElement("div"); scaleEl.className="mscale"; scaleEl.hidden=!interactive; scaleEl.innerHTML='<span class="sl"></span><span class="sb"></span>'; el.appendChild(scaleEl);
   const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
   const m={el,fx,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,vis:false,relabel:()=>{labKey="";}};
   if("IntersectionObserver" in window) new IntersectionObserver(es=>{ m.vis=es[0].isIntersecting; if(m.vis) fxStart(); }).observe(el); else m.vis=true;
@@ -2157,6 +2161,13 @@ function MiniMap(el, interactive){
     if(lk!==labKey){ labKey=lk; if(detail) lab.innerHTML=""; else drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null,detail); }
     pin.innerHTML=homePinHTML(); pin.classList.add("home");
     if(m.me){ meDot.hidden=false; meDot.style.left=(lon2x(m.me[1],z)-x0)+"px"; meDot.style.top=(lat2y(m.me[0],z)-y0)+"px"; } else meDot.hidden=true;
+    if(interactive){   // scale bar: a round distance that is about 60–110 pixels long
+      const mpp=40075016.686*Math.cos((m.center?.[0]||55)*Math.PI/180)/(256*2**z);
+      const nice=[50,100,200,300,500,1000,2000,3000,5000,10000,20000,30000,50000,100000,200000,500000];
+      let L=nice[0]; for(const v of nice) if(v/mpp<=110) L=v;
+      scaleEl.querySelector(".sb").style.width=Math.round(L/mpp)+"px";
+      scaleEl.querySelector(".sl").textContent=L>=1000?(L/1000)+" км":L+" м";
+    }
     if(interactive) fineCheck(m);
     const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2; let v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1, cc=fld.C[i];
       const tgt=m.me||m.home; if(tgt&&m.fb){ const smp=fieldSample(m, lon2x(tgt[1],z)-x0, lat2y(tgt[0],z)-y0); if(smp){ v=smp.p; ty=smp.t; cc=smp.c; } }
@@ -2256,12 +2267,26 @@ function startPlay(){
   RAD.raf=requestAnimationFrame(tick);
 }
 function stopPlay(){ RAD.playing=false; cancelAnimationFrame(RAD.raf); document.querySelectorAll(".rplay").forEach(b=>{b.classList.remove("on");b.textContent="▶";b.setAttribute("aria-label","Воспроизвести");}); }
+const MAP_Z0=12;   // opens at city scale (about 8 km across)
+// centre on where the phone is, if that is within ~50 km of the chosen city (the rain data covers that area)
+function mapCenterOnMe(c){
+  const m=mapBig; if(!m) return;
+  const near=p=>Math.hypot((p[0]-c.lat)*111,(p[1]-c.lon)*111*Math.cos(c.lat*Math.PI/180))<50;
+  if(m.me&&near(m.me)){ m.center=m.me.slice(); m.draw(); return; }
+  if(!navigator.geolocation) return;
+  const opened=Date.now();
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const p=[pos.coords.latitude,pos.coords.longitude]; if(!near(p)) return;
+    m.me=p; if(Date.now()-opened<15000 && Math.abs(m.z-MAP_Z0)<0.01){ m.center=p.slice(); }   // not if the person already moved the map
+    m.draw(); buildTimeline();
+  },()=>{},{enableHighAccuracy:false, timeout:10000, maximumAge:10*60*1000});
+}
 $("mapExpand").addEventListener("click",e=>{
   e.stopPropagation();
   $("mapSub").textContent=cityOf(S.slug).name;
   showSheet("mapSheet");
   if(!mapBig){ mapBig=MiniMap($("rmapBig"), true); }
-  requestAnimationFrame(()=>{ const c=cityOf(S.slug); mapBig.setHome(c.lat,c.lon); mapBig.z=Math.max(mapBig.z,9); RAD.t=Math.min(Math.max(Date.now(),RAD.times[0]||0),RAD.times[RAD.times.length-1]||Date.now()); drawRadar(); buildTimeline(); });
+  requestAnimationFrame(()=>{ const c=cityOf(S.slug); mapBig.setHome(c.lat,c.lon); mapBig.z=MAP_Z0; mapCenterOnMe(c); RAD.t=Math.min(Math.max(Date.now(),RAD.times[0]||0),RAD.times[RAD.times.length-1]||Date.now()); drawRadar(); buildTimeline(); });
 });
 
 /* ---------- 5-day forecast ---------- */
@@ -2390,7 +2415,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 29 (уведомления о сообщениях, облачко в показателях)";
+const APP_VER="26.09 · сборка 29 (уведомления о сообщениях, карта: масштаб, линейка, по GPS)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
