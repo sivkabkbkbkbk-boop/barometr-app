@@ -205,6 +205,14 @@ footer a{color:var(--muted)}
 @keyframes pop{40%{transform:scale(1.45) rotate(-8deg)}}
 .mlink{align-self:flex-start;border:0;background:none;color:var(--press);font-size:13px;font-weight:500;cursor:pointer;padding:2px 0}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.d7{min-width:0;display:flex;flex-direction:column;align-items:center;padding:6px 0 7px;border-radius:14px;background:rgba(9,16,27,.35);border:1px solid rgba(238,243,248,.07);color:var(--ink);cursor:pointer;font:inherit}
+.d7.today{border-color:#7fd6c8;background:rgba(127,214,200,.10)}
+.d7.sel{border-color:var(--ink);background:rgba(238,243,248,.12)}
+.d7 .dw{font-size:11px;color:var(--muted)}.d7 .dn{font-size:14px;font-weight:700;font-family:var(--f-mono)}
+.d7 .clu{position:relative;width:100%;height:58px;margin-top:2px;overflow:visible}
+.d7 .ce{position:absolute;transform:translate(-50%,-50%);line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.d7 .ce.plus{font-size:18px;color:var(--muted);opacity:.6;font-family:inherit}
+.d7 .strip{width:60%;height:4px;border-radius:3px;margin-top:3px}
 .day{aspect-ratio:1;max-width:100%;border-radius:10px;background:var(--sheet-2);border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:0;font-family:var(--f-mono);font-size:9.5px;color:var(--muted)}
 .day .e{font-size:17px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .day .dot{width:5px;height:5px;border-radius:50%;background:rgba(238,243,248,.15);margin:6px 0}
@@ -815,29 +823,22 @@ header{position:relative}
 </main>
 <main class="app page" id="pgRep" hidden>
   <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare">📤 Врачу</button></div>
-  <div class="seg3 two" id="rSeg"><button data-rt="data">Показатели</button><button data-rt="mood">Самочувствие и погода</button></div>
   <div id="repData" class="rsec">
   <div class="chips" id="repPer"></div>
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
-  <div class="rpanels" id="repPanels"></div>
   <div class="card" id="repSelC"><div class="mchead" style="margin-bottom:8px"><div class="label">Что показать</div><div class="seg3 two mini" id="repMode"><button data-rm="one">📈 Вместе</button><button data-rm="sep">▤ Отдельно</button></div></div><div class="rselw" id="repSel"></div></div>
+  <div class="rpanels" id="repPanels"></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
-  <div class="card" id="repCalC"><div class="label" id="repCalT">По дням</div><div class="rcal" id="repCal"></div></div>
-  <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
+  <div class="card" id="moodDaysC"><div class="label">Последние 7 дней</div>
+    <div class="sc" style="margin:4px 0 10px"><span id="moodSub"></span> · нажмите на день, чтобы отметить</div>
+    <div class="days" id="mdays"></div>
+    <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
+    <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
   </div>
-  <div id="repMood" class="rsec" hidden>
-    <div class="card" id="moodDaysC"><div class="label">Последние 4 недели</div>
-      <div class="sc" style="margin:4px 0 10px"><span id="moodSub"></span> · нажмите на день, чтобы отметить</div>
-      <div class="days" id="mdays"></div>
-      <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
-      <div class="gap" id="mgap" hidden></div>
-      <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
-    </div>
-    <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="facs" id="mfacs"></div></div>
-    <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
-    <div class="src" id="backupNote" hidden>Отметки также попадают в резервную копию Android (если она включена в настройках телефона). Синхронизация с Яндекс Диском — в ⚙ настройках.</div>
-    <div class="src">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>
+  <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="facs" id="mfacs"></div><div class="fhm" style="margin-top:10px">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div></div>
+  <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
+  <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
 </main>
 <main class="app page" id="pgFriends" hidden>
@@ -2389,7 +2390,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 27 (перетаскивание блоков в отчётах)";
+const APP_VER="26.09 · сборка 28 (отчёты одной вкладкой, «Что показать» над графиком)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2543,16 +2544,10 @@ $("cmOpen").addEventListener("click",()=>openMoodSheet());
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>showMoodPop());
-let RSEG=store.get("rseg")||"data";
-const moodShown=()=>TAB==="rep"&&RSEG==="mood";
-function openMoodSheet(){ RSEG="mood"; store.set("rseg",RSEG); if(openSheet) hideSheet(true); showTab("rep"); }
-function renderRepSeg(){
-  document.querySelectorAll("#rSeg [data-rt]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rt===RSEG));
-  $("repData").hidden=RSEG!=="data"; $("repMood").hidden=RSEG!=="mood"; $("repShare").hidden=RSEG!=="data";
-  if(RSEG==="mood"){ MS.sel=null; $("backupNote").hidden=!PREF; renderMoodSheet(); }
-  else drawReport();
-}
-$("rSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-rt]"); if(!b||b.dataset.rt===RSEG) return; RSEG=b.dataset.rt; store.set("rseg",RSEG); renderRepSeg(); });
+let RSEG="data";   // reports have one part now: everything is in "Показатели"
+const moodShown=()=>TAB==="rep";
+function openMoodSheet(){ if(openSheet) hideSheet(true); showTab("rep"); setTimeout(()=>$("moodDaysC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
+function renderRepSeg(){ $("repData").hidden=false; drawReport(); MS.sel=null; renderMoodSheet(); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
 /* per-day weather features for a date (Moscow day) */
@@ -2587,22 +2582,31 @@ const MS={sel:null};
 function renderMoodSheet(){
   const today=new Date(), todayS=isoDay(today);
   const n=Object.keys(S.mood).length;
-  $("moodSub").textContent = n ? `Отмечено дней: ${n}` : "Пока нет отметок";
-  // 28-day calendar, weeks start on Monday
-  let h="", start=new Date(+today-27*DAY);
-  const dow=(new Date(isoDay(start)+"T12:00:00").getUTCDay()+6)%7;
-  for(let i=0;i<dow;i++) h+=`<span></span>`;
-  for(let i=0;i<28;i++){
-    const d=isoDay(new Date(+start+i*DAY)), r=S.mood[d];
-    h+=`<button class="day${d===todayS?" today":""}${MS.sel===d?" sel":""}" data-d="${d}" aria-label="${fmtDMY(new Date(d+"T12:00:00"))}${r?": "+r.kinds.map(k=>KIND[k].l).join(", "):""}">${r?`<span class="e">${r.e}</span>`:`<span class="dot"></span>`}${+d.slice(8)}</button>`;
+  if($("mdays")){ $("moodSub").textContent = n ? `Отмечено дней: ${n}` : "Пока нет отметок";
+  // last 7 days: up to 3 smileys per day, the more often one was pressed that day, the bigger it is
+  let h="";
+  const SZ=n=>[0,17,22,27,31][Math.min(n,4)], POS=[[50,40],[22,78],[78,78]];
+  const WD=["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+  for(let i=6;i>=0;i--){
+    const d=isoDay(new Date(+today-i*DAY)), r=S.mood[d], dd=new Date(d+"T12:00:00");
+    const cnt={}; for(const k of (r?.kinds||[])) cnt[k]=(cnt[k]||0)+1;
+    const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const col=!r?"":r.v>=2.5?"#8be38f":r.v>=1.8?"#f2c94c":"#ff7a6b";
+    h+=`<button class="d7${d===todayS?" today":""}${MS.sel===d?" sel":""}" data-d="${d}" aria-label="${fmtDMY(dd)}${r?": "+r.kinds.map(k=>KIND[k].l).join(", "):": нет отметок"}">
+      <span class="dw">${d===todayS?"сег.":WD[dd.getUTCDay()]}</span><span class="dn">${dd.getUTCDate()}</span>
+      <span class="clu">${top.length?top.map(([k,n],j)=>`<span class="ce" style="left:${POS[j][0]}%;top:${POS[j][1]}%;font-size:${j?Math.min(20,SZ(n)):Math.max(27,SZ(n)+4)}px;z-index:${3-j}">${KIND[k].e}</span>`).join(""):`<span class="ce plus" style="left:50%;top:55%">＋</span>`}</span>
+      <span class="strip" style="background:${col||"transparent"}"></span></button>`;
   }
   $("mdays").innerHTML=h;
+  }
   const pk=$("mpicker");
+  if(pk){
   if(MS.sel){ const r=S.mood[MS.sel]; pk.hidden=false;
     pk.innerHTML=`<span class="pd">${fmtDMY(new Date(MS.sel+"T12:00:00"))}</span>`+
       (r?r.marks.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join(""):"")+
       `<div class="kmini">${KINDS.map(x=>`<button data-k="${x.k}" aria-label="Добавить: ${x.l}">${x.e}</button>`).join("")}</div>`;
   } else pk.hidden=true;
+  }
   // analysis
   const rows=Object.entries(S.mood).map(([d,r])=>({d,v:r.v,f:dayFeatures(d, r.city||S.slug)}));
   const out=FACTORS.map(([k,name,unit,dg,hiTxt,loTxt])=>{
@@ -2647,8 +2651,8 @@ function renderMoodSheet(){
   $("msymp").innerHTML = symHtml || `<div class="fac"><div class="vd">Отмечайте симптомы — 🤕 😵‍💫 💓 🦴 🥴 😴 — и здесь появится, при какой погоде они случаются чаще.</div></div>`;
   moodLoadArchive(rows);
 }
-$("mdays").addEventListener("click",e=>{ const b=e.target.closest("[data-d]"); if(!b) return; MS.sel = MS.sel===b.dataset.d?null:b.dataset.d; renderMoodSheet(); });
-$("mpicker").addEventListener("click",e=>{
+$("mdays")?.addEventListener("click",e=>{ const b=e.target.closest("[data-d]"); if(!b) return; MS.sel = MS.sel===b.dataset.d?null:b.dataset.d; renderMoodSheet(); });
+$("mpicker")?.addEventListener("click",e=>{
   const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); return; }
   const b=e.target.closest("[data-k]"); if(!b||!MS.sel) return;
   const d=MS.sel, when=d===isoDay(new Date())?new Date():new Date(d+"T12:00:00"); addMark(b.dataset.k, when);
@@ -2666,7 +2670,8 @@ function moodLoadArchive(rows){
   if(!todo.length){ g.hidden=true; return; }
   g.hidden=false; g.classList.add("loading");
   g.innerHTML=`<div class="ld"><span class="spin"></span>Загружаю погоду за отмеченные дни…</div>`;
-  Promise.all(todo.map(j=>ensure(...j))).then(()=>{ if(moodShown()) renderMoodSheet(); });
+  // re-draw only if something arrived: when offline, a failed load must not start the next attempt at once (endless loop)
+  Promise.all(todo.map(j=>ensure(...j))).then(res=>{ if(res.some(Boolean)){ if(moodShown()) renderMoodSheet(); } else { g.hidden=true; g.classList.remove("loading"); } });
 }
 renderMood();
 
@@ -2891,13 +2896,15 @@ function repSummary(from,to){
   cmpBp(f=>f.press==null?null:f.press<745,"При низком атм. давлении (ниже 745 мм)","⬇️");
   $("repIns").innerHTML = ins.length ? ins.sort((a,b)=>b[0]-a[0]).slice(0,3).map(([,i,t])=>`<div class="inr"><b>${i}</b><span>${t}</span></div>`).join("")
     : `<div class="fhm">${need.length?"Загружаю погоду за отмеченные дни…":"Пока мало данных для выводов. Отмечайте самочувствие и давление 2–3 недели — приложение сравнит дни с перепадами погоды и спокойные дни."}</div>`;
-  // calendar of the last five weeks (Monday first)
+  // calendar of the last five weeks (Monday first) — removed from the screen, kept for the report text
+  if($("repCal")){
   const end=new Date(); const start=new Date(+end-34*DAY); const pad=(start.getDay()+6)%7; let c="";
   for(const w of ["пн","вт","ср","чт","пт","сб","вс"]) c+=`<span class="cw">${w}</span>`;
   for(let i=0;i<pad;i++) c+=`<i></i>`;
   for(let t=+start;t<=+end;t+=DAY){ const d=isoDay(new Date(t)), r=S.mood[d], b=HM.list.find(m=>m.type==="bp"&&isoDay(new Date(m.t))===d);
     c+=`<i class="${d===today?"td":""}" style="${r?`background:${r.v>=2.5?"rgba(139,227,143,.16)":r.v>=1.9?"rgba(242,201,76,.16)":"rgba(255,122,107,.18)"}`:""}"><em>${+d.slice(8)}</em>${r?r.e:""}${b?`<small style="color:${bpCat(b.sys,b.dia).c}">${b.sys}</small>`:""}</i>`; }
   $("repCal").innerHTML=c; $("repCalT").textContent="Последние 5 недель: самочувствие и А/Д";
+  }
 }
 
 /* all chosen indicators on ONE chart: each line is scaled to its own range (no second axis); values are read with the finger */
@@ -2996,7 +3003,7 @@ async function shareText(title, text){
   try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
 }
 $("pgRep").addEventListener("click",e=>{
-  if(e.composedPath().some(n=>n.id==="repMood"||n.id==="rSeg")) return; // the mood picker re-renders on click, so check the original path
+  if(e.composedPath().some(n=>n.id==="moodDaysC")) return; // the mood picker re-renders on click, so check the original path
   const md=e.target.closest("[data-rm]"); if(md){ REP.mode=md.dataset.rm; store.set("repMode",REP.mode); drawReport(); return; }
   const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
   const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
@@ -3141,13 +3148,13 @@ const DRAG_ON=true;
 // every place where blocks can be rearranged: the main screen and both parts of the reports
 const ZONES=[
   {tab:"today", box:"pgToday", ids:ORDER_DEF, key:"order", before:()=>$("pgToday").querySelector("footer")},
-  {tab:"rep", box:"repData", ids:["repPanels","repSelC","repKpi","repInsC","repCalC"], key:"order_rep", before:()=>$("repData").querySelector(".src")},
-  {tab:"rep", box:"repMood", ids:["moodDaysC","moodFacC","moodSymC"], key:"order_repm", before:()=>$("repMood").querySelector(".src")}
+  {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","moodDaysC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
 ];
 const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0,zone:null};
 function orderGet(z){ z=z||ZONES[0]; const o=(loadJSON(z.key,null)||[]).filter(id=>z.ids.includes(id)); for(const id of z.ids) if(!o.includes(id)) o.splice(Math.min(o.length,z.ids.indexOf(id)),0,id); return o; }
 function applyOrder(){ for(const z of ZONES){ const box=$(z.box); if(!box) continue; const ref=z.before(); for(const id of orderGet(z)){ const el=$(id); if(el&&el.parentNode===box) box.insertBefore(el,ref||null); } } }
 function saveOrder(z){ z=z||ZONES[0]; const ids=[...$(z.box).children].map(e=>e.id).filter(id=>z.ids.includes(id)); store.set(z.key,JSON.stringify(ids)); }
+if(store.get("repOrderV")!=="4"){ store.set("order_rep",""); store.set("repOrderV","4"); }   // new default: "what to show" above the chart
 applyOrder();
 $("orderReset")?.addEventListener("click",()=>{ for(const z of ZONES) store.set(z.key,JSON.stringify(z.ids)); applyOrder(); toast("Порядок блоков сброшен."); });
 function dragItem(t){
@@ -4093,7 +4100,7 @@ for(const id of ["remFrom","remTo"]) $(id).addEventListener("change",()=>{ const
   if(r.every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); renderRemind(); return; } saveRemind(r); });
 $("remTest").addEventListener("click",async()=>{ if(MN){ try{ await MN.test(); toast("Опустите шторку — там пример вопроса"); }catch(e){} }
   else if(LN){ try{ await LN.schedule({notifications:[{id:99, title:"Как себя чувствуешь?", body:"Так будет выглядеть вопрос", schedule:{at:new Date(Date.now()+1500)}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr"}]}); }catch(e){} } });
-$("remGo").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
+$("remGo")?.addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
 $("gearBtn").addEventListener("click",()=>{ renderRemind(); setTimeout(renderRemind,60); });
 if(LN){
   LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
