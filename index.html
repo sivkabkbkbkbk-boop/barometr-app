@@ -2390,7 +2390,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 28 (отчёты одной вкладкой, «Что показать» над графиком)";
+const APP_VER="26.09 · сборка 29 (уведомления о сообщениях, облачко в показателях)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3381,7 +3381,9 @@ function yAuthUrl(manual){
   return manual ? base+"&redirect_uri="+encodeURIComponent("https://oauth.yandex.ru/verification_code")
                 : base+"&redirect_uri="+encodeURIComponent(Y_REDIRECT)+"&state="+(PREF?"app":"web");
 }
-function openLink(url){ if(/^barometr:\/\/update/.test(url)){ setTimeout(()=>checkUpdate(true), 600); return; } if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }   // barometr://update comes from the "new version" notification
+function openLink(url){ if(/^barometr:\/\/update/.test(url)){ setTimeout(()=>checkUpdate(true), 600); return; }
+  if(/^barometr:\/\/chat/.test(url)){ const m=url.match(/[?&]k=([^&#]+)/); const k=m?decodeURIComponent(m[1]):""; setTimeout(()=>{ if(openSheet) hideSheet(true); FSEG="chats"; showTab("friends"); fetchFriends(true); if(k&&FR.list[k]) setTimeout(()=>openChat(k),300); }, 400); return; }   /* tapped a chat notification */
+  if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }   // barometr://update comes from the "new version" notification
 // the login page sends the user back with barometr://auth?access_token=…
 function yTakeToken(url){
   const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
@@ -3787,6 +3789,7 @@ function chatPollStart(list){
   chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; if(TAB==="friends") renderFriendsPage(); return; } if(!document.hidden) list.forEach(f=>chatFetch(f).catch(()=>{})); }, 15000);
 }
 function openChat(k){
+  try{ CW?.clear({k}); }catch(e){}
   const f=FR.list[k]; if(!f) return;
   CH_OPEN=k; $("chatTitle").textContent=f.name||"Друг";
   const today=f.data?.mood?.[isoDay(new Date())];
@@ -3873,7 +3876,23 @@ async function chatPush(){
   saveChat(); if(CH_OPEN) renderChat(); if(TAB==="friends") renderFriendsPage();
 }
 function myStateText(){ return myState().x; }
+/* chat notifications while the app is closed (build 29+): the native part checks friends' mailboxes
+   every ~15 minutes; here we tell it whom to watch, with which key, and what the app has already shown */
+const CW = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.ChatWatch||null) : null;
+let cwTimer=0;
+function chatWatchSoon(){ if(!CW) return; clearTimeout(cwTimer); cwTimer=setTimeout(chatWatchSync,1500); }
+async function chatWatchSync(){
+  if(!CW) return;
+  try{
+    const friends=[]; const box=SH.key?await boxId(SH.key):"";
+    if(SH.key&&SH.secret) for(const f of Object.values(FR.list)){ if(!f.s) continue;
+      const ts=[...(CHAT.inb[f.k]||[]), ...Object.values(CHAT.gin).flat().filter(m=>m.from===f.k)].map(m=>m.t).sort();
+      friends.push({k:f.k, n:f.name||"Друг", box, key:b64(await sha("mtd-chat|"+[SH.secret,f.s].sort().join("|"))), since:ts[ts.length-1]||""}); }
+    await CW.configure({friends, on:true});
+  }catch(e){}
+}
 function renderChatBadge(){
+  chatWatchSoon();
   const n=chatUnreadAll(), b=$("cmChat");
   if(b){ b.hidden=!Object.keys(FR.list).length; b.innerHTML=`💬${n?`<i>${n}</i>`:""}`; }
   if($("navN")) $("navN").textContent=n?String(n):""; if($("fSegN")) $("fSegN").textContent=n?String(n):"";
@@ -4234,6 +4253,7 @@ $("updCheck").addEventListener("click",()=>checkUpdate(true));
   scheduleReminders();
   renderMood();
   setTimeout(()=>checkUpdate(false), 4000);
+  setTimeout(chatWatchSync, 3000);
   try{ APKU?.autoCheck?.({on:UPDATE_FROM_GITHUB})?.catch?.(()=>{}); }catch(e){}   // daily background check with a notification (build 25+)
   if(!LAYOUT.cardMood && !S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
 })();
