@@ -21,7 +21,7 @@
   --glass:rgba(36,39,45,.84); --glass-line:rgba(255,255,255,.08);
   --sheet:#1c1f24; --sheet-2:#262a31;
   --on-ink:#15171b; --on-acc:#1b1d22;                 /* text on an ink or accent background */
-  --temp:#ffb86b; --press:#ffb04a; --rain:#78adff; --hum:#9fc3ff; --wind:#c9b6ff;
+  --temp:#ffb86b; --press:#ffb04a; --pressc:255 176 74; --rain:#78adff; --hum:#9fc3ff; --wind:#c9b6ff;
   --kp-ok:#8be38f; --kp-mid:#f2c94c; --kp-hi:#ff7a6b;
   --f-disp:"Unbounded", "Onest", system-ui, sans-serif;
   --f-body:"Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -36,7 +36,7 @@
   --glass:rgba(255,255,255,.74); --glass-line:rgba(15,110,95,.15);
   --sheet:#f4fcf9; --sheet-2:#e2f5ee;
   --on-ink:#ffffff; --on-acc:#ffffff;
-  --temp:#e0662a; --press:#0f9d85; --rain:#2f7de0; --hum:#3a78c9; --wind:#7a5fd0;
+  --temp:#e0662a; --press:#0f9d85; --pressc:15 157 133; --rain:#2f7de0; --hum:#3a78c9; --wind:#7a5fd0;
   --kp-ok:#1f9d55; --kp-mid:#c98500; --kp-hi:#d9463a;
 }
 html,body{height:100%}
@@ -539,6 +539,26 @@ body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2
 .bnav i:empty,.seg3 i:empty{display:none}
 .app.page{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
 .mchip{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}
+/* floating "Chats" button: quiet glass when all is read, fills with the theme accent when something is new */
+.cfab{position:fixed;left:0;top:0;z-index:13;width:56px;height:56px;border-radius:50%;padding:0;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;display:grid;place-items:center;color:var(--press);background:rgb(var(--shc) / .72);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgb(var(--pressc) / .35);box-shadow:0 8px 22px rgb(0 0 0 / .28),inset 0 1px 0 rgb(255 255 255 / .06);transition:left .28s cubic-bezier(.3,1.4,.5,1),top .28s,background .3s,color .3s,box-shadow .3s,transform .15s}
+.cfab svg{width:26px;height:26px}
+.cfab.unread{background:linear-gradient(145deg,rgb(var(--pressc) / .78),var(--press));color:var(--on-acc);border-color:transparent;box-shadow:0 8px 24px rgb(var(--pressc) / .45),0 0 0 6px rgb(var(--pressc) / .12)}
+.cfab.unread::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgb(var(--pressc) / .5);animation:cfRing 2.4s ease-out infinite;pointer-events:none}
+.cfab.drag{transition:none;transform:scale(1.1)}
+.cfab:active:not(.drag){transform:scale(.93)}
+.cfab:focus-visible{outline:2px solid var(--press);outline-offset:3px}
+.cfab.bump{animation:cfBump .5s cubic-bezier(.3,1.6,.5,1)}
+.cfab .n{position:absolute;top:-4px;right:-4px;min-width:21px;height:21px;padding:0 6px;border-radius:11px;background:var(--kp-hi);color:#fff;font:700 11.5px/21px var(--f-body);text-align:center;box-shadow:0 0 0 2.5px var(--sky-top)}
+.cfab .ava{position:absolute;bottom:-3px;left:-3px;width:22px;height:22px;border-radius:50%;font:700 10.5px/22px var(--f-body);color:#15171b;text-align:center;box-shadow:0 0 0 2.5px var(--sky-top)}
+.cfab:not(.unread) .n,.cfab:not(.unread) .ava{display:none}
+@keyframes cfRing{0%{transform:scale(.9);opacity:.9}80%,100%{transform:scale(1.35);opacity:0}}
+@keyframes cfBump{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-8deg)}70%{transform:scale(.96) rotate(4deg)}100%{transform:scale(1)}}
+.cpeek{position:fixed;z-index:13;width:200px;background:var(--sheet);color:var(--ink);border:1px solid var(--glass-line);border-radius:16px;padding:9px 11px;font-size:13px;line-height:1.35;box-shadow:0 10px 26px rgb(0 0 0 / .28);opacity:0;transform:scale(.96);pointer-events:none;transition:opacity .22s,transform .22s}
+.cpeek.on{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
+.cpeek b{display:flex;align-items:center;gap:6px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpeek b::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--kp-ok)}
+.cpeek span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.cfab,.cpeek{transition:none}.cfab.unread::after,.cfab.bump{animation:none}}
 .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
 .ptitle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
 .ptitle h1{margin:0;font-family:var(--f-disp);font-weight:500;font-size:24px}
@@ -814,7 +834,7 @@ header{position:relative}
   </section>
 
   <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
-    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="chatb" id="cmChat" hidden aria-label="Чат с друзьями">💬</button><button class="mlink" id="cmOpen">дневник ›</button></span></div>
+    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
     <div class="kgrid" id="kgMain"></div>
     <div class="mtoday" id="mtMain"></div>
   </section>
@@ -923,6 +943,8 @@ header{position:relative}
   </div>
 </div>
 <button class="mchip" id="moodChip" hidden aria-label="Самочувствие сегодня"><span class="e" id="moodChipE">🙂</span></button>
+<button class="cfab" id="chatFab" hidden aria-label="Чаты"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M9 10.5h6M9 13.5h3.5"/></svg><span class="n" id="chatFabN"></span><span class="ava" id="chatFabA"></span></button>
+<div class="cpeek" id="chatPeek" role="status"><b id="chatPeekW"></b><span id="chatPeekX"></span></div>
 
 <div class="scrim" id="scrim" hidden></div>
 
@@ -1067,6 +1089,14 @@ header{position:relative}
   </div>
 </section>
 
+<section class="sheet" id="chatsSheet" role="dialog" aria-modal="true" aria-labelledby="chatsTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead">
+    <div><h2 id="chatsTitle">Чаты</h2></div>
+    <button class="xbtn" data-close aria-label="Закрыть">×</button>
+  </div>
+  <div class="sbody" id="chatsAll"></div>
+</section>
 <section class="sheet" id="chatSheet" role="dialog" aria-modal="true" aria-labelledby="chatTitle" hidden>
   <div class="grab"></div>
   <div class="shead">
@@ -4014,15 +4044,76 @@ async function chatWatchSync(){
 }
 function renderChatBadge(){
   chatWatchSoon();
-  const n=chatUnreadAll(), b=$("cmChat");
-  if(b){ b.hidden=!Object.keys(FR.list).length; b.innerHTML=`💬${n?`<i>${n}</i>`:""}`; }
+  const n=chatUnreadAll();
   if($("navN")) $("navN").textContent=n?String(n):""; if($("fSegN")) $("fSegN").textContent=n?String(n):"";
+  chatFabRender(n);
 }
+
+/* ---------- floating "Chats" button: on every tab, draggable, sticks to an edge ---------- */
+const CFAB={last:null, drag:null, peekT:0};
+// the newest message nobody has read yet: who wrote it and a short line for the preview
+function chatLatestUnread(){
+  let best=null;
+  for(const f of Object.values(FR.list)){ const r=CHAT.read[f.k]||"";
+    for(const m of dmIn(f.k)) if(m.t>r&&(!best||m.t>best.t)) best={t:m.t, key:f.k, who:f.name||"Друг", ck:f.k, x:m.c?"📋 поделился(ась) состоянием":m.x}; }
+  for(const G of Object.values(CHAT.groups)){ const r=CHAT.read["g:"+G.id]||"";
+    for(const m of CHAT.gin[G.id]||[]) if(m.t>r&&(!best||m.t>best.t)) best={t:m.t, key:"g:"+G.id, who:`${memberName(m.from,G.id)} · ${G.name}`, ck:m.from, x:m.c?"📋 поделился(ась) состоянием":m.x}; }
+  return best;
+}
+function chatFabPos(){
+  const b=$("chatFab"), W=innerWidth, H=innerHeight, nav=$("bnav")?.offsetHeight||64;
+  let p; try{ p=JSON.parse(store.get("chatFab")||"null"); }catch(e){}
+  const side=p?.s==="l"?"l":"r", fromBottom=p?.b??(nav+86);
+  b.style.left=(side==="l"?12:W-68)+"px";
+  b.style.top=Math.max(56, Math.min(H-nav-68, H-fromBottom-56))+"px";
+}
+function chatFabRender(n){
+  const b=$("chatFab"); if(!b) return;
+  const on=!!Object.keys(FR.list).length;
+  if(b.hidden===on){ b.hidden=!on; if(on) chatFabPos(); }
+  if(!on) return;
+  b.classList.toggle("unread", n>0);
+  $("chatFabN").textContent=n>99?"99+":String(n);
+  b.setAttribute("aria-label", n?`Чаты, новых сообщений: ${n}`:"Чаты");
+  const L=n?chatLatestUnread():null;
+  if(L){ const a=$("chatFabA"); a.textContent=(L.who||"?")[0].toUpperCase(); a.style.background=colorOf(L.ck); }
+  // something new since the last look: nod and show who wrote what
+  if(L&&CFAB.last!==null&&L.t>CFAB.last&&!openSheet) chatPeek(L);
+  CFAB.last=L?L.t:(CFAB.last===null?"":CFAB.last);
+  if(openSheet?.id==="chatsSheet") renderChats("chatsAll");
+}
+function chatPeek(L){
+  const b=$("chatFab"), p=$("chatPeek");
+  $("chatPeekW").textContent=L.who; $("chatPeekX").textContent=L.x||""; p.dataset.k=L.key;
+  const x=parseFloat(b.style.left), y=parseFloat(b.style.top);
+  p.style.top=(y+2)+"px"; p.style.left=(x>innerWidth/2?x-210:x+66)+"px";
+  p.classList.add("on"); clearTimeout(CFAB.peekT); CFAB.peekT=setTimeout(()=>p.classList.remove("on"),3500);
+  b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+  try{ navigator.vibrate?.(30); }catch(e){}
+}
+function openChatsSheet(){ $("chatPeek").classList.remove("on"); renderChats("chatsAll"); showSheet("chatsSheet"); }
+$("chatPeek").addEventListener("click",e=>{ const k=e.currentTarget.dataset.k; e.currentTarget.classList.remove("on"); if(!k) return; if(k.startsWith("g:")) openGroup(k.slice(2)); else openChat(k); });
+$("chatFab").addEventListener("pointerdown",e=>{ const b=e.currentTarget;
+  CFAB.drag={x:e.clientX, y:e.clientY, l:parseFloat(b.style.left), t:parseFloat(b.style.top), moved:false};
+  try{ b.setPointerCapture(e.pointerId); }catch(err){} });
+$("chatFab").addEventListener("pointermove",e=>{ const d=CFAB.drag, b=e.currentTarget; if(!d) return;
+  const dx=e.clientX-d.x, dy=e.clientY-d.y;
+  if(!d.moved&&Math.abs(dx)+Math.abs(dy)>8){ d.moved=true; b.classList.add("drag"); $("chatPeek").classList.remove("on"); }
+  if(d.moved){ b.style.left=Math.max(4, Math.min(innerWidth-60, d.l+dx))+"px"; b.style.top=Math.max(40, Math.min(innerHeight-60, d.t+dy))+"px"; } });
+function chatFabUp(e){ const d=CFAB.drag, b=$("chatFab"); CFAB.drag=null; if(!d) return;
+  b.classList.remove("drag");
+  if(!d.moved){ if(e.type==="pointerup") openChatsSheet(); return; }
+  const x=parseFloat(b.style.left), y=parseFloat(b.style.top);
+  store.set("chatFab", JSON.stringify({s:x+28<innerWidth/2?"l":"r", b:Math.round(innerHeight-y-56)}));
+  chatFabPos(); }
+$("chatFab").addEventListener("pointerup",chatFabUp);
+$("chatFab").addEventListener("pointercancel",chatFabUp);
+$("chatFab").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openChatsSheet(); } });
+addEventListener("resize",()=>{ if(!$("chatFab").hidden) chatFabPos(); });
 $("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatSend(v); i.focus(); });
 $("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("chatSend").click(); } });
 $("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; if(b.dataset.q==="__me"){ const st=myState(); chatSend(st.x, st.c); } else chatSend(b.dataset.q); });
 $("chatList").addEventListener("click",e=>{ if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
-$("cmChat").addEventListener("click",()=>showTab("friends","chats"));
 
 /* ---------- friends tab: people and chats ---------- */
 let FSEG="friends";
@@ -4038,7 +4129,7 @@ function threadLast(key){
   const a=[...dmOut(key).map(m=>({...m,me:1})),...dmIn(key)].sort((x,y)=>x.t<y.t?-1:1); return a[a.length-1];
 }
 const shortWhen=t=>{ const d=new Date(t), dd=isoDay(d); return dd===isoDay(new Date())?fmtHM(d):dd===isoDay(new Date(Date.now()-DAY))?"вчера":fmtDM(d); };
-function renderChats(){
+function renderChats(to="chats"){
   const rows=[];
   for(const G of Object.values(CHAT.groups)){ const L=threadLast("g:"+G.id); rows.push({key:"g:"+G.id,t:L?.t||G.created||"",html:(()=>{ const un=groupUnread(G.id);
     const prev=L?`${L.me?"Вы":esc(memberName(L.from,G.id))}: ${L.c?"📋 состояние":esc(L.x)}`:`${G.members.length} участника · напишите первым`;
@@ -4049,12 +4140,14 @@ function renderChats(){
   let h=rows.length?`<div class="card" style="padding:2px 12px">${rows.map(r=>r.html).join("")}</div>`:`<div class="card hempty"><div style="font-size:38px">💬</div><div>Здесь будут переписки с друзьями. Пригласите друга кнопкой «＋ Пригласить».</div></div>`;
   const ok=Object.values(FR.list).filter(f=>f.s).length;
   h+=`<button class="card newg" data-newg ${ok<2?"disabled":""}>＋ Создать общий чат<small>${ok<2?"нужно хотя бы двое друзей с новым приглашением":"например, со всей семьёй"}</small></button>`;
-  $("chats").innerHTML=h;
+  $(to).innerHTML=h;
 }
-$("chats").addEventListener("click",e=>{
+function chatsClick(e){
   const o=e.target.closest("[data-open]"); if(o){ const k=o.dataset.open; if(k.startsWith("g:")) openGroup(k.slice(2)); else openChat(k); return; }
   if(e.target.closest("[data-newg]")){ openGroupSheet(); }
-});
+}
+$("chats").addEventListener("click",chatsClick);
+$("chatsAll").addEventListener("click",chatsClick);
 $("fSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-fs]"); if(!b) return; FSEG=b.dataset.fs; renderFriendsPage(); });
 $("frInvite").addEventListener("click",()=>{ if(SH.on&&Y.token) shareSend(); else fsOpen("invite"); });
 function openGroupSheet(){
