@@ -235,17 +235,23 @@ footer a{color:var(--muted)}
 #remTime{background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:10px;color:var(--ink);padding:6px 8px;font-family:var(--f-mono);font-size:13px}
 /* precipitation map */
 .rmap{position:relative;height:210px;margin-top:10px;border-radius:14px;overflow:hidden;background:#1b2330;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.rmap.big{height:min(62vh,560px);margin-top:0}
+.rmap.big{height:max(360px,calc(100vh - 330px - env(safe-area-inset-top,0px)));margin-top:0}
 .rmap .tiles,.rmap canvas{position:absolute;inset:0}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
-.rmap .tiles img:not(.osm){filter:url(#nolab)}
+.rmap .tiles img:not(.osm):not(.osmd){filter:url(#nolab)}
+.rmap .tiles img.osmd{filter:url(#osmdark)}
+.rmap.detail{background:#232937!important}
 .rmap .tiles img{width:258px!important;height:258px!important;margin:-1px 0 0 -1px}
 .rmap{background:#8cc496!important}
 .rmap canvas.fx{z-index:1}
 .rmap .demob{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .rmap .demob.on{background:rgba(127,214,200,.9);color:#0d1726;font-weight:600;border-color:transparent}
+.medot{position:absolute;z-index:3;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#3b8cff;border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(59,140,255,.25),0 2px 6px rgba(0,0,0,.4);pointer-events:none}
+.rmap.detail > canvas:not(.fx){opacity:.58}
+.rmap.detail > canvas.fx{opacity:.8}
+.rmap.detail .attr{color:rgba(238,243,248,.55)}
 .rmap .labs{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
 .rmap .tiles img{transform-origin:0 0}
 .mlab{position:absolute;white-space:nowrap;line-height:16px;color:#fff;letter-spacing:.1px;text-shadow:0 0 2px rgba(8,16,30,.95),0 1px 3px rgba(8,16,30,.85),0 0 7px rgba(8,16,30,.5);-webkit-font-smoothing:antialiased}
@@ -268,6 +274,13 @@ footer a{color:var(--muted)}
 .rmap .pin{z-index:1}
 .rmap canvas{width:100%;height:100%;pointer-events:none}
 .rmap .pin{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#eef3f8;border:3px solid #0d1726;box-shadow:0 0 0 2px rgba(238,243,248,.5);pointer-events:none}
+.rmap .pin.home{width:0;height:0;margin:0;border:0;background:none;box-shadow:none;z-index:4}
+.rmap .pin.home::after{display:none}
+.pin.home .hpin{position:absolute;width:30px;height:39px;left:-15px;top:-38px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.pin.home .wb{position:absolute;left:-26px;top:-82px;display:flex;align-items:center;gap:4px;background:rgba(12,18,28,.92);color:#fff;border-radius:99px;padding:5px 10px 5px 12px;font-weight:700;font-size:15px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.pin.home .wi svg{width:24px;height:24px;display:block}
+#rmapSmall .pin.home .wb{font-size:13px;top:-74px;padding:3px 8px 3px 10px}
+#rmapSmall .pin.home .wi svg{width:20px;height:20px}
 .rmap .pin::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1.5px solid rgba(238,243,248,.5);animation:ping 2s ease-out infinite}
 @keyframes ping{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
 .rmap .attr{z-index:4;position:absolute;right:6px;bottom:4px;font-size:9px;color:rgba(238,243,248,.55);pointer-events:none}
@@ -408,6 +421,25 @@ footer{padding-bottom:64px}
 .ck .ct{font-weight:600;font-size:14px}
 .ck .cd{font-size:12.5px;color:var(--muted);line-height:1.35}
 .ck.bad{box-shadow:inset 3px 0 0 #ff7a6b}.ck.warn{box-shadow:inset 3px 0 0 #f2c94c}.ck.ok{box-shadow:inset 3px 0 0 #8be38f}
+/* map summary + time strip */
+.rsum{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;min-height:22px}
+.rsum small{font-weight:400;color:var(--muted);font-size:12px;white-space:nowrap}
+.rsum{flex-wrap:wrap;line-height:1.3}
+.rsi{font-size:20px}
+.tl{position:relative;display:flex;align-items:center;gap:10px}
+.tlplay{flex:none}
+.tlw{flex:1;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;border-radius:12px;background:rgba(238,243,248,.04)}
+.tlw::-webkit-scrollbar{display:none}
+.tls{display:flex;padding:8px 0 8px}
+.tlpad{flex:none;display:block}
+.tk{flex:none;width:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.tk .tt{font-size:13px;color:var(--muted);font-family:var(--f-mono)}
+.tk.hr .tt{color:var(--ink)}
+.tk.now .tt{color:var(--ink);font-weight:700;font-family:var(--f-body)}
+.tk .tb{width:100%;height:22px;background:rgba(214,228,248,.85)}
+.tk .tb.first{border-radius:11px 0 0 11px}.tk .tb.last{border-radius:0 11px 11px 0}
+.tlnow{position:absolute;left:calc(58px + (100% - 58px)/2);top:0;bottom:0;width:2px;margin-left:-1px;background:#ef4136;pointer-events:none;border-radius:2px}
+.tlnow::before{content:"";position:absolute;top:-2px;left:-6px;border:7px solid transparent;border-top:9px solid #ef4136}
 /* rearranging cards */
 #pgToday > .card, #pgToday > #grid2{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
@@ -639,7 +671,13 @@ header{min-width:0}
 
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter><filter id="noosm" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="3.2"/><feMorphology operator="erode" radius="1.6"/><feComponentTransfer><feFuncR type="table" tableValues="0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.377 0.515 0.561 0.576 0.592 0.608 0.624 0.639 0.655 0.667"/><feFuncG type="table" tableValues="0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.668 0.749 0.775 0.783 0.792 0.800 0.808 0.817 0.825 0.831"/><feFuncB type="table" tableValues="0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.745 0.620 0.596 0.607 0.617 0.627 0.638 0.648 0.659 0.667"/></feComponentTransfer></filter></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="nolab" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="1.6"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="0.157 0.169 0.180 0.192 0.204 0.216 0.227 0.239 0.394 0.549 0.557 0.565 0.573 0.580 0.588 0.596 0.604 0.612 0.620 0.627 0.635 0.643 0.651 0.659 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/><feFuncG type="table" tableValues="0.471 0.487 0.504 0.521 0.538 0.555 0.571 0.588 0.678 0.769 0.773 0.777 0.781 0.785 0.790 0.794 0.798 0.802 0.806 0.810 0.815 0.819 0.823 0.827 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831 0.831"/><feFuncB type="table" tableValues="0.784 0.797 0.809 0.821 0.834 0.846 0.858 0.871 0.729 0.588 0.593 0.599 0.604 0.609 0.614 0.620 0.625 0.630 0.635 0.641 0.646 0.651 0.656 0.661 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667 0.667"/></feComponentTransfer></filter><filter id="osmdark" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  2 -4 2 0 -0.6" result="pm"/>
+<feMorphology in="pm" operator="dilate" radius="1.5" result="pmd"/>
+<feMorphology in="SourceGraphic" operator="dilate" radius="2.2" result="c1"/><feMorphology in="c1" operator="erode" radius="2.2" result="cl"/>
+<feComposite in="cl" in2="pmd" operator="in" result="patch"/><feComposite in="patch" in2="SourceGraphic" operator="over" result="clean"/>
+<feColorMatrix in="clean" type="saturate" values="0"/>
+<feComponentTransfer><feFuncR type="table" tableValues="0.886 0.880 0.874 0.868 0.862 0.856 0.850 0.844 0.838 0.832 0.826 0.820 0.814 0.808 0.802 0.796 0.789 0.783 0.777 0.771 0.765 0.759 0.753 0.747 0.741 0.735 0.729 0.723 0.717 0.711 0.705 0.699 0.693 0.687 0.681 0.675 0.660 0.645 0.631 0.616 0.602 0.587 0.573 0.558 0.544 0.529 0.515 0.500 0.486 0.471 0.457 0.442 0.428 0.413 0.399 0.384 0.373 0.361 0.350 0.338 0.327 0.316 0.304 0.293 0.281 0.270 0.258 0.247 0.235 0.221 0.207 0.193 0.178 0.164 0.150 0.136 0.122 0.122 0.122 0.122 0.122 0.122 0.122 0.122 0.129 0.137 0.145 0.151 0.155 0.159 0.157 0.151 0.144 0.137 0.136 0.134 0.161 0.216 0.270 0.323 0.376"/><feFuncG type="table" tableValues="0.910 0.904 0.899 0.893 0.887 0.882 0.876 0.871 0.865 0.859 0.854 0.848 0.843 0.837 0.831 0.826 0.820 0.815 0.809 0.803 0.798 0.792 0.787 0.781 0.775 0.770 0.764 0.759 0.753 0.747 0.742 0.736 0.731 0.725 0.719 0.714 0.699 0.685 0.671 0.656 0.642 0.628 0.614 0.599 0.585 0.571 0.556 0.542 0.528 0.513 0.499 0.485 0.470 0.456 0.442 0.427 0.415 0.403 0.391 0.379 0.367 0.355 0.343 0.331 0.319 0.307 0.295 0.283 0.271 0.263 0.256 0.249 0.241 0.234 0.226 0.219 0.212 0.212 0.212 0.212 0.212 0.212 0.212 0.212 0.216 0.221 0.225 0.222 0.212 0.201 0.191 0.181 0.171 0.161 0.159 0.158 0.187 0.248 0.307 0.365 0.424"/><feFuncB type="table" tableValues="0.949 0.944 0.940 0.935 0.930 0.925 0.921 0.916 0.911 0.907 0.902 0.897 0.893 0.888 0.883 0.878 0.874 0.869 0.864 0.860 0.855 0.850 0.845 0.841 0.836 0.831 0.827 0.822 0.817 0.813 0.808 0.803 0.798 0.794 0.789 0.784 0.771 0.757 0.744 0.730 0.717 0.703 0.690 0.676 0.663 0.649 0.635 0.622 0.608 0.595 0.581 0.568 0.554 0.541 0.527 0.514 0.501 0.489 0.477 0.464 0.452 0.440 0.427 0.415 0.402 0.390 0.378 0.365 0.353 0.351 0.349 0.347 0.345 0.343 0.341 0.339 0.337 0.337 0.337 0.337 0.337 0.337 0.337 0.337 0.301 0.266 0.230 0.218 0.229 0.241 0.243 0.234 0.225 0.216 0.213 0.209 0.244 0.317 0.386 0.452 0.518"/></feComponentTransfer></filter><filter id="noosm" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="3.2"/><feMorphology operator="erode" radius="1.6"/><feComponentTransfer><feFuncR type="table" tableValues="0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.377 0.515 0.561 0.576 0.592 0.608 0.624 0.639 0.655 0.667"/><feFuncG type="table" tableValues="0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.668 0.749 0.775 0.783 0.792 0.800 0.808 0.817 0.825 0.831"/><feFuncB type="table" tableValues="0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.745 0.620 0.596 0.607 0.617 0.627 0.638 0.648 0.659 0.667"/></feComponentTransfer></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 26 26"><g class="ic"><path d="M18.5 8.5A6.5 6.5 0 1 0 19.5 13"/><path d="M19.2 4.8v4h-4"/></g><circle class="sp" cx="13" cy="13" r="8"/><path class="ck" d="M8 13.5l3.2 3.2L18 9.8"/></svg></div>
 <main class="app page" id="pgToday">
@@ -840,16 +878,13 @@ header{min-width:0}
     <button class="xbtn" data-close aria-label="Закрыть">×</button>
   </div>
   <div class="sbody">
+    <div class="rsum" id="rSum"></div>
     <div class="rmap big" id="rmapBig">
-      <div class="zbtns"><button data-z="1" aria-label="Приблизить">+</button><button data-z="-1" aria-label="Отдалить">−</button><button data-z="0" aria-label="К городу">◎</button></div>
+      <div class="zbtns"><button data-z="1" aria-label="Приблизить">+</button><button data-z="-1" aria-label="Отдалить">−</button><button data-z="0" aria-label="К городу">◎</button><button data-z="me" aria-label="Где я">📍</button></div>
     </div>
-    <div class="rctl" data-ctl>
-      <button class="rplay" aria-label="Воспроизвести">▶</button>
-      <input type="range" class="rrange" min="0" max="1" step="1" value="0" aria-label="Время">
-      <span class="rtime">—</span>
-    </div>
+    <div class="tl"><button class="rplay tlplay" id="tlPlay" aria-label="Воспроизвести">▶</button><div class="tlw" id="tlw"><div class="tls" id="tlStrip"></div></div><i class="tlnow" aria-hidden="true"></i></div>
     <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span><span class="b"><i style="background:rgba(255,205,90,.55);outline:1px dashed #ffd66e"></i>ясно</span><span class="b"><i style="background:rgba(232,238,247,.5)"></i>облачно</span><span class="b"><i style="background:rgba(165,178,198,.8);outline:1px dashed #eef3f8"></i>пасмурно</span></div>
-    <div class="src">Прогноз численной модели по сетке точек вокруг города (Open-Meteo), от 3 часов назад до 12 часов вперёд. Это не снимок радара: положение отдельных ливней может отличаться на десятки километров. Карта © Esri, © участники OpenStreetMap.</div>
+    <div class="src">Прогноз численной модели (Open-Meteo) от 3 часов назад до 12 часов вперёд. Для области — сетка ≈ 28 км; если увеличить карту до улиц, загружается подробная сетка ≈ 5 км по модели ICON. «📍» показывает, что ожидается у вас. Это не снимок радара: отдельный ливень может сместиться на несколько километров. Карта © Esri, © участники OpenStreetMap.</div>
   </div>
 </section>
 
@@ -1414,7 +1449,7 @@ function closeSheetView(instant){
   if(!openSheet) return;
   const sh=openSheet, sc=$("scrim"); openSheet=null;
   sh.style.transform=""; sh.classList.remove("open"); sc.classList.remove("open");
-  const done=()=>{sh.hidden=true; if(!openSheet) sc.hidden=true;};
+  const done=()=>{sh.hidden=true; if(!openSheet) sc.hidden=true; if(sh.id==="mapSheet"&&RAD.fineOn&&RAD.coarse){ RAD.fineOn=false; applyGrid(RAD.coarse); }};
   instant||reduce?done():setTimeout(done,320);
   lastFocus&&lastFocus.focus&&lastFocus.focus({preventScroll:true});
 }
@@ -1746,31 +1781,51 @@ $("citybtn").addEventListener("click",()=>{$("csearch").value="";renderCities();
 
 /* ---------- precipitation map: model grid around the city, time slider ---------- */
 const RAD={id:null,times:[],lats:[],lons:[],P:null,C:null,t:0,playing:false,raf:0,maps:[]};
-const RN=9, RSTEP=0.25;   // 9×9 points, 0.25° apart (≈ 28 km)
-async function loadRadar(id){
-  if(RAD.id===id && RAD.loaded && Date.now()-RAD.loaded<20*60*1000 && RAD.times.length) return;
-  const c=cityOf(id), dLon=RSTEP/Math.cos(c.lat*Math.PI/180);
-  const lats=[],lons=[],qa=[],qo=[];
-  for(let i=0;i<RN;i++) lats.push(+(c.lat+(i-(RN-1)/2)*RSTEP).toFixed(3));
-  for(let j=0;j<RN;j++) lons.push(+(c.lon+(j-(RN-1)/2)*dLon).toFixed(3));
+const RN=9, RSTEP=0.25;   // 9×9 points: 0.25° apart (≈ 28 km) for the region; 0.05° (≈ 5 km) when the map is zoomed in
+async function loadRadarGrid(lat, lon, step, model){
+  const dLon=step/Math.cos(lat*Math.PI/180), lats=[],lons=[],qa=[],qo=[];
+  for(let i=0;i<RN;i++) lats.push(+(lat+(i-(RN-1)/2)*step).toFixed(4));
+  for(let j=0;j<RN;j++) lons.push(+(lon+(j-(RN-1)/2)*dLon).toFixed(4));
   for(const la of lats) for(const lo of lons){ qa.push(la); qo.push(lo); }
   const d0=isoDay(new Date(Date.now()-DAY)), d1=isoDay(new Date(Date.now()+DAY));
-  const j=await getMirror("forecast", `latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover,weather_code&start_date=${d0}&end_date=${d1}&timezone=GMT`, 30000);
+  const j=await getMirror("forecast", `latitude=${qa.join(",")}&longitude=${qo.join(",")}&hourly=precipitation,cloud_cover,weather_code&start_date=${d0}&end_date=${d1}&timezone=GMT${model?`&models=${model}`:""}`, 30000);
   const arr=Array.isArray(j)?j:[j];
   const all=arr[0].hourly.time.map(t=>+new Date(t+":00Z")), tNow=Date.now();
   const keep=all.map((t,k)=>[t,k]).filter(([t])=>t>=tNow-3*H-H&&t<=tNow+12*H+H);   // from 3 hours ago to 12 hours ahead
-  const times=keep.map(([t])=>t);
-  const P=keep.map(([,k])=>arr.map(a=>a.hourly.precipitation[k]??0));
-  const C=keep.map(([,k])=>arr.map(a=>a.hourly.cloud_cover[k]??0));
-  const Wc=keep.map(([,k])=>arr.map(a=>a.hourly.weather_code?.[k]??0));
-  RAD.loaded=Date.now();
-  RAD.demo=false; RAD.real=null;
-  Object.assign(RAD,{id,times,lats,lons,P,C,W:Wc});
-  const now=Date.now(); RAD.t=Math.min(Math.max(now,times[0]),times[times.length-1]);
-  try{ store.set("radar:"+id,JSON.stringify({times,lats,lons,P,C,W:Wc,loaded:RAD.loaded})); }catch(e){}
-  setupControls(); drawRadar();
+  return {times:keep.map(([t])=>t), lats, lons, step,
+    P:keep.map(([,k])=>arr.map(a=>a.hourly.precipitation[k]??0)), C:keep.map(([,k])=>arr.map(a=>a.hourly.cloud_cover[k]??0)), W:keep.map(([,k])=>arr.map(a=>a.hourly.weather_code?.[k]??0)), loaded:Date.now()};
 }
-function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,{W:null},r,{id,demo:false,real:null}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
+function applyGrid(g){
+  RAD.demo=false; RAD.real=null;
+  const t=RAD.t; Object.assign(RAD,{times:g.times,lats:g.lats,lons:g.lons,P:g.P,C:g.C,W:g.W,step:g.step});
+  RAD.t=Math.min(Math.max(t||Date.now(),g.times[0]),g.times[g.times.length-1]);
+  setupControls(); drawRadar(); if(!$("mapSheet").hidden) buildTimeline();
+}
+async function loadRadar(id){
+  if(RAD.id===id && RAD.loaded && Date.now()-RAD.loaded<20*60*1000 && RAD.times.length) return;
+  const c=cityOf(id), g=await loadRadarGrid(c.lat,c.lon,RSTEP,null);
+  RAD.loaded=g.loaded; RAD.id=id; RAD.coarse=g; RAD.fine=null; RAD.fineOn=false;
+  applyGrid(g);
+  try{ store.set("radar:"+id,JSON.stringify({times:g.times,lats:g.lats,lons:g.lons,P:g.P,C:g.C,W:g.W,loaded:g.loaded})); }catch(e){}
+}
+/* zoomed-in big map: a denser grid around what is on screen, from a finer model (ICON-EU ≈ 7 km where available) */
+const FINE={timer:0,busy:false};
+function fineCheck(m){
+  if(!mapBig||m!==mapBig) return;
+  const want=!$("mapSheet").hidden && m.z>=9;
+  if(!want){ if(RAD.fineOn&&RAD.coarse&&(m.z<8.5||$("mapSheet").hidden)){ RAD.fineOn=false; applyGrid(RAD.coarse); } return; }
+  const c=m.center, f=RAD.fine;
+  if(f&&Math.abs(f.clat-c[0])<0.12&&Math.abs(f.clon-c[1])<0.2&&Date.now()-f.loaded<30*60*1000){ if(!RAD.fineOn){ RAD.fineOn=true; applyGrid(f); } return; }
+  clearTimeout(FINE.timer); FINE.timer=setTimeout(async()=>{
+    if(FINE.busy) return; FINE.busy=true; mapNoteBig("Загружаю подробный прогноз ≈ 5 км…");
+    try{ const g=await loadRadarGrid(+c[0].toFixed(3),+c[1].toFixed(3),0.05,"icon_seamless"); g.clat=c[0]; g.clon=c[1]; RAD.fine=g;
+      if(!$("mapSheet").hidden&&mapBig.z>=9){ RAD.fineOn=true; applyGrid(g); } }
+    catch(e){ mapNoteBig("Подробный прогноз не загрузился — показываю обычный."); }
+    finally{ FINE.busy=false; }
+  }, 700);
+}
+function mapNoteBig(t){ const st=$("rmapBig")?.querySelector(".rstat"); if(st){ st.hidden=false; st.textContent=t; } }
+function radarFromCache(id){ const r=loadJSON("radar:"+id,null); if(r&&r.times){ Object.assign(RAD,{W:null},r,{id,demo:false,real:null,step:RSTEP,coarse:{...r,step:RSTEP},fine:null,fineOn:false}); RAD.t=Math.min(Math.max(Date.now(),r.times[0]),r.times[r.times.length-1]); setupControls(); drawRadar(); } }
 // field value at time t (linear between hours), grid index g
 function fieldAt(t){
   const T=RAD.times; if(!T.length) return null;
@@ -1934,7 +1989,7 @@ function shortPlace(c){
 for(const c of Object.values(S.cities||{})) if(/округ|район|поселение|муниципал/i.test(c.name||"")){ const n=shortPlace(c); if(n&&n!==c.name){ c.name=n; } }
 const LBL_MEASURE=document.createElement("canvas").getContext("2d");
 function labelFont(){ return (getComputedStyle(document.body).fontFamily||"system-ui"); }
-function drawMapLabels(box, w, h, z, x0, y0, home){
+function drawMapLabels(box, w, h, z, x0, y0, home, detail){
   const fam=labelFont(), boxes=[], out=[];
   const hit=b=>boxes.some(o=>b[0]<o[0]+o[2]&&b[0]+b[2]>o[0]&&b[1]<o[1]+o[3]&&b[1]+b[3]>o[1]);
   boxes.push([w-52,0,52,140],[w-130,h-18,130,18],[0,0,200,30]);                 // buttons, attribution, status
@@ -1944,7 +1999,8 @@ function drawMapLabels(box, w, h, z, x0, y0, home){
   const list=[];
   if(home) list.push({n:homeName,la:home.lat,lo:home.lon,r:-1,home:true});
   for(const c of Object.values(S.cities||{})){ if(home&&Math.hypot((c.lat-home.lat)*111,(c.lon-home.lon)*111*Math.cos(home.lat*Math.PI/180))<20) continue; list.push({n:shortPlace(c),la:c.lat,lo:c.lon,r:0}); }
-  list.push(...MAP_LABELS);
+  if(!detail) list.push(...MAP_LABELS);
+  else list.length=Math.min(list.length,1);
   const kind=L=>L.w?"w":L.home?"h":L.r<25?"b":L.r<150?"m":"s";
   const FONT={h:`700 14px ${fam}`,b:`600 12.5px ${fam}`,m:`500 12px ${fam}`,s:`400 11.5px ${fam}`,w:`italic 500 11.5px ${fam}`};
   for(const L of list){
@@ -1969,7 +2025,7 @@ function drawMapLabels(box, w, h, z, x0, y0, home){
   box.innerHTML=out.join("");
 }
 /* tiny slippy map (no library); tiles from Esri, OpenStreetMap if Esri is unreachable */
-const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null};
+const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null, dfails:0, osmDown:false};
 function tilesToOsm(){ if(TILES.osm) return; TILES.osm=true; store.set("tiles","osm"); RAD.maps.forEach(mm=>{ mm.pool.forEach(i=>i.remove()); mm.pool.clear(); mm.lpool.forEach(i=>i.remove()); mm.lpool.clear(); mm.el.querySelector(".attr").textContent="© OpenStreetMap"; mm.relabel(); mm.draw(); }); }
 const lon2x=(lo,z)=>(lo+180)/360*256*2**z, lat2y=(la,z)=>{const r=la*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*2**z;};
 function MiniMap(el, interactive){
@@ -1980,6 +2036,7 @@ function MiniMap(el, interactive){
   const labels=document.createElement("div"); labels.className="tiles labels"; el.insertBefore(labels, pin);
   const fx=document.createElement("canvas"); fx.className="fx"; el.appendChild(fx);
   const lab=document.createElement("div"); lab.className="labs"; el.appendChild(lab); let labKey="";
+  const meDot=document.createElement("div"); meDot.className="medot"; meDot.hidden=true; el.appendChild(meDot);
   const demob=document.createElement("button"); demob.className="demob"; demob.hidden=true; demob.addEventListener("click",e=>{ e.stopPropagation(); demoToggle(); }); demob.addEventListener("pointerdown",e=>e.stopPropagation()); el.appendChild(demob);
   const at=document.createElement("div"); at.className="attr"; at.textContent=TILES.osm?"© OpenStreetMap":"© Esri, © OpenStreetMap"; el.appendChild(at);
   const m={el,fx,center:null,z:7,pool:new Map(),lpool:new Map(),home:null,vis:false,relabel:()=>{labKey="";}};
@@ -1989,7 +2046,9 @@ function MiniMap(el, interactive){
   m.draw=()=>{
     if(!m.center) return;
     const w=el.clientWidth,h=el.clientHeight; if(!w||!h) return;
-    const z=m.z, zi=Math.max(1,Math.min(12,Math.round(z))), sc=2**(z-zi), T=256*sc;
+    const z=m.z, detail=!TILES.osmDown, zi=Math.max(1,Math.min(15,Math.round(z))), sc=2**(z-zi), T=256*sc;
+    const prov=detail?"osmd":"esri";
+    if(m.prov!==prov){ m.pool.forEach(i=>i.remove()); m.pool.clear(); m.prov=prov; at.textContent=prov==="esri"?"© Esri, © OpenStreetMap":"© участники OpenStreetMap"; el.classList.toggle("detail",detail); }
     const cx=lon2x(m.center[1],z), cy=lat2y(m.center[0],z), x0=cx-w/2, y0=cy-h/2, n=2**zi;
     const want=new Set();
     for(let tx=Math.floor(x0/T);tx<=Math.floor((x0+w)/T);tx++) for(let ty=Math.floor(y0/T);ty<=Math.floor((y0+h)/T);ty++){
@@ -1999,12 +2058,12 @@ function MiniMap(el, interactive){
         let img=pool.get(key+"@"+tx);
         if(layer.endsWith("Reference")) continue;             // English names: replaced by our own Russian labels
         if(!img){ img=new Image(); img.alt=""; img.decoding="async";
-          img.onerror=()=>{ img.style.visibility="hidden"; if(!TILES.osm && ++TILES.fails>=3) tilesToOsm(); };
+          img.onerror=()=>{ img.style.visibility="hidden"; if(prov==="osmd"){ if(++TILES.dfails>=4){ TILES.osmDown=true; m.draw(); } return; } if(!TILES.osm && ++TILES.fails>=3) tilesToOsm(); };
           img.onload=()=>{ TILES.ok++; };
           // a blocked host never answers: if no Esri tile arrives within 7 s, use OpenStreetMap
-          if(!TILES.osm && !TILES.timer) TILES.timer=setTimeout(()=>{ if(!TILES.ok) tilesToOsm(); }, 7000);
-          img.src = TILES.osm ? `https://tile.openstreetmap.org/${zi}/${wx}/${ty}.png` : `${ESRI}${layer}/MapServer/tile/${zi}/${ty}/${wx}`;
-          if(TILES.osm) img.className="osm";
+          if(prov==="esri" && !TILES.timer) TILES.timer=setTimeout(()=>{ if(!TILES.ok) tilesToOsm(); }, 7000);
+          img.src = prov!=="esri" ? `https://tile.openstreetmap.org/${zi}/${wx}/${ty}.png` : `${ESRI}${layer}/MapServer/tile/${zi}/${ty}/${wx}`;
+          if(prov==="osm") img.className="osm"; if(prov==="osmd") img.className="osmd";
           box.appendChild(img); pool.set(key+"@"+tx,img); }
         img.style.transform=tf;
       }
@@ -2015,19 +2074,24 @@ function MiniMap(el, interactive){
     const dpr=Math.min(2,devicePixelRatio||1); if(cv.width!==w*dpr){ cv.width=w*dpr; cv.height=h*dpr; }
     const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
     if(RAD.lats.length){
-      const hl=RSTEP/2, hlo=(RAD.lons[1]-RAD.lons[0])/2;
+      const hl=(RAD.step||RSTEP)/2, hlo=(RAD.lons[1]-RAD.lons[0])/2;
       const X0=lon2x(RAD.lons[0]-hlo,z)-x0, X1=lon2x(RAD.lons[RN-1]+hlo,z)-x0, Y0=lat2y(RAD.lats[RN-1]+hl,z)-y0, Y1=lat2y(RAD.lats[0]-hl,z)-y0;
       ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
       ctx.drawImage(FIELD,X0,Y0,X1-X0,Y1-Y0);
       m.fb=[X0,Y0,X1,Y1]; drawContours(ctx,X0,Y0,X1,Y1); drawThunderMarks(ctx,X0,Y0,X1,Y1); fxStart();
     }
     // Russian labels (OpenStreetMap tiles already carry local names)
-    const lk=[w,h,z.toFixed(3),Math.round(x0),Math.round(y0),Object.keys(S.cities||{}).length].join(",");
-    if(lk!==labKey){ labKey=lk; drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null); }
-    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2, v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent=(RAD.demo?"пример · ":"")+(v>=0.1?`над городом: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:"над городом сухо · "+["ясно","переменная облачность","пасмурно"][cloudClass(fld.C[i])]); }
+    const lk=[w,h,z.toFixed(3),Math.round(x0),Math.round(y0),Object.keys(S.cities||{}).length,detail].join(",");
+    if(lk!==labKey){ labKey=lk; if(detail) lab.innerHTML=""; else drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null,detail); }
+    pin.innerHTML=homePinHTML(); pin.classList.add("home");
+    if(m.me){ meDot.hidden=false; meDot.style.left=(lon2x(m.me[1],z)-x0)+"px"; meDot.style.top=(lat2y(m.me[0],z)-y0)+"px"; } else meDot.hidden=true;
+    if(interactive) fineCheck(m);
+    const fld=RAD.cur; st.hidden=!fld; if(fld){ const i=RN*((RN-1)/2)+(RN-1)/2; let v=fld.P[i], ty=fld.W?PTYPE(fld.W[i]||0):1, cc=fld.C[i];
+      const tgt=m.me||m.home; if(tgt&&m.fb){ const smp=fieldSample(m, lon2x(tgt[1],z)-x0, lat2y(tgt[0],z)-y0); if(smp){ v=smp.p; ty=smp.t; cc=smp.c; } }
+      const where=m.me?"у вас":"над городом"; const nm=["","дождь","снег","гроза"][ty]; const lv=["слабый","умеренный","сильный","очень сильный","ливень"][prLevel(v)]||""; st.textContent=(RAD.demo?"пример · ":"")+(RAD.fineOn?"≈5 км · ":"")+(v>=0.1?`${where}: ${ty===1?lv+" дождь":ty===2?(prLevel(v)>=2?"сильный снег":lv==="слабый"?"слабый снег":"снег"):"гроза"} · ${v.toFixed(1).replace(".",",")} мм/ч`:`${where} сухо · `+["ясно","переменная облачность","пасмурно"][cloudClass(cc)]); }
   };
   const unproj=(px,py,z)=>{ const W=256*2**z, lon=px/W*360-180, nn=Math.PI-2*Math.PI*py/W; return [180/Math.PI*Math.atan(0.5*(Math.exp(nn)-Math.exp(-nn))), lon]; };
-  const ZMIN=4, ZMAX=11, clampZ=z=>Math.min(ZMAX,Math.max(ZMIN,z));
+  const ZMIN=4, ZMAX=14, clampZ=z=>Math.min(ZMAX,Math.max(ZMIN,z));
   // zoom keeping the point under (px,py) — relative to the map box — in place
   m.zoomAt=(nz,px,py)=>{ nz=clampZ(nz); const w=el.clientWidth,h=el.clientHeight, z=m.z;
     const ax=lon2x(m.center[1],z)-w/2+px, ay=lat2y(m.center[0],z)-h/2+py, [la,lo]=unproj(ax,ay,z);
@@ -2050,7 +2114,11 @@ function MiniMap(el, interactive){
         if(had&&!moved&&e.type==="pointerup"){ const t=Date.now(); if(t-lastTap<320){ const [px,py]=rel(e); m.zoomAt(Math.round(m.z)+1,px,py); lastTap=0; } else lastTap=t; } } };
     el.addEventListener("pointerup",end); el.addEventListener("pointercancel",end);
     el.addEventListener("wheel",e=>{ e.preventDefault(); const [px,py]=rel(e); m.zoomAt(m.z-e.deltaY/400,px,py); },{passive:false});
-    el.querySelector(".zbtns")?.addEventListener("click",e=>{ const b=e.target.closest("[data-z]"); if(!b) return; const dz=+b.dataset.z; if(dz===0){ m.center=m.home.slice(); m.z=7; m.draw(); } else m.zoomAt(Math.round(m.z)+dz, el.clientWidth/2, el.clientHeight/2); });
+    el.querySelector(".zbtns")?.addEventListener("click",e=>{ const b=e.target.closest("[data-z]"); if(!b) return;
+      if(b.dataset.z==="me"){ if(!navigator.geolocation){ toast("Не удалось определить местоположение."); return; } toast("Ищу вас на карте…");
+        navigator.geolocation.getCurrentPosition(pos=>{ m.me=[pos.coords.latitude,pos.coords.longitude]; m.center=m.me.slice(); m.z=12; m.draw(); buildTimeline(); },
+          err=>toast(err.code===1?"Нет доступа к местоположению — разрешите его приложению в настройках телефона.":"Не удалось определить местоположение."),{enableHighAccuracy:false,timeout:15000,maximumAge:10*60*1000}); return; }
+      const dz=+b.dataset.z; if(dz===0){ m.center=m.home.slice(); m.z=7; m.draw(); } else m.zoomAt(Math.round(m.z)+dz, el.clientWidth/2, el.clientHeight/2); });
   } else {
     // the small map on the main screen opens the big one with a tap
     let t0=null; el.addEventListener("pointerdown",e=>{ t0=[e.clientX,e.clientY,Date.now()]; });
@@ -2058,6 +2126,12 @@ function MiniMap(el, interactive){
   }
   new ResizeObserver(()=>m.draw()).observe(el);
   RAD.maps.push(m); return m;
+}
+
+function homePinHTML(){
+  const f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours, RAD.t||Date.now())]; let b="";
+  if(h){ const t=Math.round(h.temp); b=`<span class="wb">${t>0?"+":""}${t}°<span class="wi">${icon(h.sym)}</span></span>`; }
+  return `${b}<svg class="hpin" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 43C17 43 2 27.5 2 17A15 15 0 0 1 32 17C32 27.5 17 43 17 43Z" fill="#ef4136" stroke="#fff" stroke-width="2.4"/><path d="M10.5 18.5 17 12.5l6.5 6v7h-4.2v-4.3h-4.6v4.3h-4.2z" fill="#fff"/></svg>`;
 }
 function mapNote(t){ document.querySelectorAll(".rmap .rstat").forEach(e=>{ e.hidden=false; e.textContent=t; }); }
 const mapSmall=MiniMap($("rmapSmall"), false);
@@ -2087,6 +2161,7 @@ function drawRadar(){
   const dm=Math.round((RAD.t-Date.now())/60000/10)*10;
   const rel = Math.abs(dm)<10 ? "<b>сейчас</b>" : (dm>0?"+":"−")+(Math.abs(dm)>=60?`${Math.floor(Math.abs(dm)/60)} ч`:"")+(Math.abs(dm)%60?` ${Math.abs(dm)%60} мин`:"");
   document.querySelectorAll("[data-ctl]").forEach(ct=>{ const r=ct.querySelector(".rrange"); r.value=Math.round((RAD.t-RAD.times[0])/60000/10); ct.querySelector(".rtime").innerHTML=`${fmtHM(new Date(RAD.t))} · ${rel}`; });
+  if(typeof TL!=="undefined"&&!TL.inDraw&&!$("mapSheet").hidden) tlSync();
 }
 function setupControls(){
   const steps=Math.round((RAD.times[RAD.times.length-1]-RAD.times[0])/60000/10);
@@ -2114,7 +2189,7 @@ $("mapExpand").addEventListener("click",e=>{
   $("mapSub").textContent=cityOf(S.slug).name;
   showSheet("mapSheet");
   if(!mapBig){ mapBig=MiniMap($("rmapBig"), true); }
-  requestAnimationFrame(()=>{ const c=cityOf(S.slug); mapBig.setHome(c.lat,c.lon); drawRadar(); });
+  requestAnimationFrame(()=>{ const c=cityOf(S.slug); mapBig.setHome(c.lat,c.lon); mapBig.z=Math.max(mapBig.z,9); RAD.t=Math.min(Math.max(Date.now(),RAD.times[0]||0),RAD.times[RAD.times.length-1]||Date.now()); drawRadar(); buildTimeline(); });
 });
 
 /* ---------- 5-day forecast ---------- */
@@ -2242,7 +2317,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 13 (карта: шрифт и масштаб)";
+const APP_VER="26.09 · сборка 15 (карта как в погоде)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3069,6 +3144,45 @@ async function friendCheck(){
 }
 $("chkCopy").addEventListener("click",()=>{ const t=[...$("chkOut").querySelectorAll(".ck")].map(r=>`${r.querySelector("b").textContent} ${r.querySelector(".ct").textContent}${r.querySelector(".cd")?": "+r.querySelector(".cd").textContent:""}`).join("\n");
   shareText("Проверка связи — Метеодневник", t); });
+
+/* ---------- time strip under the big map (like a weather app): drag it, "Сейчас" in the middle ---------- */
+const TL={px:64, step:10*60000, t0:0, n:0, sync:false, raf:0};
+function gridValueAt(fld, lat, lon){
+  if(!fld||RAD.lats.length<2) return null;
+  const fi=Math.min(RN-1,Math.max(0,(lat-RAD.lats[0])/(RAD.lats[1]-RAD.lats[0]))), fj=Math.min(RN-1,Math.max(0,(lon-RAD.lons[0])/(RAD.lons[1]-RAD.lons[0])));
+  const i0=Math.floor(fi), j0=Math.floor(fj), i1=Math.min(RN-1,i0+1), j1=Math.min(RN-1,j0+1), a=fi-i0, b=fj-j0, A=fld.P;
+  const v=(A[i0*RN+j0]*(1-b)+A[i0*RN+j1]*b)*(1-a)+(A[i1*RN+j0]*(1-b)+A[i1*RN+j1]*b)*a;
+  const ty=fld.W?PTYPE(fld.W[Math.round(fi)*RN+Math.round(fj)]||0):1;
+  return {v,ty};
+}
+function homePoint(){ const m=mapBig; if(m&&m.me) return {p:m.me,me:true}; const c=cityOf(S.slug); return {p:[c.lat,c.lon],me:false}; }
+function buildTimeline(){
+  const strip=$("tlStrip"), wrap=$("tlw"); if(!strip||!RAD.times.length) return;
+  const t0=Math.ceil(RAD.times[0]/TL.step)*TL.step, t1=RAD.times[RAD.times.length-1]; TL.t0=t0; TL.n=Math.floor((t1-t0)/TL.step)+1;
+  const hp=homePoint(), now=Date.now(), nowTick=Math.round(now/TL.step)*TL.step;
+  let h=`<i class="tlpad"></i>`; const series=[];
+  for(let k=0;k<TL.n;k++){ const t=t0+k*TL.step, g=gridValueAt(fieldAt(t),hp.p[0],hp.p[1]); series.push({t,...(g||{v:0,ty:1})});
+    const lv=g?prLevel(g.v):-1, col=lv>=0?`rgb(${(g.ty===2?PAL_SNOW:PAL_RAIN)[lv].slice(0,3).join(",")})`:"";
+    const lab=t===nowTick?"Сейчас":fmtHM(new Date(t)).replace(/^0/,"");
+    h+=`<div class="tk${t===nowTick?" now":""}${t%(3600000)===0?" hr":""}"><span class="tt">${lab}</span><span class="tb${k===0?" first":""}${k===TL.n-1?" last":""}" ${col?`style="background:${col}"`:""}></span></div>`; }
+  h+=`<i class="tlpad"></i>`; strip.innerHTML=h;
+  const half=wrap.clientWidth/2; strip.querySelectorAll(".tlpad").forEach(p=>p.style.width=Math.max(0,half-TL.px/2)+"px");
+  // what it means at home
+  const fut=series.filter(x=>x.t>=now-TL.step/2), wet=x=>x.v>=0.1, kind=x=>x.ty===2?"снег":x.ty===3?"гроза":"дождь";
+  let txt;
+  if(!fut.length) txt="";
+  else if(wet(fut[0])){ const e=fut.findIndex(x=>!wet(x)); txt=`${hp.me?"У вас":"В городе"} сейчас ${kind(fut[0])}${e>0?`, закончится около ${fmtHM(new Date(fut[e].t))}`:" — до конца прогноза"}`; }
+  else { const s1=fut.findIndex(wet); if(s1<0) txt=`${hp.me?"У вас":"В городе"} без осадков ближайшие ${Math.round((fut[fut.length-1].t-now)/H)} ч`; else { const e=fut.slice(s1).findIndex(x=>!wet(x)); txt=`${kind(fut[s1])[0].toUpperCase()+kind(fut[s1]).slice(1)} ${hp.me?"у вас":"в городе"} начнётся около ${fmtHM(new Date(fut[s1].t))}${e>0?`, закончится к ${fmtHM(new Date(fut[s1+e].t))}`:""}`; } }
+  $("rSum").innerHTML=txt?`<span class="rsi">${fut.length&&fut.some(wet)?"🌧":"🌤"}</span><span>${txt}${RAD.fineOn?` <small>· подробно ≈5 км</small>`:""}</span>`:"";
+  tlSync();
+}
+function tlSync(){ const wrap=$("tlw"); if(!wrap||!TL.n) return; TL.sync=true; wrap.scrollLeft=Math.max(0,(RAD.t-TL.t0)/TL.step*TL.px); requestAnimationFrame(()=>{ TL.sync=false; }); }
+$("tlw").addEventListener("scroll",()=>{
+  if(TL.sync) return; if(RAD.playing) stopPlay();
+  const t=TL.t0+$("tlw").scrollLeft/TL.px*TL.step; RAD.t=Math.min(RAD.times[RAD.times.length-1],Math.max(RAD.times[0],t));
+  if(!TL.raf) TL.raf=requestAnimationFrame(()=>{ TL.raf=0; TL.inDraw=true; drawRadar(); TL.inDraw=false; });
+},{passive:true});
+$("tlPlay").addEventListener("click",()=>RAD.playing?stopPlay():startPlay());
 
 /* ---------- bottom tabs ---------- */
 let TAB="today";
