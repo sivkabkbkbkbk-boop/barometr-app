@@ -1057,12 +1057,16 @@ header{position:relative}
 <script>
 const $ = id => document.getElementById(id);
 const TZ = undefined; // device time zone
-const fmtHM = d => new Intl.DateTimeFormat("ru-RU",{hour:"2-digit",minute:"2-digit",timeZone:TZ}).format(d);
-const fmtH = d => new Intl.DateTimeFormat("ru-RU",{hour:"2-digit",timeZone:TZ}).format(d);
-const fmtDM = d => new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"short",timeZone:TZ}).format(d).replace(".","");
+// date formatters are expensive to create: make each one once per time zone and reuse it
+const _DTF={};
+const dtf=(key,loc,opt)=>{ const k=key+"|"+TZ; return _DTF[k]||(_DTF[k]=new Intl.DateTimeFormat(loc,{...opt,timeZone:TZ})); };
+const fmtHM = d => dtf("hm","ru-RU",{hour:"2-digit",minute:"2-digit"}).format(d);
+const fmtH = d => dtf("h","ru-RU",{hour:"2-digit"}).format(d);
+const fmtDM = d => dtf("dm","ru-RU",{day:"numeric",month:"short"}).format(d).replace(".","");
 const fmtDMH = d => fmtDM(d)+", "+fmtHM(d);
-const fmtDMY = d => new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"long",timeZone:TZ}).format(d);
-const isoDay = d => new Intl.DateTimeFormat("sv-SE",{timeZone:TZ}).format(d); // YYYY-MM-DD in local time
+const fmtDMY = d => dtf("dmy","ru-RU",{day:"numeric",month:"long"}).format(d);
+const _ISO=new Map();
+const isoDay = d => { const t=+d; if(t!==t) return dtf("iso","sv-SE",{}).format(d); let v=_ISO.get(t); if(v===undefined){ v=dtf("iso","sv-SE",{}).format(d); if(_ISO.size>20000) _ISO.clear(); _ISO.set(t,v); } return v; }; // YYYY-MM-DD in local time
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
@@ -2422,7 +2426,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 32 (малая карта: город, GPS, линейка; кнопки отчётов не уезжают)";
+const APP_VER="26.09 · сборка 32 (быстрые вкладки; малая карта: город, GPS, линейка)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
