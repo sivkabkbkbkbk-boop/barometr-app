@@ -904,6 +904,7 @@ header{min-width:0}
     <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
     <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ — эти сервисы получают только координаты выбранного города.</div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
+    <button class="btn ghost" id="appShare">📲 Поделиться приложением</button>
     <button class="btn ghost" id="updCheck" hidden>🔄 Проверить обновления</button>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
   </div>
@@ -2336,7 +2337,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 18 (обновление скачивается внутри приложения)";
+const APP_VER="26.09 · сборка 19 (приглашение со ссылкой на скачивание)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3415,13 +3416,21 @@ async function shareSend(reply){
   const nm=SH.name||"Друг";
   const text = reply
     ? `${nm} принял(а) твоё приглашение в «Не18мнеуже» 🌦 Нажми на ссылку, чтобы видеть состояние друг друга и переписываться:\n${shareLink(true)}`
-    : `${nm} хочет с тобой подружиться и обмениваться своим состоянием в «Не18мнеуже» 🌦\nНажми на ссылку, чтобы принять приглашение:\n${shareLink()}`;
+    : `${nm} хочет с тобой подружиться и обмениваться своим состоянием в «Не18мнеуже» 🌦\nНажми на ссылку, чтобы принять приглашение:\n${shareLink()}\n\nЕщё нет приложения? Скачать: ${GET_URL}`;
   const Sh=window.Capacitor?.Plugins?.Share;
   const title=`${nm} приглашает в «Не18мнеуже»`;
   try{ if(Sh){ await Sh.share({title, text, dialogTitle:"Отправить приглашение"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
   try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
   try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); }catch(e){ toast(shareLink()); }
 }
+const GET_URL="https://sivkabkbkbkbk-boop.github.io/barometr/get.html";   // for RuStore this becomes the store page
+$("appShare").addEventListener("click",async()=>{
+  const title="«Не18мнеуже» — погода и самочувствие", text=`Попробуй «Не18мнеуже» 🌦 — дневник самочувствия с погодой, давлением и магнитными бурями. Скачать для Android:\n${GET_URL}`;
+  const Sh=window.Capacitor?.Plugins?.Share;
+  try{ if(Sh){ await Sh.share({title, text, dialogTitle:"Поделиться приложением"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
+  try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
+  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение."); }catch(e){ toast(GET_URL); }
+});
 async function shareStop(){
   renderFriends("busy");
   try{ await yReq("PUT", `${YD}/unpublish?path=${encodeURIComponent("app:/share")}`); }catch(e){}
