@@ -2326,7 +2326,8 @@ const CARDS=[
   ["cardRain","Карта осадков","движение туч на 12 часов"],
   ["cardHours","Почасовой прогноз","на сутки вперёд"]
 ];
-const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],true])), loadJSON("layout",{})||{});
+const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],c[0]!=="cardHours"])), loadJSON("layout",{})||{});   // the hourly forecast starts hidden; turn it on in ⚙
+if(store.get("layoutV")!=="2"){ LAYOUT.cardHours=false; store.set("layout",JSON.stringify(LAYOUT)); store.set("layoutV","2"); }   // once, also for phones that already had it shown
 function applyLayout(){
   for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
   const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
@@ -2337,7 +2338,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 19 (приглашение со ссылкой на скачивание)";
+const APP_VER="26.09 · сборка 20 (почасовой прогноз скрыт, подпись одним ключом)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
