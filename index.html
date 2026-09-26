@@ -21,7 +21,7 @@
   --glass:rgba(36,39,45,.84); --glass-line:rgba(255,255,255,.08);
   --sheet:#1c1f24; --sheet-2:#262a31;
   --on-ink:#15171b; --on-acc:#1b1d22;                 /* text on an ink or accent background */
-  --temp:#ffb86b; --press:#ffb04a; --pressc:255 176 74; --rain:#78adff; --hum:#9fc3ff; --wind:#c9b6ff;
+  --temp:#ffb86b; --press:#ffb04a; --pressc:255 176 74; --rd:#ffcf7d; --rain:#78adff; --hum:#9fc3ff; --wind:#c9b6ff;
   --kp-ok:#8be38f; --kp-mid:#f2c94c; --kp-hi:#ff7a6b;
   --f-disp:"Unbounded", "Onest", system-ui, sans-serif;
   --f-body:"Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -36,7 +36,7 @@
   --glass:rgba(255,255,255,.74); --glass-line:rgba(15,110,95,.15);
   --sheet:#f4fcf9; --sheet-2:#e2f5ee;
   --on-ink:#ffffff; --on-acc:#ffffff;
-  --temp:#e0662a; --press:#0f9d85; --pressc:15 157 133; --rain:#2f7de0; --hum:#3a78c9; --wind:#7a5fd0;
+  --temp:#e0662a; --press:#0f9d85; --pressc:15 157 133; --rd:#7ff0d6; --rain:#2f7de0; --hum:#3a78c9; --wind:#7a5fd0;
   --kp-ok:#1f9d55; --kp-mid:#c98500; --kp-hi:#d9463a;
 }
 html,body{height:100%}
@@ -622,6 +622,23 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
 .msg .tm{align-self:flex-end;font-size:10px;color:rgb(var(--inkc) / .6);font-family:var(--f-mono)}
 .msg .er{color:#ff8b7e;cursor:pointer;padding:0 3px}
+.msg.me{color:#fff}
+.msg.me .tm{color:rgb(255 255 255 / .65);display:inline-flex;align-items:center;gap:3px}
+.mst{display:inline-flex;width:17px;height:11px;align-items:center}
+.mst svg{width:17px;height:11px;overflow:visible}
+.mst path{fill:none;stroke:rgb(255 255 255 / .6);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:stroke .35s}
+.mst .t2{transition:opacity .25s,transform .25s}
+.mst.sent .t2{opacity:0;transform:translateX(-3px)}
+.mst.read path{stroke:var(--rd)}
+.mst.pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
+.mst.wait svg{display:none}
+.mst.wait::before{content:"";width:9px;height:9px;border:1.6px solid rgb(255 255 255 / .6);border-radius:50%;border-top-color:transparent;animation:mstSpin 1s linear infinite}
+@keyframes mstSpin{to{transform:rotate(360deg)}}
+.msg.me.gi{cursor:pointer}
+.rinfo{align-self:flex-end;max-width:84%;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:12px;padding:7px 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.rinfo div{display:flex;justify-content:space-between;gap:10px}
+.rinfo b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion: reduce){.mst.pop{animation:none}}
 .cnote{align-self:center;text-align:center;font-size:13px;color:var(--muted);background:var(--sheet-2);border-radius:14px;padding:12px 14px;margin:10px 0;display:flex;flex-direction:column;gap:8px;align-items:center}
 .cfoot{flex:none;padding:6px 12px 10px;border-top:1px solid var(--glass-line);display:flex;flex-direction:column;gap:8px;background:var(--sheet)}
 .cquick .chip{font-size:12.5px}
@@ -3796,13 +3813,16 @@ function renderFriends(state){
       rows.map(([n,get])=>`<tr><th class="nm">${esc2(n)}</th>${days.map(d=>`<td class="${d===days[13]?"today":""}">${emo(get(d))}</td>`).join("")}</tr>`).join("")+`</tbody></table></div></div>`;
   }
   if(SH.on) h+=`<div class="fbox"><label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
+    <label class="rsw hmsw"><input type="checkbox" data-f="rr" ${SH.rr!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Отчёты о прочтении</label>
+    <div class="hint">Выключите, и друзья не увидят, что вы прочитали их сообщения, а вы не увидите, что прочитали они. «Получено» видно всегда.</div>
     <div class="hint">Вы делитесь как <b>${esc2(SH.name)}</b>. «＋ Пригласить» наверху откроет «Поделиться» — друг получит приглашение с вашим именем.</div><button class="btn ghost" data-f="stop">Перестать делиться</button></div>`;
   h+=`<button class="btn ghost" data-f="check">🔧 Не получается добавить друга? Проверить связь</button>`;
   h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
   box.innerHTML=h;
   box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
 }
-$("friends").addEventListener("change",e=>{ const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
+$("friends").addEventListener("change",e=>{ const rr=e.target.closest('[data-f="rr"]'); if(rr){ SH.rr=rr.checked; saveShare(); chatRcSoon(); toast(rr.checked?"Отчёты о прочтении включены.":"Отчёты о прочтении выключены."); return; }
+  const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
 $("friends").addEventListener("click",e=>{
   const fb=e.target.closest('[data-f="fsinvite"],[data-f="fsreply"]'); if(fb){ fb.dataset.f==="fsreply"?fsOpen("reply",fb.dataset.n):fsOpen("invite"); return; }
   const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
@@ -3820,7 +3840,39 @@ $("friends").addEventListener("click",e=>{
 /* ---------- chat between friends: each person keeps an outbox in the public folder (app:/share/chat.json),
    messages are encrypted with a key only the two friends have (both secrets from the invitation links) ---------- */
 const CHAT = Object.assign({out:{}, inb:{}, read:{}, groups:{}, gin:{}, gout:{}}, loadJSON("chat",{})||{});
-for(const k of ["groups","gin","gout"]) if(!CHAT[k]) CHAT[k]={};
+for(const k of ["groups","gin","gout","rc"]) if(!CHAT[k]) CHAT[k]={};
+/* message statuses: each side publishes, per friend, up to which of the friend's messages it has
+   received (d) and read (r, and per group chat g), sealed with the pair key next to the mailboxes */
+const RC={sent:"", timer:0, changed:false, open:null, prev:{}};
+const rcptOn=()=>SH.rr!==false;
+function rcptAll(){
+  const out={};
+  for(const f of Object.values(FR.list)){ if(!f.s) continue;
+    const dm=dmIn(f.k), gm=Object.entries(CHAT.gin).flatMap(([g,l])=>l.filter(m=>m.from===f.k).map(m=>({t:m.t,g})));
+    const all=[...dm,...gm]; if(!all.length) continue;
+    const o={d:all.reduce((a,m)=>m.t>a?m.t:a,"")};
+    if(rcptOn()){
+      const rd=CHAT.read[f.k]||""; o.r=dm.filter(m=>m.t<=rd).reduce((a,m)=>m.t>a?m.t:a,"");
+      o.g={}; for(const m of gm){ const r=CHAT.read["g:"+m.g]||""; if(m.t<=r&&m.t>(o.g[m.g]||"")) o.g[m.g]=m.t; }
+    }
+    out[f.k]=o;
+  }
+  return out;
+}
+// publish the note soon after something was received or read, only when it actually changed
+function chatRcSoon(){ clearTimeout(RC.timer); RC.timer=setTimeout(()=>{ if(!SH.on||!Y.token) return; if(JSON.stringify(rcptAll())===RC.sent) return; chatUpload().catch(()=>{}); },2500); }
+// status of one of my messages: wait / err / sent / deliv / read
+function msgStatus(m, isG, g){
+  if(m.st==="err") return "err"; if(m.st!=="ok") return "wait";
+  const to=isG?(CHAT.groups[g]?.members||[]).filter(x=>x.k!==SH.key&&FR.list[x.k]?.s).map(x=>x.k):[CH_OPEN];
+  if(!to.length) return "sent";
+  const rcs=to.map(k=>CHAT.rc[k]||{});
+  if(rcptOn()&&rcs.every(r=>(isG?(r.g||{})[g]||"":r.r||"")>=m.t)) return "read";
+  if(rcs.every(r=>(r.d||"")>=m.t)) return "deliv";
+  return "sent";
+}
+const MST_SVG='<svg viewBox="0 0 17 11" aria-hidden="true"><path d="M1 6l3.2 3.2L10.5 2.2"/><path class="t2" d="M6.5 9.2L15.5 2.2"/></svg>';
+const MST_L={wait:"отправляется",sent:"отправлено",deliv:"получено",read:"прочитано"};
 const saveChat=()=>{ for(const o of [CHAT.out,CHAT.inb,CHAT.gin,CHAT.gout]) for(const k of Object.keys(o)) o[k]=o[k].slice(-300); store.set("chat",JSON.stringify(CHAT)); };
 const QUICK=["Как ты? 🙂","У меня всё хорошо 😄","Голова болит 🤕","Давление скачет, держись 💪","Магнитная буря — береги себя 🧲","Обнимаю 🤗"];
 const enc=new TextEncoder(), dec=new TextDecoder();
@@ -3895,10 +3947,13 @@ function chatUnreadAll(){ return Object.values(FR.list).reduce((a,f)=>a+chatUnre
 async function chatUpload(){
   const boxes={};
   for(const [k,list] of Object.entries(CHAT.out)){ const f=FR.list[k]; if(!f||!f.s||!list.length) continue; boxes[await boxId(k)]=list.slice(-120).map(m=>m.box).filter(Boolean); }
-  const body=JSON.stringify({app:"Не18мнеуже",v:2,updated:new Date().toISOString(),boxes});
+  const rc={}, plain=rcptAll();
+  for(const [k,o] of Object.entries(plain)){ try{ rc[await boxId(k)]=await seal(FR.list[k],o); }catch(e){} }
+  const body=JSON.stringify({app:"Не18мнеуже",v:2,updated:new Date().toISOString(),boxes,rc});
   const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/chat.json")}&overwrite=true`);
   if(up.status!==200||!up.data?.href) throw new Error("net");
   const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
+  RC.sent=JSON.stringify(plain);
 }
 function memberName(k, g){ if(k===SH.key) return "Вы"; return FR.list[k]?.name || (g&&CHAT.groups[g]?.members?.find(m=>m.k===k)?.n) || "Участник"; }
 async function chatFetch(f){
@@ -3908,6 +3963,10 @@ async function chatFetch(f){
   const r=await yReq("GET", dl.data.href+(dl.data.href.includes("?")?"&":"?")+"_="+Date.now(), null, false); if(r.status!==200) return 0;
   const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
   const box=data?.boxes?.[await boxId(SH.key)]||[];
+  const rcm=data?.rc?.[await boxId(SH.key)];
+  if(rcm){ try{ const o=await unseal(f,rcm), was=JSON.stringify(CHAT.rc[f.k]||null);
+    CHAT.rc[f.k]={d:String(o.d||""), r:String(o.r||""), g:o.g&&typeof o.g==="object"?o.g:{}};
+    if(JSON.stringify(CHAT.rc[f.k])!==was){ saveChat(); RC.changed=true; } }catch(e){} }
   const have=new Set([...(CHAT.inb[f.k]||[]).map(m=>m.id), ...Object.values(CHAT.gin).flat().filter(m=>m.from===f.k).map(m=>m.id)]);
   const added=[];
   for(const m of box){ let o; try{ o=await unseal(f,m); }catch(e){ continue; } if(!o||!o.id||have.has(o.id)) continue; have.add(o.id);
@@ -3928,7 +3987,9 @@ async function chatFetch(f){
     const other=added.filter(m=>(m.g?"g:"+m.g:f.k)!==CH_OPEN), last=other[other.length-1];
     if(last&&last.t>(CHAT.read[last.g?"g:"+last.g:f.k]||"")) toast(`💬 ${last.g?`${CHAT.groups[last.g].name} · `:""}${f.name}: ${(last.c?"📋 состояние":last.x).slice(0,60)}`);
     renderChatBadge(); if(TAB==="friends") renderFriendsPage();
+    chatRcSoon();
   }
+  if(RC.changed&&CH_OPEN){ RC.changed=false; renderChat(); }
   return added.length;
 }
 let CH_OPEN=null, chatTimer=0;
@@ -3946,7 +4007,7 @@ function openChat(k){
   const today=f.data?.mood?.[isoDay(new Date())];
   $("chatSub").textContent=[f.data?.city, today?`сегодня ${today.e||""}`:""].filter(Boolean).join(" · ");
   CHAT.read[k]=(dmIn(k).slice(-1)[0]||{}).t||CHAT.read[k]||""; saveChat();
-  renderChat(); showSheet("chatSheet"); renderChatBadge(); chatPollStart([f]);
+  RC.open=null; renderChat(); showSheet("chatSheet"); renderChatBadge(); chatPollStart([f]); chatRcSoon();
 }
 function openGroup(g){
   const G=CHAT.groups[g]; if(!G) return;
@@ -3954,8 +4015,8 @@ function openGroup(g){
   const names=G.members.filter(m=>m.k!==SH.key).map(m=>memberName(m.k,g));
   $("chatSub").textContent=`${names.join(", ")} и вы`;
   CHAT.read[CH_OPEN]=((CHAT.gin[g]||[]).slice(-1)[0]||{}).t||CHAT.read[CH_OPEN]||""; saveChat();
-  renderChat(); showSheet("chatSheet"); renderChatBadge();
-  chatPollStart(G.members.map(m=>FR.list[m.k]).filter(Boolean));
+  RC.open=null; renderChat(); showSheet("chatSheet"); renderChatBadge();
+  chatPollStart(G.members.map(m=>FR.list[m.k]).filter(Boolean)); chatRcSoon();
 }
 const MCOL=["#ffb86b","#8be38f","#c9b6ff","#78adff","#7fd6c8","#f2c94c","#ff8a7a"];
 const colorOf=k=>{ let h=0; for(const ch of String(k)) h=(h*31+ch.charCodeAt(0))>>>0; return MCOL[h%MCOL.length]; };
@@ -3981,8 +4042,15 @@ function renderChat(){
   for(const m of all){
     const d=isoDay(new Date(m.t)); if(d!==lastDay){ lastDay=d; h+=`<div class="cday">${d===isoDay(new Date())?"сегодня":fmtDM(new Date(m.t))}</div>`; }
     const who=isG&&!m.me?`<span class="who" style="color:${colorOf(m.from)}">${esc(memberName(m.from,g))}</span>`:"";
-    const st=m.me?(m.st==="err"?' <b class="er" data-retry>!</b>':m.st==="ok"?" ✓":" …"):"";
-    h+=`<div class="msg${m.me?" me":""}${m.c?" card":""}">${who}${m.c?stateCard(m.c):`<span class="tx">${esc(m.x)}</span>`}<span class="tm">${fmtHM(new Date(m.t))}${st}</span></div>`;
+    const ms=m.me?msgStatus(m,isG,g):"";
+    const st=!m.me?"":ms==="err"?' <b class="er" data-retry>!</b>':`<span class="mst ${ms==="deliv"?"":ms}${RC.prev[m.id]&&RC.prev[m.id]!==ms?" pop":""}" title="${MST_L[ms]}" aria-label="${MST_L[ms]}">${MST_SVG}</span>`;
+    if(m.me) RC.prev[m.id]=ms;
+    h+=`<div class="msg${m.me?" me":""}${m.c?" card":""}${m.me&&isG?" gi":""}"${m.me&&isG?` data-mid="${esc(m.id)}"`:""}>${who}${m.c?stateCard(m.c):`<span class="tx">${esc(m.x)}</span>`}<span class="tm">${fmtHM(new Date(m.t))}${st}</span></div>`;
+    if(m.me&&isG&&RC.open===m.id){
+      const mem=CHAT.groups[g].members.filter(x=>x.k!==SH.key&&FR.list[x.k]?.s);
+      h+=`<div class="rinfo">${mem.map(x=>{ const r=CHAT.rc[x.k]||{}, rd=rcptOn()&&((r.g||{})[g]||"")>=m.t, dl=(r.d||"")>=m.t;
+        return `<div><span>${rd?"✓✓ прочитал(а)":dl?"✓✓ получил(а)":"✓ ещё не получил(а)"}</span><b>${esc(memberName(x.k,g))}</b></div>`; }).join("")||"<div>В чате пока нет друзей</div>"}</div>`;
+    }
   }
   if(!all.length&&SH.on) h+=`<div class="cnote">${isG?`Это общий чат «${esc(CHAT.groups[g].name)}». Напишите первым 👋`:`Напишите ${esc(f.name)} первым 👋`}<br>Сообщения шифруются: прочитать их могут только участники.</div>`;
   box.innerHTML=h;
@@ -4113,7 +4181,8 @@ addEventListener("resize",()=>{ if(!$("chatFab").hidden) chatFabPos(); });
 $("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatSend(v); i.focus(); });
 $("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("chatSend").click(); } });
 $("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; if(b.dataset.q==="__me"){ const st=myState(); chatSend(st.x, st.c); } else chatSend(b.dataset.q); });
-$("chatList").addEventListener("click",e=>{ if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
+$("chatList").addEventListener("click",e=>{ const gi=e.target.closest("[data-mid]"); if(gi&&!e.target.closest("[data-retry]")){ RC.open=RC.open===gi.dataset.mid?null:gi.dataset.mid; renderChat(); return; }
+  if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
 
 /* ---------- friends tab: people and chats ---------- */
 let FSEG="friends";
