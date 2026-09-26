@@ -937,6 +937,8 @@ header{position:relative}
       <div class="src" id="remNote">В шторке появится «Как себя чувствуешь?» со всеми смайликами — нажмите нужный, и отметка сохранится, не открывая приложение.</div>
       <button class="btn ghost" id="remTest">👀 Показать пример уведомления</button>
     </div>
+    <div class="ctitle" id="icoT" hidden>Значок приложения</div>
+    <label class="rsw" id="icoW" hidden style="justify-content:space-between"><span>Значок меняется по погоде<br><span class="fhm">спокойно — стрелка далеко, тяжело — давит на человечка</span></span><input type="checkbox" id="icoOn"><span class="knob" aria-hidden="true"></span></label>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
     <div class="ctitle">О приложении</div>
@@ -1365,6 +1367,7 @@ function render(){
   $("hours").innerHTML=hrs.slice(i,i+25).map((x,n)=>`<div class="h${n===0?" now":""}"><div class="t">${n===0?"сейчас":fmtH(new Date(x.t))}</div>${icon(x.sym)}<div class="v">${Math.round(x.temp)}°</div></div>`).join("");
   if(typeof render5==="function") render5();
   if(typeof renderRisk==="function") renderRisk();
+  if(typeof iconPlanSoon==="function") iconPlanSoon();
   sky.set(c, cur);
   if(!$("hist").hidden) drawHistory();
 }
@@ -2415,7 +2418,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 29 (уведомления о сообщениях, карта: масштаб, линейка, по GPS)";
+const APP_VER="26.09 · сборка 30 (значок меняется по погоде)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3039,9 +3042,9 @@ for(const id of ["rFrom","rTo"]) $(id).addEventListener("change",()=>{ const f=n
 
 
 /* ---------- today: how much the weather may affect wellbeing (0–10) ---------- */
-function weatherRisk(){
+function weatherRisk(at){
   const f=S.feed[S.slug]; if(!f||!f.hours) return null;
-  const now=Date.now(), hs=f.hours.filter(h=>+new Date(h.t)>=now-2*H&&+new Date(h.t)<=now+22*H); if(hs.length<8) return null;
+  const now=at||Date.now(), hs=f.hours.filter(h=>+new Date(h.t)>=now-2*H&&+new Date(h.t)<=now+22*H); if(hs.length<8) return null;
   const pp=hs.map(h=>h.p!=null?h.p*HPA2MM:null).filter(v=>v!=null), T=hs.map(h=>h.temp);
   let j3=0; for(let i=3;i<pp.length;i++) j3=Math.max(j3,Math.abs(pp[i]-pp[i-3]));
   const dP=pp.length?pp[pp.length-1]-pp[0]:0, dT=Math.max(...T)-Math.min(...T);
@@ -4165,6 +4168,28 @@ if(MN){
 }
 renderRemind();
 
+
+/* ---------- the launcher icon follows the weather (build 30+) ----------
+   A plan for the next days, 3-hour steps, with the same 0–10 score as the "today" card:
+   0–3 calm, 4–6 middle, 7–10 hard. The phone switches the icon itself every ~3 hours. */
+const ICO = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.IconSwitch||null) : null;
+const icoOn = () => store.get("iconWx")!=="0";
+let icoTimer=0;
+function iconPlanSoon(){ if(!ICO) return; clearTimeout(icoTimer); icoTimer=setTimeout(iconPlanSend, 2500); }
+function iconPlan(){
+  const plan=[], step=3*H, t0=Math.floor(Date.now()/step)*step;
+  for(let t=t0; t<t0+5*DAY; t+=step){ const r=weatherRisk(t); if(!r) { if(t>Date.now()) break; else continue; }
+    plan.push({t, l:r.sc<=3?"calm":r.sc<=6?"mid":"bad"}); }
+  return plan;
+}
+async function iconPlanSend(){ if(!ICO) return; try{ await ICO.configure({on:icoOn(), plan:icoOn()?iconPlan():[]}); }catch(e){} }
+if(ICO){
+  $("icoT").hidden=false; $("icoW").hidden=false; $("icoOn").checked=icoOn();
+  $("icoOn").addEventListener("change",async()=>{ store.set("iconWx",$("icoOn").checked?"1":"0"); await iconPlanSend();
+    toast($("icoOn").checked?"Значок обновится, когда вы выйдете из приложения.":"Вернётся обычный значок, когда вы выйдете из приложения."); });
+  // switching the icon while the app is on screen may close it, so do it when the person leaves
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) ICO.applyNow().catch(()=>{}); });
+}
 /* ---------- Android Back button (native app) ---------- */
 {
   const AppP = PREF ? window.Capacitor.Plugins?.App : null;
