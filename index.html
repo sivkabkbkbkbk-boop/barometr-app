@@ -429,6 +429,13 @@ footer{padding-bottom:64px}
 .stl{font-weight:600}
 /* connection check */
 .chk{display:flex;flex-direction:column;gap:6px}
+.fsb{gap:14px!important}
+#fsGo{width:100%}
+.fstep{display:flex;gap:12px;align-items:flex-start;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:16px;padding:12px 14px}
+.fstep b{font-weight:600}
+.fstep.done{opacity:.75}.fstep.done .fsn{background:#8be38f;color:#0d1726}
+.fsn{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#0d1726;font-weight:700;font-size:14px}
+#fsName{background:var(--sheet);border:1px solid var(--glass-line);border-radius:12px;color:var(--ink);padding:10px 12px;font-size:16px}
 .welc{display:flex;flex-direction:column;gap:12px}.welc .wl{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}.welc .wl b{font-weight:600}.welc .wi{font-size:22px;flex:0 0 28px;text-align:center}.welc .btn{width:100%;box-sizing:border-box;text-align:center}.welc .note{font-size:13px;opacity:.7;line-height:1.4}
 .ck{display:flex;gap:10px;align-items:flex-start;background:var(--sheet-2);border-radius:12px;padding:9px 11px}
 .ck b{font-size:17px;line-height:1.2}
@@ -974,6 +981,19 @@ header{position:relative}
   </div>
 </section>
 
+<section class="sheet" id="fsSheet" role="dialog" aria-modal="true" aria-labelledby="fsTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="fsTitle">Пригласить друга</h2><div class="sc" id="fsSub"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody fsb">
+    <div class="fstep" id="fsS1"><span class="fsn">1</span><div><b>Войдите через Яндекс</b><div class="fhm">Там хранится то, что видят друзья: имя, город и отметки.</div>
+      <a class="btn" id="fsLogin" href="#" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;margin-top:8px">Войти через Яндекс</a></div></div>
+    <div class="fstep" id="fsS2"><span class="fsn">2</span><div style="flex:1;min-width:0"><b>Как вас зовут?</b><div class="fhm">Это имя увидит друг.</div>
+      <input id="fsName" maxlength="40" autocomplete="off" placeholder="Например, Света" aria-label="Ваше имя для друзей" style="margin-top:8px;width:100%;box-sizing:border-box"></div></div>
+    <button class="btn" id="fsGo">📨 Отправить приглашение</button>
+    <div class="src" id="fsNote">Откроется список мессенджеров — выберите чат с другом.</div>
+  </div>
+</section>
+
 <section class="sheet" id="grpSheet" role="dialog" aria-modal="true" aria-labelledby="grpTitle" hidden>
   <div class="grab"></div>
   <div class="shead"><div><h2 id="grpTitle">Общий чат</h2><div class="sc">все участники увидят сообщения друг друга, если они друзья между собой</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
@@ -1493,6 +1513,7 @@ function showSheet(id){
   setTimeout(()=>{const f=sh.querySelector(".search")||sh.querySelector(".xbtn"); f&&f.focus({preventScroll:true});},300);
 }
 function closeSheetView(instant){
+  if(openSheet&&openSheet.id==="fsSheet") store.set("fsPending","");   // closed on purpose: do not reopen it later
   document.getElementById("navSet")?.classList.remove("open");
   if(!openSheet) return;
   const sh=openSheet, sc=$("scrim"); openSheet=null;
@@ -2368,7 +2389,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 23 (город во всю ширину)";
+const APP_VER="26.09 · сборка 24 (приглашение друзей по шагам)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -3094,14 +3115,14 @@ function friendWelcome(f, how){
 function showFriendPop(){
   const [f,how]=FRQ[0]; const nm=esc(f.name||"Друг");
   $("frAv").innerHTML=`<span class="av" style="background:${colorOf(SH.key||"me")}">${esc((SH.name||"Я")[0].toUpperCase())}</span><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}</span>`;
-  $("frT").innerHTML = how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
-  $("frP").innerHTML = how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
+  $("frT").innerHTML = how==="invite" ? `${nm} приглашает вас в друзья` : how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
+  $("frP").innerHTML = how==="invite" ? `Вы будете видеть самочувствие друг друга и сможете переписываться.` : how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
     : how==="wait" ? `Отправьте ${nm} ответ, чтобы и он(а) увидел(а) вас.`
     : how==="reply" ? `Остался один шаг, чтобы и ${nm} увидел(а) вас: нажмите «Отправить ответ» и выберите ваш чат с ${nm}. Когда ${nm} нажмёт на ссылку — вы станете друзьями у обоих.`
     : `Теперь вы видите состояние друг друга и можете переписываться.`;
-  $("frChat").textContent = how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
-  $("frOk").textContent = how==="reply" ? "Позже" : "Отлично";
-  $("frChat").hidden=how!=="reply"&&!f.s; $("frPop").hidden=false;
+  $("frChat").textContent = how==="invite" ? "🤝 Принять" : how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
+  $("frOk").textContent = how==="invite" ? "Не сейчас" : how==="reply" ? "Позже" : "Отлично";
+  $("frChat").hidden=how!=="reply"&&how!=="invite"&&!f.s; $("frPop").hidden=false;
   try{ navigator.vibrate&&navigator.vibrate([30,60,30]); }catch(e){}
   const ln=window.Capacitor?.Plugins?.LocalNotifications;
   if(document.hidden&&ln) ln.schedule({notifications:[{id:900+Math.floor(Math.random()*90),title:"Не18мнеуже",body:$("frT").textContent,channelId:"mood"}]}).catch(()=>{});
@@ -3110,6 +3131,7 @@ function closeFriendPop(){ $("frPop").hidden=true; FRQ.shift(); if(FRQ.length) s
 $("frOk").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); if(f){ FSEG="friends"; showTab("friends"); } });
 $("frChat").addEventListener("click",()=>{ const f=FRQ[0]?.[0];
   if($("frChat").dataset.act==="reply"){ closeFriendPop(); shareSend(true); return; }
+  if($("frChat").dataset.act==="invite"){ closeFriendPop(); if(PENDING_CLIP) addFriendFromLink(PENDING_CLIP); PENDING_CLIP=""; return; }
   closeFriendPop(); if(f){ FSEG="chats"; showTab("friends"); setTimeout(()=>openChat(f.k),250); } });
 $("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPop(); });
 
@@ -3345,7 +3367,7 @@ function openLink(url){ if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendF
 function yTakeToken(url){
   const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
   Y.token=decodeURIComponent(m[1]); Y.err=""; saveY();
-  toast("Яндекс Диск подключён"); renderY(); ySync(true); return true;
+  toast("Яндекс Диск подключён"); renderY(); ySync(true); if($("fsSheet")&&!$("fsSheet").hidden) fsRender(); else if(typeof fsResume==="function") fsResume(); return true;
 }
 {
   const AppU = PREF ? window.Capacitor.Plugins?.App : null;
@@ -3424,7 +3446,7 @@ async function shareUpload(){
   if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
   const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
 }
-async function shareStart(){
+async function shareStart(opt={}){
   if(!Y.token){ toast("Сначала подключите Яндекс Диск — выше в этом окне."); return; }
   const nm=($("shName")?.value||SH.name||"").trim(); if(!nm){ toast("Напишите имя — его увидят друзья."); $("shName")?.focus(); return; }
   SH.name=nm.slice(0,40); renderFriends("busy");
@@ -3438,11 +3460,56 @@ async function shareStart(){
     SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
     let told=0; for(const f of Object.values(FR.list)) if(f.s&&!f.notified&&!f.acked){ if(await notifyInviter(f).catch(()=>false)){ told++; friendWelcome(f,"wait"); } }
     await shareUpload().catch(()=>{});
-    if(FR.replyTo){ if(!told){ const rf=Object.values(FR.list).find(x=>x.name===FR.replyTo)||{k:"x",name:FR.replyTo}; friendWelcome(rf,"reply"); } }
+    if(opt.direct) shareSend(!!opt.reply);
+    else if(FR.replyTo){ if(!told){ const rf=Object.values(FR.list).find(x=>x.name===FR.replyTo)||{k:"x",name:FR.replyTo}; friendWelcome(rf,"reply"); } }
     else shareSend();
     FR.replyTo=null; renderFriends(); pollHello();
   }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
 }
+/* one guided window for both sides: sign in -> name -> send (an invite, or a reply to the friend who invited us) */
+const FSW={mode:"invite", to:""};
+function fsSave(){ store.set("fsPending", JSON.stringify(FSW)); }
+function fsOpen(mode, to){
+  FSW.mode=mode||"invite"; FSW.to=to||""; fsSave();
+  $("fsTitle").textContent = FSW.mode==="reply" ? `${FSW.to} в друзьях 🎉` : "Пригласить друга";
+  $("fsSub").textContent = FSW.mode==="reply" ? `Ещё пара шагов, чтобы и ${FSW.to} видел(а) вас` : "Друг получит ссылку в мессенджере";
+  $("fsGo").textContent = FSW.mode==="reply" ? "📨 Отправить ответ" : "📨 Отправить приглашение";
+  $("fsNote").textContent = FSW.mode==="reply" ? `Откроется список мессенджеров — выберите тот чат, откуда пришло приглашение. Когда ${FSW.to} нажмёт на ссылку, вы будете видеть друг друга.` : "Откроется список мессенджеров — выберите чат с другом. Если у друга ещё нет приложения, ссылка поможет его установить.";
+  $("fsName").value=SH.name||$("fsName").value||"";
+  fsRender(); if(openSheet) hideSheet(true); setTimeout(()=>showSheet("fsSheet"), openSheet?250:0);
+}
+function fsRender(){
+  const ok=!!Y.token;
+  $("fsS1").classList.toggle("done", ok);
+  $("fsS1").querySelector("b").textContent = ok ? "Яндекс Диск подключён ✓" : "Войдите через Яндекс";
+  $("fsLogin").hidden=ok; $("fsLogin").href=yAuthUrl(false);
+  $("fsGo").disabled=!ok; $("fsGo").style.opacity=ok?"":".5";
+}
+$("fsLogin").addEventListener("click",()=>fsSave());
+$("fsGo").addEventListener("click",async()=>{
+  if(!Y.token){ toast("Сначала войдите через Яндекс — шаг 1."); return; }
+  const nm=$("fsName").value.trim(); if(!nm){ toast("Напишите своё имя — шаг 2."); $("fsName").focus(); return; }
+  SH.name=nm.slice(0,40); saveShare(); store.set("fsPending","");
+  const reply=FSW.mode==="reply"; hideSheet(true);
+  if(!SH.on){ FR.replyTo=null; await shareStart({direct:true, reply}); }
+  else { await shareUpload().catch(()=>{}); shareSend(reply); }
+});
+// back from the Yandex sign-in page: carry on where the person was
+// a friend opened the invite before the app was installed: the invite page copied the link; offer it once
+async function clipInvite(){
+  const CB=NATIVE?window.Capacitor.Plugins?.Clipboard:null; if(!CB) return false;
+  try{
+    const r=await CB.read(); const t=String(r&&r.value||""); const m=t.match(/https:\/\/\S*friend\.html#\S+/); if(!m) return false;
+    const f=parseFriendLink(m[0]); if(!f||f.k===SH.key||FR.list[f.k]) return false;
+    const seen=loadJSON("clipSeen",[])||[]; if(seen.includes(f.k)) return false;
+    seen.push(f.k); store.set("clipSeen",JSON.stringify(seen.slice(-20))); store.set("welcomeY","1");
+    FRQ.push([{k:f.k,name:f.name||"Друг"},"invite"]); if(FRQ.length===1) showFriendPop(); PENDING_CLIP=m[0];
+    return true;
+  }catch(e){ return false; }
+}
+let PENDING_CLIP="";
+function fsResume(){ const p=loadJSON("fsPending",null); if(p&&p.mode&&Y.token) setTimeout(()=>fsOpen(p.mode,p.to), 600); }
+
 async function shareSend(reply){
   const nm=SH.name||"Друг";
   const text = reply
@@ -3491,9 +3558,7 @@ async function addFriendFromLink(url){
     if(ok) friendWelcome(FR.list[f.k],"wait");
     else friendWelcome(FR.list[f.k],"reply");
   } else {
-    FR.replyTo=nm; renderFriends();
-    toast(Y.token?`${nm} теперь в друзьях. Введите своё имя и нажмите «Поделиться» — и ${nm} увидит вас автоматически.`:`${nm} теперь в друзьях. Чтобы ${nm} видел(а) вас и мог(ла) писать, подключите Яндекс Диск и нажмите «Поделиться».`);
-    setTimeout(()=>{ $("shName")?.scrollIntoView({block:"center"}); if(Y.token) $("shName")?.focus(); }, 700);
+    FR.replyTo=null; renderFriends(); fsOpen("reply", nm);
   }
 }
 async function fetchFriend(f){
@@ -3523,9 +3588,10 @@ function renderFriends(state){
   const esc2=esc; let h="";
   // sharing controls
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
-  else if(!SH.on&&!Y.token) h+=`<div class="fbox"><div class="hint">Чтобы дружить и переписываться, нужен Яндекс Диск — на нём хранится то, что видят друзья.</div><button class="btn" data-f="yandex">Подключить Яндекс Диск</button>${FR.replyTo?`<div class="hint">👋 После подключения введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} увидит вас автоматически.</div>`:""}</div>`;
-  else if(!SH.on) h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар. Нужен подключённый Яндекс Диск.</div>
-    <div class="row"><input id="shName" placeholder="Ваше имя для друзей" value="${esc2(SH.name||"")}" maxlength="40" autocomplete="off" aria-label="Ваше имя для друзей"><button class="btn" data-f="start">Поделиться</button></div>${FR.replyTo?`<div class="hint">👋 Введите имя и нажмите «Поделиться» — ${esc2(FR.replyTo)} увидит вас автоматически.</div>`:""}</div>`;
+  else if(!SH.on){ const lastF=Object.values(FR.list).sort((a,b)=>(b.added||"")<(a.added||"")?-1:1)[0];
+    h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар — а вы их. Всё настраивается в одном окне за пару шагов.</div>
+      ${lastF?`<button class="btn" data-f="fsreply" data-n="${esc2(lastF.name||"Друг")}">📨 Отправить ответ: ${esc2(lastF.name||"Друг")}</button>`:""}
+      <button class="btn${lastF?" ghost":""}" data-f="fsinvite">＋ Пригласить друга</button></div>`; }
   const fl=Object.values(FR.list);
   if(!fl.length&&SH.on) h+=`<div class="card hempty"><div style="font-size:38px">🤝</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">📨 Пригласить друга</button></div>`;
   const today=isoDay(new Date());
@@ -3569,6 +3635,7 @@ function renderFriends(state){
 }
 $("friends").addEventListener("change",e=>{ const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
 $("friends").addEventListener("click",e=>{
+  const fb=e.target.closest('[data-f="fsinvite"],[data-f="fsreply"]'); if(fb){ fb.dataset.f==="fsreply"?fsOpen("reply",fb.dataset.n):fsOpen("invite"); return; }
   const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
   const ch=e.target.closest("[data-chat]"); if(ch){ openChat(ch.dataset.chat); return; }
   const b=e.target.closest("[data-f]"); if(!b) return;
@@ -3830,7 +3897,7 @@ $("chats").addEventListener("click",e=>{
   if(e.target.closest("[data-newg]")){ openGroupSheet(); }
 });
 $("fSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-fs]"); if(!b) return; FSEG=b.dataset.fs; renderFriendsPage(); });
-$("frInvite").addEventListener("click",()=>{ if(SH.on) shareSend(); else { FSEG="friends"; renderFriendsPage(); setTimeout(()=>{ const i=$("shName"); if(i){ i.scrollIntoView({block:"center"}); i.focus(); } else toast("Сначала подключите Яндекс Диск."); },200); } });
+$("frInvite").addEventListener("click",()=>{ if(SH.on&&Y.token) shareSend(); else fsOpen("invite"); });
 function openGroupSheet(){
   const list=Object.values(FR.list).filter(f=>f.s);
   $("grpList").innerHTML=list.map(f=>`<label class="gpick"><input type="checkbox" value="${esc(f.k)}" checked><span class="av" style="background:${colorOf(f.k)};width:34px;height:34px;font-size:14px">${esc((f.name||"?")[0].toUpperCase())}</span><span>${esc(f.name)}</span></label>`).join("");
@@ -4142,6 +4209,8 @@ $("updCheck").addEventListener("click",()=>checkUpdate(true));
   refreshNow(true);
   if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); }
   if(Y.token) setTimeout(()=>ySync(false), 1500);
+  setTimeout(()=>clipInvite(), 1500);
+  fsResume();
   if(!Y.token && !store.get("welcomeY")) setTimeout(showWelcome, 2600);
   scheduleReminders();
   renderMood();
