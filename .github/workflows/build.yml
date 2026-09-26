@@ -32,7 +32,7 @@ jobs:
       - name: Установка Capacitor
         run: |
           npm init -y > /dev/null
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6 @capacitor/preferences@6 @capacitor/share@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6 @capacitor/preferences@6 @capacitor/share@6 @capacitor/clipboard@6
           npx cap init "Не18мнеуже" ru.barometr.neba --web-dir=www
           npx cap add android
           # the build number becomes the Android version: a new APK installs over the old one as an update
