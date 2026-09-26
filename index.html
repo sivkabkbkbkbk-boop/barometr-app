@@ -41,6 +41,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px}
 html,body{overscroll-behavior-y:none}
 #ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 0px);z-index:15;width:40px;height:40px;border-radius:50%;background:var(--sheet);border:1px solid var(--glass-line);box-shadow:0 6px 20px rgba(0,0,0,.35);display:grid;place-items:center;transform:translate(-50%,-50px);opacity:0;pointer-events:none;transition:transform .25s ease, opacity .25s ease}
 #ptr.drag{transition:none}
+#gearBtn,#refreshBtn{display:none!important}   /* settings live in the bottom menu; refresh is a pull-down */
+.bnav button#navSet.open{color:var(--ink)}.bnav button#navSet.open b{filter:none}
 #ptr svg{width:26px;height:26px;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #ptr .ic{stroke:var(--muted);stroke-width:2;transform-origin:13px 13px}
 #ptr.ready .ic{stroke:var(--press)}
@@ -227,6 +229,17 @@ footer a{color:var(--muted)}
 .legend2{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-family:var(--f-mono);margin-top:-2px}
 .remind{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .rsw{display:flex;align-items:center;gap:8px;cursor:pointer}
+.remw{display:flex;flex-direction:column;gap:10px}
+.wheel{position:relative;height:200px;border-radius:18px;background:var(--sheet-2);border:1px solid var(--glass-line);overflow:hidden;touch-action:pan-y}
+.wsel{position:absolute;left:10px;right:10px;top:80px;height:40px;border-radius:11px;background:rgba(238,243,248,.09);border:1px solid rgba(238,243,248,.10);pointer-events:none}
+.wlist{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;padding:80px 0;box-sizing:border-box;perspective:520px;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);outline:none}
+.wlist::-webkit-scrollbar{display:none}
+.witem{height:40px;line-height:40px;text-align:center;scroll-snap-align:center;font-size:19px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;transform-origin:50% 50%;backface-visibility:hidden}
+.witem.on{font-weight:600}
+
+.remrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.remrow[hidden]{display:none}
+.remrow input{background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:10px;color:var(--ink);padding:6px 8px;font-family:var(--f-mono);font-size:14px}
 .rsw input{position:absolute;opacity:0;width:1px;height:1px}
 .rsw .knob{width:34px;height:20px;border-radius:20px;background:rgba(238,243,248,.15);position:relative;transition:background .2s;flex:none}
 .rsw .knob::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:transform .2s}
@@ -473,7 +486,7 @@ body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2
 .oli small{color:var(--muted);font-size:10.5px}
 .oli.dim{opacity:.5}
 /* bottom tabs */
-.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(9,16,27,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(9,16,27,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
 .bnav button{position:relative;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bnav button b{font-size:21px;font-weight:400;line-height:1.1;filter:grayscale(1) opacity(.65);transition:filter .2s,transform .2s}
 .bnav button[aria-current]{color:var(--ink)}
@@ -805,10 +818,7 @@ header{min-width:0}
       <div class="days" id="mdays"></div>
       <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
       <div class="gap" id="mgap" hidden></div>
-      <div class="remind" id="remind" hidden style="margin-top:10px">
-        <label class="rsw"><input type="checkbox" id="remOn"><span class="knob" aria-hidden="true"></span>🔔 Напоминать в шторке в</label>
-        <input type="time" id="remTime" value="20:00" aria-label="Время напоминания">
-      </div>
+      <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">🔔 Спрашивать в шторке — настроить ›</button>
     </div>
     <div class="card"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="facs" id="mfacs"></div></div>
     <div class="card"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
@@ -827,6 +837,7 @@ header{min-width:0}
   <button data-tab="health"><b>❤️</b>Здоровье</button>
   <button data-tab="rep"><b>📊</b>Отчёты</button>
   <button data-tab="friends"><b>👥</b>Друзья<i id="navN"></i></button>
+  <button data-act="settings" id="navSet"><b>⚙️</b>Настройки</button>
 </nav>
 
 <div class="frpop" id="frPop" hidden><div class="frcard" role="dialog" aria-modal="true" aria-labelledby="frT">
@@ -898,6 +909,16 @@ header{min-width:0}
     <div class="ctitle">Главный экран · что показывать</div>
     <div class="tgl" id="tglList"></div>
     <div class="src">💡 Порядок карточек: удерживайте карточку на главном экране полсекунды и перетащите её выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
+    <div class="ctitle">Спрашивать о самочувствии</div>
+    <div class="remw" id="remW">
+      <div class="wheel" id="remWheel">
+        <div class="wsel" aria-hidden="true"></div>
+        <div class="wlist" id="remEvery" role="listbox" tabindex="0" aria-label="Как часто спрашивать"></div>
+      </div>
+      <div class="remrow" id="remHours"><span id="remFromL">с</span> <input type="time" id="remFrom" value="09:00" aria-label="С какого времени"> <span id="remToW">до <input type="time" id="remTo" value="22:00" aria-label="До какого времени"></span></div>
+      <div class="src" id="remNote">В шторке появится «Как себя чувствуешь?» со всеми смайликами — нажмите нужный, и отметка сохранится, не открывая приложение.</div>
+      <button class="btn ghost" id="remTest">👀 Показать пример уведомления</button>
+    </div>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
     <div class="ctitle">О приложении</div>
@@ -1012,7 +1033,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order","welcomeY"];
+const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order","welcomeY","remind2"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -1453,6 +1474,7 @@ const sky=(()=>{
 let openSheet=null, lastFocus=null;
 /* each open window is a step in history: the phone's Back button closes it instead of leaving the app */
 function showSheet(id){
+  document.getElementById("navSet")?.classList.toggle("open", id==="setSheet");
   const switching=!!openSheet;
   if(openSheet) closeSheetView(true);
   lastFocus=document.activeElement;
@@ -1464,6 +1486,7 @@ function showSheet(id){
   setTimeout(()=>{const f=sh.querySelector(".search")||sh.querySelector(".xbtn"); f&&f.focus({preventScroll:true});},300);
 }
 function closeSheetView(instant){
+  document.getElementById("navSet")?.classList.remove("open");
   if(!openSheet) return;
   const sh=openSheet, sc=$("scrim"); openSheet=null;
   sh.style.transform=""; sh.classList.remove("open"); sc.classList.remove("open");
@@ -2338,7 +2361,7 @@ function renderToggles(){
   $("tglList").innerHTML=CARDS.map(([id,l,d])=>`<label><span>${l}<small>${d}</small></span><span class="rsw"><input type="checkbox" data-card="${id}" ${LAYOUT[id]?"checked":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
-const APP_VER="26.09 · сборка 20 (почасовой прогноз скрыт, подпись одним ключом)";
+const APP_VER="26.09 · сборка 22 (крутилка частоты, настройки в нижнем меню)";
 $("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
@@ -2422,7 +2445,7 @@ function saveMarks(){
 function addMark(k, when){
   const t=(when||new Date()).toISOString();
   S.marks.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), t, k, city:S.slug});
-  saveMarks();
+  saveMarks(); try{ window.__MN?.noteMark(); }catch(e){}
 }
 function removeMark(id){ S.marksDel[id]=new Date().toISOString(); S.marks=S.marks.filter(m=>m.id!==id); saveMarks(); }
 // compatibility with older calls: 3 / 2 / 1 / null for a whole day
@@ -3231,7 +3254,7 @@ function showTab(t, sub){
   if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood";
   $("moodChip").hidden = t!=="today" || !!LAYOUT.cardMood || !$("moodPop").hidden;
 }
-$("bnav").addEventListener("click",e=>{ const b=e.target.closest("[data-tab]"); if(b) showTab(b.dataset.tab); });
+$("bnav").addEventListener("click",e=>{ if(e.target.closest("#navSet")){ $("gearBtn").click(); return; } const b=e.target.closest("[data-tab]"); if(b){ if(openSheet) hideSheet(true); showTab(b.dataset.tab); } });
 document.body.dataset.tab="today";
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
@@ -3843,7 +3866,7 @@ addEventListener("touchstart",e=>{
   const t=e.touches[0]; G.y0=t.clientY; G.x0=t.clientX; G.t0=performance.now(); G.dy=0; G.mode=null; G.sheet=null;
   if(e.target.closest(".rmap,.rctl") || !$("moodPop").hidden) return;
   if(openSheet){
-    if(e.target.closest("#chart,input,.tabs,.chips")) return;
+    if(e.target.closest("#chart,input,.tabs,.chips,.wheel")) return;
     const sc=scrollableParent(e.target, openSheet);
     if(sc && sc.scrollTop>0) return;
     G.mode="sheet?"; G.sheet=openSheet;
@@ -3890,53 +3913,120 @@ document.addEventListener("keydown",e=>{
   e.preventDefault(); openHistory(t.dataset.metric||"temp");
 });
 
-/* ---------- native app (Android build): reminder in the notification shade ---------- */
+/* ---------- "How do you feel?" in the notification shade ----------
+   Build 20+: our own notification with all smileys (MoodNotify, native). Older builds and the
+   plain Capacitor notifications allow only 3 buttons, so they are the fallback. */
 const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const LN = NATIVE ? window.Capacitor.Plugins?.LocalNotifications : null;
-const REM_DAYS = 30;                                      // scheduled ahead; renewed every time the app opens
+const MN = NATIVE ? (window.Capacitor.Plugins?.MoodNotify || null) : null;
+window.__MN = MN;
+const hm2m = v => { const [h,m]=(v||"0:0").split(":").map(Number); return (h||0)*60+(m||0); };
+function loadRemind(){
+  let r=loadJSON("remind2",null);
+  if(!r){ const o=loadJSON("remind",{on:false,time:"20:00"}); r={every:o.on?1440:0, from:o.on?(o.time||"20:00"):"09:00", to:"22:00"}; }
+  return Object.assign({every:0, from:"09:00", to:"22:00"}, r);
+}
+function remindText(r){
+  if(!r.every) return "";
+  if(r.every>=1440) return `каждый день в ${r.from}`;
+  return `${r.every===60?"каждый час":"каждые "+(r.every/60)+" ч"} с ${r.from} до ${r.to}`;
+}
 async function scheduleReminders(){
+  const r=loadRemind();
+  if(MN){
+    try{ const pend=await LN?.getPending(); if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}   // old-style ones
+    try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KINDS.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
+    return;
+  }
   if(!LN) return;
-  const r=loadJSON("remind",{on:false,time:"20:00"});
   try{ const pend=await LN.getPending(); if(pend.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}
-  if(!r.on) return;
-  const [hh,mm]=(r.time||"20:00").split(":").map(Number), now=new Date(), list=[];
-  for(let i=0;i<REM_DAYS;i++){
-    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,hh,mm,0);
-    if(d<=now) continue;
-    if(i===0 && S.mood[isoDay(now)]) continue;             // already marked today: no reminder
-    list.push({id:100+i, title:"Как вы себя чувствуете сегодня?", body:"Нажмите на смайлик или откройте, чтобы выбрать симптом.",
-      schedule:{at:d, allowWhileIdle:true}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr", iconColor:"#7fd6c8", extra:{kind:"mood"}});
+  if(!r.every) return;
+  const now=new Date(), list=[], lastMark=S.marks.length?+new Date(S.marks[S.marks.length-1].t):0;
+  for(let d=0; d<(r.every>=1440?14:3) && list.length<60; d++){
+    const base=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d);
+    const slots=r.every>=1440?[hm2m(r.from)]:(()=>{ const a=[]; for(let m=hm2m(r.from); m<=hm2m(r.to); m+=r.every) a.push(m); return a; })();
+    for(const m of slots){
+      const at=new Date(+base+m*60000); if(at<=now) continue;
+      if(r.every>=1440 ? (d===0&&S.mood[isoDay(now)]) : (+at-lastMark < r.every*30000)) continue;
+      list.push({id:100+list.length, title:"Как себя чувствуешь?", body:"Нажмите на смайлик или откройте, чтобы выбрать симптом.",
+        schedule:{at, allowWhileIdle:true}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr", iconColor:"#ffb04a", extra:{kind:"mood"}});
+    }
   }
   if(list.length) try{ await LN.schedule({notifications:list}); }catch(e){}
 }
+// smileys pressed in the shade are kept by the native part until the app takes them
+async function pullShadeMarks(){
+  if(!MN) return;
+  try{
+    const r=await MN.takePending(); const ms=(r&&r.marks)||[];
+    for(const m of ms) if(KIND[m.k]) addMark(m.k, new Date(+m.t||Date.now()));
+    if(ms.length){ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); const k=ms[ms.length-1].k; toast(`${KIND[k]?.e||""} ${KIND[k]?.l||""} — записано из шторки`); }
+  }catch(e){}
+}
+function renderRemind(){
+  const r=loadRemind();
+  const wi=Math.max(0,REM_OPTS.findIndex(o=>o[0]===r.every)); if(wi!==WH.idx || Math.abs(WH.el.scrollTop-wi*WH.h)>2) wheelSet(wi,false); else wheelPaint();
+  $("remHours").hidden=!r.every; $("remToW").hidden=r.every>=1440; $("remFromL").textContent=r.every>=1440?"в":"с";
+  $("remFrom").value=r.every>=1440?r.from:r.from; $("remTo").value=r.to;
+  $("remTest").hidden=!(MN||LN) || !r.every;
+  $("remNote").textContent = !NATIVE ? "Уведомления работают в приложении для Android."
+    : !r.every ? "Выберите, как часто спрашивать — вопрос появится в шторке телефона."
+    : MN ? `Спрошу ${remindText(r)}. В шторке будут все смайлики — нажмите нужный, и отметка сохранится без открытия приложения. Если вы недавно отметились, вопрос пропущу.`
+    : `Спрошу ${remindText(r)}. В этой версии в шторке три смайлика — обновите приложение, чтобы были все.`;
+}
+async function saveRemind(r){
+  if(r.every && NATIVE && LN){
+    try{ let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
+      if(p.display!=="granted"){ r.every=0; toast("Разрешите уведомления для «Не18мнеуже» в настройках Android."); } }catch(e){}
+  }
+  store.set("remind2",JSON.stringify(r)); renderRemind(); await scheduleReminders();
+  if(r.every) toast("Буду спрашивать "+remindText(r));
+}
+/* iPhone-style wheel: scroll, it snaps to a row, the row in the middle is chosen */
+const REM_OPTS=[[0,"Не спрашивать"],[60,"Каждый час"],[120,"Каждые 2 часа"],[180,"Каждые 3 часа"],[240,"Каждые 4 часа"],[1440,"Раз в день"]];
+const WH={el:$("remEvery"), h:40, idx:0, t:0, quiet:false};
+WH.el.innerHTML=REM_OPTS.map(([v,l],i)=>`<div class="witem" role="option" data-i="${i}">${l}</div>`).join("");
+function wheelPaint(){
+  const top=WH.el.scrollTop, items=WH.el.children;
+  for(let i=0;i<items.length;i++){ const d=i-top/WH.h, a=Math.abs(d);
+    items[i].style.transform=`rotateX(${(-d*22).toFixed(1)}deg) scale(${(1-Math.min(a,3)*0.06).toFixed(3)})`;
+    items[i].style.opacity=String(Math.max(0.18,1-a*0.3).toFixed(2)); items[i].classList.toggle("on",a<0.5); items[i].setAttribute("aria-selected",String(a<0.5)); }
+}
+function wheelSet(i, smooth){ WH.idx=i; WH.quiet=true; WH.el.scrollTo({top:i*WH.h, behavior:smooth?"smooth":"auto"}); wheelPaint(); setTimeout(()=>WH.quiet=false, smooth?450:60); }
+function wheelPick(i){
+  const v=REM_OPTS[i][0], r=loadRemind(); if(v===r.every) return;
+  r.every=v;
+  if(v>=1440 && hm2m(r.from)<hm2m("12:00")) r.from="20:00"; else if(v && v<1440 && hm2m(r.from)>=hm2m("18:00")) r.from="09:00";
+  saveRemind(r);
+}
+WH.el.addEventListener("scroll",()=>{ requestAnimationFrame(wheelPaint); clearTimeout(WH.t);
+  WH.t=setTimeout(()=>{ const i=Math.max(0,Math.min(REM_OPTS.length-1,Math.round(WH.el.scrollTop/WH.h))); if(i!==WH.idx){ WH.idx=i; if(!WH.quiet){ navigator.vibrate?.(8); wheelPick(i); } } }, 160); },{passive:true});
+WH.el.addEventListener("click",e=>{ const it=e.target.closest(".witem"); if(!it) return; const i=+it.dataset.i; wheelSet(i,true); WH.idx=i; wheelPick(i); });
+WH.el.addEventListener("keydown",e=>{ const d=e.key==="ArrowDown"?1:e.key==="ArrowUp"?-1:0; if(!d) return; e.preventDefault(); const i=Math.max(0,Math.min(REM_OPTS.length-1,WH.idx+d)); wheelSet(i,true); wheelPick(i); });
+for(const id of ["remFrom","remTo"]) $(id).addEventListener("change",()=>{ const r=loadRemind(); r.from=$("remFrom").value||r.from; r.to=$("remTo").value||r.to;
+  if(r.every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); renderRemind(); return; } saveRemind(r); });
+$("remTest").addEventListener("click",async()=>{ if(MN){ try{ await MN.test(); toast("Опустите шторку — там пример вопроса"); }catch(e){} }
+  else if(LN){ try{ await LN.schedule({notifications:[{id:99, title:"Как себя чувствуешь?", body:"Так будет выглядеть вопрос", schedule:{at:new Date(Date.now()+1500)}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr"}]}); }catch(e){} } });
+$("remGo").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
+$("gearBtn").addEventListener("click",()=>{ renderRemind(); setTimeout(renderRemind,60); });
 if(LN){
-  $("remind").hidden=false;
-  const r=loadJSON("remind",{on:false,time:"20:00"});
-  $("remOn").checked=!!r.on; $("remTime").value=r.time||"20:00";
-  LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Ежедневный вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
+  LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
   LN.registerActionTypes({types:[{id:"MOOD", actions:[{id:"m3",title:"🙂 Нормально"},{id:"m2",title:"😐 Так себе"},{id:"m1",title:"😣 Плохо"}]}]}).catch(()=>{});
-  // a smiley pressed in the notification shade: save it and put the app back
   LN.addListener("localNotificationActionPerformed", ev=>{
     const a=ev.actionId||"";
     if(/^m[123]$/.test(a)){
       const k=OLDV[+a[1]]; addMark(k); $("moodPop").hidden=true;
       toast(`${KIND[k].e} ${KIND[k].l} — записано`);
       setTimeout(()=>window.Capacitor.Plugins?.App?.minimizeApp?.(), 1300);
-    } else setTimeout(showMoodPop, 300);                    // the notification itself was tapped
+    } else setTimeout(showMoodPop, 300);
   });
-  async function applyReminder(){
-    const on=$("remOn").checked, time=$("remTime").value||"20:00";
-    store.set("remind",JSON.stringify({on,time}));
-    if(on){
-      try{ let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
-        if(p.display!=="granted"){ $("remOn").checked=false; store.set("remind",JSON.stringify({on:false,time})); toast("Разрешите уведомления для «Не18мнеуже» в настройках Android."); return; } }catch(e){}
-    }
-    await scheduleReminders();
-    if(on) toast(`Напомню в шторке каждый день в ${time}`);
-  }
-  $("remOn").addEventListener("change",applyReminder);
-  $("remTime").addEventListener("change",()=>{ store.set("remind",JSON.stringify({on:$("remOn").checked,time:$("remTime").value})); scheduleReminders(); });
 }
+if(MN){
+  MN.addListener("mark", ()=>pullShadeMarks()).catch?.(()=>{});
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) pullShadeMarks(); });
+  setTimeout(pullShadeMarks, 800);
+}
+renderRemind();
 
 /* ---------- Android Back button (native app) ---------- */
 {
