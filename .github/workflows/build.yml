@@ -330,7 +330,7 @@ jobs:
           import org.json.JSONArray;
           import org.json.JSONObject;
 
-          // New chat messages while the app is closed: every ~15 minutes read each friend's chat.json on
+          // New chat messages while the app is closed: every ~5 minutes read each friend's chat.json on
           // Yandex Disk, open the messages meant for us with the key both friends share, and show them in the shade.
           public class ChatWatch {
               static final String PREFS = "chat_watch";
@@ -344,8 +344,8 @@ jobs:
                   PendingIntent pi = PendingIntent.getBroadcast(c, 5, new Intent(c, ChatWatchReceiver.class), FLAGS);
                   am.cancel(pi);
                   if (!prefs(c).getBoolean("on", false)) return;
-                  am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                      AlarmManager.INTERVAL_FIFTEEN_MINUTES, pi);
+                  // every ~5 minutes; when the phone sleeps for long, Android itself stretches this to 10–15 minutes
+                  am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5 * 60 * 1000L, 5 * 60 * 1000L, pi);
               }
 
               static int nid(String k) { return 7500 + (k.hashCode() & 0x3ff); }
