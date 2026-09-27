@@ -1073,6 +1073,7 @@ header{position:relative}
     <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
     <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
     <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">🔒 Политика конфиденциальности</a>
+    <div id="crashBox" hidden style="display:flex;flex-direction:column;gap:6px"><div class="src" style="color:var(--kp-hi)">В прошлый раз приложение закрылось из-за ошибки. Скопируйте её и пришлите разработчику — это поможет исправить.</div><pre class="src" id="crashTxt" style="white-space:pre-wrap;max-height:140px;overflow:auto;margin:0"></pre><button class="btn ghost" id="crashCopy">📋 Скопировать ошибку</button><button class="btn ghost" id="crashClear">Скрыть</button></div>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
     <button class="btn ghost" id="appShare">📲 Поделиться приложением</button>
     <button class="btn ghost" id="updCheck" hidden>🔄 Проверить обновления</button>
@@ -4495,7 +4496,8 @@ const hcMin=m=>`${Math.floor(m/60)} ч ${String(m%60).padStart(2,"0")}`;
 async function hcSync(manual){
   if(!HCP||!HC.on) return;
   const since=HC.last?HC.last-2*DAY:Date.now()-90*DAY;
-  let r; try{ r=await HCP.read({since}); }catch(e){ if(manual) toast("Не удалось прочитать Health Connect. Проверьте разрешения."); return; }
+  let r; try{ r=await HCP.read({since}); }catch(e){ HC.err=String(e?.message||e); saveHC(); if(manual) toast("Не удалось прочитать Health Connect: "+HC.err); return; }
+  HC.err="";
   const have=new Set(HM.list.map(m=>m.id));
   const near=(type,t,test)=>HM.list.some(m=>m.type===type&&Math.abs(+new Date(m.t)-t)<3*60000&&test(m));
   let nb=0, ng=0;
@@ -4552,9 +4554,10 @@ async function renderHC(){
   const box=$("hcBox"), chk=HC_ITEMS.map(([k,l])=>`<label class="rsw" style="justify-content:space-between"><span>${l}</span><input type="checkbox" data-hc="${k}" ${HC[k]?"checked":""}><span class="knob" aria-hidden="true"></span></label>`).join("");
   if(st.status==="unsupported"){ box.innerHTML=`<div class="src">Health Connect работает на Android 9 и новее.</div>`; return; }
   if(st.status==="install"){ box.innerHTML=`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами. Для этого нужно приложение Health Connect от Google.</div><button class="btn" data-hcact="install">Установить Health Connect</button>`; return; }
-  if(!HC.on){ box.innerHTML=`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами — вручную вводить не нужно.</div>${chk}<button class="btn" data-hcact="connect">Подключить Health Connect</button>`; return; }
+  const errT=HC.err?`<div class="src" style="color:var(--kp-hi)">Ошибка: ${esc(HC.err)}</div>`:"";
+  if(!HC.on){ box.innerHTML=errT+`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами — вручную вводить не нужно.</div>${chk}<button class="btn" data-hcact="connect">Подключить Health Connect</button>`; return; }
   const g=HC.got||{};
-  box.innerHTML=`${chk}<div class="hcok"><i></i>Подключено${HC.last?` · обновлено ${whenTxt(new Date(HC.last).toISOString())}`:""}</div>
+  box.innerHTML=`${errT}${chk}<div class="hcok"><i></i>Подключено${HC.last?` · обновлено ${whenTxt(new Date(HC.last).toISOString())}`:""}</div>
     <div class="src">Из Health Connect: давление ×${g.bp||0}, сахар ×${g.glu||0}, ночей сна ${g.sleep||0}</div>
     <button class="btn ghost" data-hcact="sync">Обновить сейчас</button><button class="btn ghost" data-hcact="perm">Разрешения Health Connect</button><button class="btn ghost" data-hcact="off">Отключить</button>`;
 }
@@ -4567,12 +4570,24 @@ if(HCP){
     if(a==="perm"){ HCP.openSettings(); return; }
     if(a==="off"){ HC.on=false; saveHC(); renderHC(); if(TAB==="health") renderHealthPage(); toast("Health Connect отключён. Уже полученные записи остались."); return; }
     if(a==="sync"){ hcSync(true); return; }
-    if(a==="connect"){ let r=null; try{ r=await HCP.request({write:HC.write}); }catch(err){}
+    if(a==="connect"){ let r=null; try{ r=await HCP.request({write:HC.write}); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); return; }
       if(!r||!(r.granted||[]).length){ toast("Доступ не дан. Его можно открыть в «Разрешениях Health Connect»."); renderHC(); return; }
       HC.on=true; HC.last=0; saveHC(); renderHC(); hcSync(true); } });
   $("gearBtn").addEventListener("click",()=>renderHC());
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&HC.on&&Date.now()-HC.last>30*60000) hcSync(false); });
   setTimeout(()=>{ if(HC.on) hcSync(false); },4000);
+}
+
+/* ---------- the reason of the last crash (native, build 70+) ---------- */
+{
+  const CL=(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?(window.Capacitor.Plugins?.CrashLog||null):null;
+  if(CL){
+    CL.get().then(r=>{ if(!r||!r.text) return; $("crashTxt").textContent=r.text; $("crashBox").hidden=false;
+      toast("В прошлый раз приложение закрылось из-за ошибки. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
+    $("crashCopy").addEventListener("click",async()=>{ const t=$("crashTxt").textContent;
+      try{ const CB=window.Capacitor.Plugins?.Clipboard; if(CB) await CB.write({string:t}); else await navigator.clipboard.writeText(t); toast("Ошибка скопирована — вставьте её в сообщение."); }catch(e){ toast("Не получилось скопировать."); } });
+    $("crashClear").addEventListener("click",()=>{ CL.clear().catch(()=>{}); $("crashBox").hidden=true; });
+  }
 }
 
 /* ---------- personal forecast for tomorrow ----------

@@ -972,6 +972,7 @@ jobs:
           public class MainActivity extends BridgeActivity {
               @Override
               public void onCreate(Bundle savedInstanceState) {
+                  CrashLogPlugin.install(getApplicationContext());
                   registerPlugin(ApkUpdatePlugin.class);
                   registerPlugin(MoodNotifyPlugin.class);
                   registerPlugin(ChatWatchPlugin.class);
@@ -980,6 +981,7 @@ jobs:
                   registerPlugin(WxWidgetPlugin.class);
                   registerPlugin(FcNotifyPlugin.class);
                   registerPlugin(HealthConnPlugin.class);
+                  registerPlugin(CrashLogPlugin.class);
                   super.onCreate(savedInstanceState);
               }
           }
@@ -1254,11 +1256,14 @@ jobs:
                   return s
               }
 
-              private fun sdk(): Int =
+              private fun sdk(): Int = try {
                   if (Build.VERSION.SDK_INT < 28) HealthConnectClient.SDK_UNAVAILABLE
                   else HealthConnectClient.getSdkStatus(context, provider)
+              } catch (e: Throwable) { HealthConnectClient.SDK_UNAVAILABLE }
 
               private fun names(g: Collection<String>) = JSArray(g.map { it.substringAfterLast('.') })
+
+              private fun why(e: Throwable) = e.javaClass.simpleName + ": " + (e.message ?: "")
 
               // status: ok | install (Health Connect missing or too old) | unsupported (Android older than 9)
               @PluginMethod
@@ -1271,25 +1276,29 @@ jobs:
                       try {
                           r.put("granted", names(HealthConnectClient.getOrCreate(context).permissionController.getGrantedPermissions()))
                           call.resolve(r)
-                      } catch (e: Exception) { call.reject(e.message ?: "error") }
+                      } catch (e: Throwable) { call.reject(why(e)) }
                   }
               }
 
               @PluginMethod
               fun request(call: PluginCall) {
                   if (sdk() != HealthConnectClient.SDK_AVAILABLE) { call.reject("unavailable"); return }
-                  val intent = PermissionController.createRequestPermissionResultContract(provider)
-                      .createIntent(context, perms(call.getBoolean("write", false) == true))
-                  startActivityForResult(call, intent, "onPermissions")
+                  try {
+                      val intent = PermissionController.createRequestPermissionResultContract(provider)
+                          .createIntent(context, perms(call.getBoolean("write", false) == true))
+                      startActivityForResult(call, intent, "onPermissions")
+                  } catch (e: Throwable) { call.reject(why(e)) }
               }
 
               @ActivityCallback
               private fun onPermissions(call: PluginCall?, result: ActivityResult) {
                   if (call == null) return
-                  val granted = PermissionController.createRequestPermissionResultContract(provider).parseResult(result.resultCode, result.data)
-                  val r = JSObject()
-                  r.put("granted", names(granted))
-                  call.resolve(r)
+                  try {
+                      val granted = PermissionController.createRequestPermissionResultContract(provider).parseResult(result.resultCode, result.data)
+                      val r = JSObject()
+                      r.put("granted", names(granted))
+                      call.resolve(r)
+                  } catch (e: Throwable) { call.reject(why(e)) }
               }
 
               private suspend fun <T : Record> all(c: HealthConnectClient, type: KClass<T>, range: TimeRangeFilter): List<T> {
@@ -1367,7 +1376,7 @@ jobs:
                           }
                           out.put("steps", steps)
                           call.resolve(out)
-                      } catch (e: Exception) { call.reject(e.message ?: "error") }
+                      } catch (e: Throwable) { call.reject(why(e)) }
                   }
               }
 
@@ -1389,7 +1398,7 @@ jobs:
                           }
                           if (recs.isNotEmpty()) HealthConnectClient.getOrCreate(context).insertRecords(recs)
                           call.resolve()
-                      } catch (e: Exception) { call.reject(e.message ?: "error") }
+                      } catch (e: Throwable) { call.reject(why(e)) }
                   }
               }
 
@@ -1441,6 +1450,51 @@ jobs:
           sed -i 's|</manifest>|    <uses-sdk tools:overrideLibrary="androidx.health.connect.client,androidx.health.platform.client" />\n    <queries><package android:name="com.google.android.apps.healthdata" /></queries>\n    <uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.WRITE_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />\n    <uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE" />\n    <uses-permission android:name="android.permission.health.READ_SLEEP" />\n    <uses-permission android:name="android.permission.health.READ_STEPS" />\n</manifest>|' $M
           sed -i 's|</application>|    <activity android:name=".HcRationaleActivity" android:exported="true" android:theme="@android:style/Theme.Translucent.NoTitleBar">\n            <intent-filter><action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" /></intent-filter>\n        </activity>\n        <activity-alias android:name="ViewPermissionUsageActivity" android:exported="true" android:targetActivity=".HcRationaleActivity" android:permission="android.permission.START_VIEW_PERMISSION_USAGE">\n            <intent-filter><action android:name="android.intent.action.VIEW_PERMISSION_USAGE" /><category android:name="android.intent.category.HEALTH_PERMISSIONS" /></intent-filter>\n        </activity-alias>\n    </application>|' $M
           grep -q 'tools:overrideLibrary' $M || { echo "manifest: tools namespace or uses-sdk missing"; exit 1; }
+          # when the app closes on an error, keep the reason: Settings shows it so it can be copied and sent
+          cat > $J/CrashLogPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.Context;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.io.PrintWriter;
+          import java.io.StringWriter;
+          import java.util.Date;
+
+          @CapacitorPlugin(name = "CrashLog")
+          public class CrashLogPlugin extends Plugin {
+              static void install(final Context app) {
+                  final Thread.UncaughtExceptionHandler prev = Thread.getDefaultUncaughtExceptionHandler();
+                  Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+                      try {
+                          StringWriter sw = new StringWriter();
+                          e.printStackTrace(new PrintWriter(sw));
+                          String s = sw.toString();
+                          if (s.length() > 6000) s = s.substring(0, 6000);
+                          app.getSharedPreferences("crash", Context.MODE_PRIVATE).edit()
+                              .putString("last", new Date() + " · сборка " + BuildConfig.VERSION_NAME + "\n" + s).commit();
+                      } catch (Throwable ignored) { }
+                      if (prev != null) prev.uncaughtException(t, e);
+                  });
+              }
+
+              @PluginMethod
+              public void get(PluginCall call) {
+                  JSObject r = new JSObject();
+                  r.put("text", getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).getString("last", ""));
+                  call.resolve(r);
+              }
+
+              @PluginMethod
+              public void clear(PluginCall call) {
+                  getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).edit().remove("last").apply();
+                  call.resolve();
+              }
+          }
+          JAVA
           # home-screen widget 2x1: weather, pressure and the Kp index
           cat > $J/WxWidget.java <<'JAVA'
           package ru.barometr.neba;
