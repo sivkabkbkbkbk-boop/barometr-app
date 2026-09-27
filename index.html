@@ -622,6 +622,22 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
 .msg .tm{align-self:flex-end;font-size:10px;color:rgb(var(--inkc) / .6);font-family:var(--f-mono)}
 .msg .er{color:#ff8b7e;cursor:pointer;padding:0 3px}
+/* personal forecast for tomorrow: a strip on Today, the full card on Health */
+.fcstrip{display:flex;align-items:center;gap:10px;width:100%;background:var(--sheet);border:1px solid var(--glass-line);border-left:4px solid var(--fc);border-radius:16px;padding:10px 12px;margin:0 0 12px;font:inherit;font-size:14px;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fcstrip .e{font-size:22px;line-height:1}.fcstrip b{color:var(--fc)}.fcstrip .go{margin-left:auto;color:var(--muted)}
+.fcc .lvl{display:flex;align-items:center;gap:12px;margin:10px 0 8px}
+.fcc .lvl .e{font-size:40px;line-height:1}
+.fcc .lvl b{display:block;font-family:var(--f-disp);font-weight:600;font-size:17px;line-height:1.25;color:var(--fc)}
+.fcc .lvl small{color:var(--muted);font-size:12.5px}
+.fcc .meter{display:flex;gap:4px;margin:4px 0 10px}.fcc .meter i{flex:1;height:6px;border-radius:3px;background:rgb(var(--inkc) / .1)}
+.fcc .why{display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+.fcc .why>div{display:flex;gap:8px}.fcc .why .i{flex:none;width:22px;text-align:center}
+.fcc .tips{margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-line);font-size:13px;display:flex;flex-direction:column;gap:5px}
+.fcc .tips div::before{content:"• ";color:var(--press)}
+.fcc .prog{height:8px;border-radius:4px;background:rgb(var(--inkc) / .1);overflow:hidden;margin:8px 0 4px}.fcc .prog i{display:block;height:100%;background:var(--press);border-radius:4px}
+.fcc .mhd{display:flex;justify-content:space-between;align-items:center}
+.fcc.hl{animation:fcHl 1.4s ease}@keyframes fcHl{0%{box-shadow:0 0 0 3px var(--press)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion: reduce){.fcc.hl{animation:none}}
 .msg.me{color:#fff}
 .msg.me .tm{color:rgb(255 255 255 / .65);display:inline-flex;align-items:center;gap:3px}
 .mst{display:inline-flex;width:17px;height:11px;align-items:center}
@@ -845,6 +861,7 @@ header{position:relative}
   </section>
 
 
+  <button class="fcstrip" id="fcStrip" hidden></button>
   <section class="card fade risk" id="cardRisk" style="animation-delay:.01s" aria-label="Погода и самочувствие сегодня">
     <div class="mchead"><div class="label">Погода и самочувствие сегодня</div><span class="rpill" id="riskPill"></span></div>
     <div class="rbody"><svg id="riskG" viewBox="0 0 96 58" aria-hidden="true"></svg><div class="rwhy" id="riskWhy"></div></div>
@@ -908,6 +925,7 @@ header{position:relative}
 
 <main class="app page" id="pgHealth" hidden>
   <div class="ptitle"><h1>Здоровье</h1></div>
+  <section class="card fcc" id="fcCard" hidden></section>
   <div class="seg3" id="hSeg"><button data-hs="bp">🩺 Давление</button><button data-hs="glu">🩸 Сахар</button><button data-hs="mood">😊 Состояние</button></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
   <div class="card" id="moodDaysC" hidden><div class="label" style="margin-bottom:10px">Последние 7 дней</div>
@@ -1029,6 +1047,9 @@ header{position:relative}
       <div class="src" id="remNote">В шторке появится «Как себя чувствуешь?» со всеми смайликами — нажмите нужный, и отметка сохранится, не открывая приложение.</div>
       <button class="btn ghost" id="remTest">👀 Показать пример уведомления</button>
     </div>
+    <div class="ctitle" id="fcT" hidden>Личный прогноз</div>
+    <label class="rsw" id="fcW" hidden style="justify-content:space-between"><span>Предупреждать накануне<br><span class="fhm">только если завтра средне или тяжело</span></span><input type="checkbox" id="fcOn"><span class="knob" aria-hidden="true"></span></label>
+    <div class="remrow" id="fcTimeW" hidden>Время <input type="time" id="fcTime" value="20:00" aria-label="Время предупреждения"></div>
     <div class="ctitle" id="icoT" hidden>Значок приложения</div>
     <label class="rsw" id="icoW" hidden style="justify-content:space-between"><span>Значок меняется по погоде<br><span class="fhm">спокойно — стрелка далеко, тяжело — давит на человечка</span></span><input type="checkbox" id="icoOn"><span class="knob" aria-hidden="true"></span></label>
     <div class="ctitle" id="wxwT" hidden>Виджет на рабочем столе</div>
@@ -1479,6 +1500,7 @@ function render(){
   if(typeof render5==="function") render5();
   if(typeof renderRisk==="function") renderRisk();
   if(typeof iconPlanSoon==="function") iconPlanSoon();
+  if(typeof fcRender==="function") fcRender();
   sky.set(c, cur);
   if(!$("hist").hidden) drawHistory();
 }
@@ -3250,6 +3272,7 @@ function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&M
 function renderHealthPage(){
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
   $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
+  if(typeof fcRender==="function") fcRender();
   const box=$("hBody"); let h="";
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
@@ -4439,6 +4462,141 @@ renderRemind();
 const ICO = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.IconSwitch||null) : null;
 const icoOn = () => store.get("iconWx")!=="0";
 let icoTimer=0;
+/* ---------- personal forecast for tomorrow ----------
+   Past days with mood marks are compared with the weather of those days (the same test as "what affects
+   how you feel" in Reports). Tomorrow's forecast is checked against the factors that affect this person;
+   with fewer than 14 marked days the general weather risk is used. */
+const FC_NEED=14, FC_TRIED=new Set();
+const FC_F=[
+  {k:"dpress", i:"🧭", on:f=>f.dpress==null?null:f.dpress>=5, past:"При таких перепадах давления"},
+  {k:"kp",     i:"🧲", on:f=>f.kp==null?null:f.kp>=4,         past:"В дни с Kp ≥ 4"},
+  {k:"dtemp",  i:"🌡", on:f=>f.dtemp==null?null:f.dtemp>=9,   past:"При таких перепадах температуры"},
+  {k:"low",    i:"⬇️", on:f=>f.press==null?null:f.press<745,  past:"При низком давлении"}];
+const FC_L={good:{e:"😊",t:"Хороший день",c:"var(--kp-ok)",n:1},mid:{e:"😐",t:"Возможно недомогание",c:"var(--kp-mid)",n:2},hard:{e:"😣",t:"Тяжёлый день",c:"var(--kp-hi)",n:3}};
+const fcBad=r=>r.v<=1.6||(r.kinds||[]).some(x=>KIND[x]?.sym&&KIND[x].s<=1.5);
+const fcTimes=n=>n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?"раза":"раз";
+const fcDays=n=>n%10===1&&n%100!==11?"день":n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?"дня":"дней";
+// weather of one forecast day, in the same terms as dayFeatures() for past days
+function fcDayWx(date){
+  const f=S.feed[S.slug]; if(!f||!f.hours) return null;
+  const hs=f.hours.filter(h=>isoDay(new Date(h.t))===date); if(hs.length<12) return null;
+  const o={}, avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const pp=hs.map(h=>h.p!=null?h.p*HPA2MM:null).filter(v=>v!=null);
+  if(pp.length>=8){ o.press=avg(pp); o.dpress=Math.max(...pp)-Math.min(...pp); o.pdir=pp[pp.length-1]-pp[0]; }
+  const T=hs.map(h=>h.temp).filter(v=>v!=null); if(T.length>=8) o.dtemp=Math.max(...T)-Math.min(...T);
+  const kps=(S.kpFc||[]).filter(x=>isoDay(new Date(x.t))===date).map(x=>x.kp); if(kps.length) o.kp=Math.max(...kps);
+  return o;
+}
+// what past days say about each factor for this person
+function fcStats(){
+  const today=isoDay(new Date()), since=isoDay(new Date(Date.now()-120*DAY));
+  const days=Object.entries(S.mood).filter(([d])=>d>=since&&d<today);
+  const st={n:Object.keys(S.mood).filter(d=>d>=since&&d<=today).length, f:{}};
+  // the weather of those days: fetch what is missing, then draw again
+  const cov=coveredDays("obs",S.slug), need=days.map(([d])=>d).filter(d=>!cov.has(d)).sort();
+  const once=(key,go)=>{ if(FC_TRIED.has(key)) return; FC_TRIED.add(key); go().then(ok=>{ if(ok) fcRender(); }); };
+  if(need.length) once(`obs:${S.slug}:${need[0]}:${need[need.length-1]}`,()=>ensure("obs",S.slug,need[0],need[need.length-1]));
+  const kc=coveredDays("kp"), km=days.map(([d])=>d).filter(d=>!kc.has(d)).sort();
+  if(km.length) once(`kp:${km[0]}:${km[km.length-1]}`,()=>ensure("kp",S.slug,km[0],km[km.length-1]));
+  const F={}; for(const [d] of days) F[d]=dayFeatures(d,S.slug);
+  for(const x of FC_F){
+    const a=days.filter(([d])=>F[d]&&x.on(F[d])===true), b=days.filter(([d])=>F[d]&&x.on(F[d])===false);
+    if(a.length<3||b.length<3) continue;
+    const ab=a.filter(([,r])=>fcBad(r)), ra=ab.length/a.length, rb=b.filter(([,r])=>fcBad(r)).length/b.length;
+    const cnt={}; for(const [,r] of ab) for(const k of r.kinds||[]) if(KIND[k]?.sym) cnt[k]=(cnt[k]||0)+1;
+    const top=Object.entries(cnt).sort((p,q)=>q[1]-p[1])[0];
+    st.f[x.k]={a:a.length, bad:ab.length, ra, rb, sens:ra>=rb*1.5&&ra-rb>=.2, top:top?KIND[top[0]]:null};
+  }
+  return st;
+}
+function fcWxLine(x,w){
+  if(x.k==="dpress") return w.dpress>=5?(Math.abs(w.pdir)>=2?`Давление <b>${w.pdir<0?"упадёт":"вырастет"} на ${Math.round(w.dpress)} мм</b> за сутки`:`Давление <b>будет скакать на ${Math.round(w.dpress)} мм</b>`):`Давление стабильное, ${Math.round(w.press)} мм`;
+  if(x.k==="kp") return w.kp>=5?`Магнитная буря, <b>Kp до ${Math.round(w.kp)}</b>`:w.kp>=4?`Магнитный фон неспокойный, <b>Kp ${Math.round(w.kp)}</b>`:`Магнитный фон спокойный, Kp ${Math.round(w.kp)}`;
+  if(x.k==="dtemp") return w.dtemp>=9?`Перепад температуры <b>${Math.round(w.dtemp)}°</b>`:"Без резких перепадов температуры";
+  if(x.k==="low") return `Низкое давление, <b>${Math.round(w.press)} мм</b>`;
+}
+// the forecast for one day: level, reasons, tips
+function fcFor(date){
+  const w=fcDayWx(date); if(!w) return null;
+  const st=fcStats(), personal=st.n>=FC_NEED, why=[];
+  let lv="good", risk=0;
+  for(const x of FC_F){
+    const on=x.on(w); if(on==null) continue;
+    const p=st.f[x.k];
+    if(on){
+      let sub="";
+      if(personal&&p&&p.sens){ risk=Math.max(risk,p.ra); sub=`${x.past} вам было плохо <b>${p.bad} ${fcTimes(p.bad)} из ${p.a}</b>${p.top?`, чаще всего ${p.top.e} ${p.top.l.toLowerCase()}`:""}`; }
+      else if(personal&&p) sub="На это вы обычно реагируете слабо";
+      why.push({i:x.i, t:fcWxLine(x,w), sub, w:on&&p&&p.sens?2:1});
+    } else if(x.k!=="low") why.push({i:x.i, t:fcWxLine(x,w), sub:"", w:0});
+  }
+  why.sort((a,b)=>b.w-a.w);
+  if(personal){ lv=risk>=.5?"hard":risk>=.25?"mid":"good";
+    if(lv==="good"){ const r=weatherRisk(+new Date(date+"T02:00:00")); if(r&&r.sc>6) lv="mid"; } }
+  else { const r=weatherRisk(+new Date(date+"T02:00:00")); lv=!r?"good":r.sc<=3?"good":r.sc<=6?"mid":"hard"; }
+  const tips=lv==="hard"?["Запланируйте поменьше дел","Держите тонометр под рукой, измерьте давление утром","Не пропускайте назначенные врачом лекарства"]
+    :lv==="mid"?["Измерьте давление утром","Прогулка без нагрузки, больше воды"]:[];
+  return {date, lv, personal, why:why.slice(0,3), tips, n:st.n};
+}
+function fcRender(){
+  if(!window.FC_READY) return;          // called by render() before this part of the script has run
+  const card=$("fcCard"), strip=$("fcStrip"); if(!card||!strip) return;
+  let F=null; try{ F=fcFor(isoDay(new Date(Date.now()+DAY))); }catch(e){}
+  if(!F){ card.hidden=true; strip.hidden=true; return; }
+  const L=FC_L[F.lv];
+  strip.hidden=!(F.personal&&F.lv!=="good");
+  strip.style.setProperty("--fc",L.c);
+  strip.innerHTML=`<span class="e">${L.e}</span><span>Завтра для вас: <b>${L.t.toLowerCase()}</b></span><span class="go">›</span>`;
+  card.style.setProperty("--fc",L.c); card.hidden=false;
+  const why=`<div class="why">${F.why.map(x=>`<div><span class="i">${x.i}</span><span>${x.t}${x.sub?`<br><span class="fhm">${x.sub}</span>`:""}</span></div>`).join("")}</div>`;
+  if(!F.personal){
+    const left=FC_NEED-F.n;
+    card.innerHTML=`<div class="label">Ваш прогноз на завтра</div>
+      <div class="lvl"><span class="e">${L.e}</span><div><b>${L.t}</b><small>общий прогноз для метеозависимых</small></div></div>${why}
+      <div class="fhm" style="margin-top:12px">Чтобы прогноз стал <b>личным</b>, отмечайте самочувствие ещё <b>${left} ${fcDays(left)}</b></div>
+      <div class="prog"><i style="width:${Math.round(F.n/FC_NEED*100)}%"></i></div><div class="fhm">${F.n} из ${FC_NEED} дней</div>`;
+    fcPlanSoon(); return;
+  }
+  card.innerHTML=`<div class="mhd"><div class="label">Ваш прогноз на завтра</div><button class="mlink" data-fcrep>подробнее ›</button></div>
+    <div class="lvl"><span class="e">${L.e}</span><div><b>${L.t}</b><small>${F.lv==="good"?"погода спокойная, без ваших триггеров":"для вас, по вашим прошлым отметкам"}</small></div></div>
+    <div class="meter">${[1,2,3].map(i=>`<i style="${i<=L.n?"background:var(--fc)":""}"></i>`).join("")}</div>${why}
+    ${F.tips.length?`<div class="tips">${F.tips.map(t=>`<div>${t}</div>`).join("")}</div>`:""}
+    <div class="src" style="margin-top:10px">Прогноз по вашей статистике за последние месяцы, это не диагноз.</div>`;
+  fcPlanSoon();
+}
+$("fcStrip").addEventListener("click",()=>{ showTab("health"); const c=$("fcCard"); c.scrollIntoView({block:"start",behavior:"smooth"}); c.classList.remove("hl"); void c.offsetWidth; c.classList.add("hl"); });
+$("fcCard").addEventListener("click",e=>{ if(e.target.closest("[data-fcrep]")) showTab("rep"); });
+/* the evening warning (native, build 67+): the app leaves the next two evenings' texts, Android shows them on time */
+var FCN = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.FcNotify||null) : null, fcTimer=0;
+const fcOn=()=>store.get("fcOn")!=="0", fcTime=()=>/^\d\d:\d\d$/.test(store.get("fcTime")||"")?store.get("fcTime"):"20:00";
+function fcPlanSoon(){ if(!FCN) return; clearTimeout(fcTimer); fcTimer=setTimeout(fcPlanSend,2500); }
+async function fcPlanSend(){
+  if(!FCN) return;
+  const items=[];
+  if(fcOn()) for(let i=0;i<2;i++){
+    const eve=new Date(Date.now()+i*DAY), [hh,mm]=fcTime().split(":").map(Number); eve.setHours(hh,mm,0,0);
+    if(+eve<=Date.now()) continue;
+    let F=null; try{ F=fcFor(isoDay(new Date(+eve+DAY))); }catch(e){}
+    if(!F||F.lv==="good") continue;
+    const main=F.why.filter(x=>x.w).map((x,i)=>{ const t=x.t.replace(/<[^>]+>/g,""); return i?t[0].toLowerCase()+t.slice(1):t; }).slice(0,2).join(", ");
+    const sub=(F.why.find(x=>x.w===2)?.sub||"").replace(/<[^>]+>/g,"");
+    items.push({t:+eve, title:F.lv==="hard"?"Завтра для вас, скорее всего, тяжёлый день":"Завтра возможно недомогание",
+      text:[main, sub].filter(Boolean).join(". ")+". Подготовьтесь с вечера."});
+  }
+  try{ await FCN.schedule({items}); }catch(e){}
+}
+if(FCN){
+  for(const id of ["fcT","fcW","fcTimeW"]) $(id).hidden=false;
+  $("fcOn").checked=fcOn(); $("fcTime").value=fcTime();
+  $("fcOn").addEventListener("change",async()=>{
+    if($("fcOn").checked&&LN){ try{ let p=await LN.checkPermissions(); if(p.display!=="granted") p=await LN.requestPermissions();
+      if(p.display!=="granted") toast("Разрешите уведомления для «Не18мнеуже» в настройках Android."); }catch(e){} }
+    store.set("fcOn",$("fcOn").checked?"1":"0"); fcPlanSend();
+    toast($("fcOn").checked?`Предупрежу в ${fcTime()}, если завтра будет тяжело.`:"Предупреждения накануне выключены."); });
+  $("fcTime").addEventListener("change",()=>{ if(/^\d\d:\d\d$/.test($("fcTime").value)){ store.set("fcTime",$("fcTime").value); fcPlanSend(); } });
+}
+window.FC_READY=true; fcRender();
+
 /* ---------- home-screen widget 2x1 (build 65+): an hourly plan for two days; the widget picks the current hour
    and a background for its weather ---------- */
 var WXW = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.WxWidget||null) : null, wxwTimer=0;
