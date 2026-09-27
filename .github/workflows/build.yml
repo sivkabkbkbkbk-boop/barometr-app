@@ -1417,6 +1417,29 @@ jobs:
                   }
               }
 
+              // Health Connect's own page with this app's permissions. The permission request above closes the
+              // app's window on some phones (vivo, Android 16); this page is a plain screen and works everywhere.
+              @PluginMethod
+              fun manage(call: PluginCall) {
+                  val me = context.packageName
+                  val tries = mutableListOf<Intent>()
+                  if (Build.VERSION.SDK_INT >= 34) tries.add(Intent("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS").putExtra(Intent.EXTRA_PACKAGE_NAME, me))
+                  tries.add(Intent("androidx.health.ACTION_MANAGE_HEALTH_PERMISSIONS").setPackage(provider).putExtra(Intent.EXTRA_PACKAGE_NAME, me))
+                  tries.add(Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS))
+                  for (i in tries) {
+                      try {
+                          i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                          context.startActivity(i)
+                          CrashLogPlugin.note(context, "hc manage: opened " + i.action)
+                          val r = JSObject()
+                          r.put("opened", i.action)
+                          call.resolve(r)
+                          return
+                      } catch (e: Throwable) { CrashLogPlugin.note(context, "hc manage: " + i.action + " failed: " + why(e)) }
+                  }
+                  call.reject("Health Connect не открылся")
+              }
+
               @PluginMethod
               fun openSettings(call: PluginCall) {
                   try {
