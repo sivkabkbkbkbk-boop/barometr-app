@@ -869,19 +869,21 @@ header{position:relative}
 
 /* tablets and wide screens: two columns of cards; the header, the weather, the map and wide charts span both */
 @media (min-width:760px){
-  .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:start}
+  .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:stretch}
   .app>*,.app>header{min-width:0}
   #pgToday>header,#pgToday>.notice,#pgToday>.hero,#pgToday>.fcstrip,#cardRain,#cardHours,#card5,
   .app>.ptitle,.app>.src,.app>.seg3,#repData,#hBody,#fcCard,#moodDaysC{grid-column:1/-1}
-  #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:start}
+  #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:stretch}
   #repData>*{min-width:0}
-  #repPer,#repRange,#repSelC,#repPanels,#repKpi,#repData>.src{grid-column:1/-1}
-  #hBody{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #repPer,#repRange,#repSelC,#repPanels,#repKpi,#repData>.src,#repInsC,#moodFacC,#moodSymC{grid-column:1/-1}
+  #mfacs,#msymp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:stretch}   /* long lists: two columns inside a full-width card */
+  #hBody{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
   #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
   #pgFriends{display:flex;max-width:760px}
   #pgToday{grid-auto-flow:row dense}
   #grid2{grid-column:auto}
-  #cardHealth{align-self:stretch}
+  #pgToday,#repData.rsec,#hBody{align-items:stretch}   /* cards side by side are the same height */
+  #pgToday>.card,#grid2>.card,#repData>.card,#hBody>.card{height:100%;box-sizing:border-box}
 
   #repData>.kpis:has(.kpi[style*="grid-column:1/-1"]){grid-column:1/-1}
   .rmap{height:300px}
