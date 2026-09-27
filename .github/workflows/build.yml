@@ -704,11 +704,26 @@ jobs:
                   if (t <= 0) return;
                   // an exact alarm: phones that save battery hard (vivo, Xiaomi…) put off the inexact ones for hours
                   boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
+                  String err = "";
                   try {
                       if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
                       else if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
                       else am.setExact(AlarmManager.RTC_WAKEUP, t, pi);
-                  } catch (SecurityException e) { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi); }
+                  } catch (Exception e) { err = e.toString(); try { am.set(AlarmManager.RTC_WAKEUP, t, pi); } catch (Exception e2) { err += " / " + e2; } }
+                  prefs(c).edit().putBoolean("exactUsed", exact).putString("schedErr", err).putLong("schedAt", System.currentTimeMillis()).apply();
+              }
+
+              // a one-off question in `sec` seconds by the same alarm path, to see whether alarms reach the app at all
+              static void testIn(Context c, int sec) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 3, new Intent(c, MoodAlarmReceiver.class).putExtra("test", true), FLAGS);
+                  long t = System.currentTimeMillis() + sec * 1000L;
+                  boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
+                  try {
+                      if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      else am.set(AlarmManager.RTC_WAKEUP, t, pi);
+                  } catch (Exception e) { prefs(c).edit().putString("schedErr", e.toString()).apply(); }
+                  prefs(c).edit().putLong("testAt", t).apply();
               }
 
               static void channel(Context c) {
@@ -871,7 +886,19 @@ jobs:
                   r.put("lastFire", s.getLong("lastFire", 0));
                   r.put("lastPosted", s.getLong("lastPosted", 0));
                   r.put("maker", android.os.Build.MANUFACTURER);
+                  r.put("lastWhy", s.getString("lastWhy", ""));
+                  r.put("schedErr", s.getString("schedErr", ""));
+                  r.put("exactUsed", s.getBoolean("exactUsed", false));
+                  r.put("every", s.getInt("every", 0));
+                  r.put("pending", android.app.PendingIntent.getBroadcast(c, 1, new android.content.Intent(c, MoodAlarmReceiver.class), android.app.PendingIntent.FLAG_NO_CREATE | android.app.PendingIntent.FLAG_IMMUTABLE) != null);
+                  r.put("testAt", s.getLong("testAt", 0));
                   call.resolve(r);
+              }
+
+              @PluginMethod
+              public void testIn(PluginCall call) {
+                  MoodNotify.testIn(getContext(), call.getInt("sec", 60));
+                  call.resolve();
               }
 
               @PluginMethod
@@ -933,10 +960,11 @@ jobs:
                   } else {
                       recent = now - last < every * 60000L / 2;
                   }
-                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now);
-                  if (every > 0 && !recent) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
+                  boolean test = intent.getBooleanExtra("test", false);
+                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now).putString("lastWhy", test ? "test" : every <= 0 ? "off" : recent ? "recent" : "asked");
+                  if (test || (every > 0 && !recent)) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
                   ed.apply();
-                  MoodNotify.schedule(c);
+                  if (!test) MoodNotify.schedule(c);
               }
           }
           JAVA

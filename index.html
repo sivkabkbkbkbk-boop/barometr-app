@@ -4614,13 +4614,21 @@ async function remStatus(){
   else if(!st.channel) probs.push(["notif","Выключены уведомления «Как вы себя чувствуете».","Включить"]);
   if(!st.battery) probs.push(["battery","Телефон экономит батарею и может усыплять приложение — тогда вопрос не приходит.","Разрешить работу в фоне"]);
   if(!st.exact) probs.push(["exact","Нет разрешения на напоминания в точное время.","Разрешить"]);
+  const why={asked:"задал вопрос",recent:"пропустил: вы недавно отметились",off:"вопросы выключены",test:"проверка"}[st.lastWhy]||"";
+  if(st.every!==r.every) probs.push(["","Телефон не получил новые настройки — выберите частоту ещё раз.",""]);
+  if(!st.pending&&r.every) probs.push(["","Будильник для вопросов не установлен.",""]);
+  if(st.schedErr) probs.push(["","Ошибка будильника: "+esc(st.schedErr),""]);
   box.innerHTML=(st.next?`<div>⏰ Следующий вопрос: <b>${when(st.next)}</b></div>`:"")
-    +(st.lastPosted?`<div class="fhm">Последний раз спрашивал: ${when(st.lastPosted)}</div>`:"")
-    +probs.map(([w,t,b])=>`<div class="remwarn">⚠️ ${t}<button class="btn ghost" data-remset="${w}">${b}</button></div>`).join("")
+    +`<div class="fhm">Будильник последний раз сработал: ${st.lastFire?`${when(st.lastFire)}${why?` — ${why}`:""}`:"<b>ни разу</b>"}</div>`
+    +(st.testAt&&st.testAt>Date.now()-10*60000?`<div class="fhm">Проверка назначена на ${fmtHM(new Date(st.testAt))}${st.lastWhy==="test"&&st.lastFire>=st.testAt-5000?" — <b>сработала ✓</b>":""}</div>`:"")
+    +`<button class="btn ghost" id="remProbe">🧪 Проверить: вопрос через 1 минуту</button>`
+    +probs.map(([w,t,b])=>`<div class="remwarn">⚠️ ${t}${b?`<button class="btn ghost" data-remset="${w}">${b}</button>`:""}</div>`).join("")
     +(/vivo|oppo|realme|xiaomi|redmi|huawei|honor|oneplus|meizu/i.test(st.maker||"")?`<div class="fhm">На телефонах ${esc(st.maker)} ещё проверьте: Настройки → Приложения → Не18мнеуже → включите «Автозапуск» и разрешите работу в фоне. <button class="mlink" data-remset="app" style="padding:0">Открыть</button></div>`:"");
   box.hidden=false;
 }
-$("remStat").addEventListener("click",e=>{ const b=e.target.closest("[data-remset]"); if(b&&MN?.openSettings) MN.openSettings({what:b.dataset.remset}).catch(()=>toast("Не удалось открыть настройки телефона.")); });
+$("remStat").addEventListener("click",e=>{
+  if(e.target.closest("#remProbe")){ if(MN?.testIn) MN.testIn({sec:60}).then(()=>{ toast("Через минуту в шторке появится вопрос. Можно закрыть приложение."); setTimeout(remStatus,300); }).catch(()=>toast("В этой версии проверки нет — обновите приложение.")); return; }
+  const b=e.target.closest("[data-remset]"); if(b&&MN?.openSettings) MN.openSettings({what:b.dataset.remset}).catch(()=>toast("Не удалось открыть настройки телефона.")); });
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&!$("remStat").hidden) setTimeout(remStatus,400); });   // back from the phone settings
 async function saveRemind(r){
   if(r.every && NATIVE && LN){
