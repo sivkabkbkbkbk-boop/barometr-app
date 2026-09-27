@@ -1845,15 +1845,25 @@ function markEmojis(X, x0, x1, top, ih, right){
   const span=(x1-x0)/DAY; if(span>62) return "";
   const list=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]).map(m=>({m,t:+new Date(m.t)})).filter(o=>o.t>=x0&&o.t<=x1).sort((a,b)=>a.t-b.t);
   if(!list.length) return "";
-  const fs=span>20?10:span>6?12:14, gap=fs*1.05, rows=[], ROWS=3; let out="", more=new Map();
-  for(const o of list){
-    const x=Math.min(right-fs/2, X(o.t)); let r=0; while(r<ROWS && rows[r]!=null && x-rows[r]<gap) r++;
-    if(r===ROWS){ const k=Math.round(x/gap); more.set(k,(more.get(k)||{x,n:0})); more.get(k).n++; continue; }
-    rows[r]=x; const y=top+fs*0.85+r*(fs+2);
-    out+=`<line x1="${X(o.t).toFixed(1)}" x2="${X(o.t).toFixed(1)}" y1="${(y+3).toFixed(1)}" y2="${top+ih}" stroke="rgba(238,243,248,.16)" stroke-dasharray="2 3"/>`;
-    out+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-size="${fs}"><title>${KIND[o.m.k].l}, ${fmtDM(new Date(o.t))} ${fmtHM(new Date(o.t))}</title>${KIND[o.m.k].e}</text>`;
+  // marks close in time are one slot (a slot is about 1/20 of what is shown, at least 3 hours); a slot shows its worst mark
+  const pxPerMs=(X(x1)-X(x0))/(x1-x0||1), slot=Math.max(3*H,30/pxPerMs), slots=new Map();   // about 20 px per slot: they never overlap
+  for(const o of list){ const k=Math.floor(o.t/slot), g=slots.get(k)||{t:(k+.5)*slot,ms:[]}; g.ms.push(o); slots.set(k,g); }
+  const style=window.MOOD_STYLE||"a", col=v=>v>=2.5?"var(--kp-ok)":v>=1.9?"var(--kp-mid)":"var(--kp-hi)";
+  let out=""; const G=[];
+  for(const g of [...slots.values()].sort((a,b)=>a.t-b.t)){        // too close at the edge: join with the one before
+    const x=Math.min(right-7,Math.max(8,X(g.t))), prev=G[G.length-1];
+    if(prev&&x-prev.x<26) prev.ms.push(...g.ms); else G.push({...g,x}); }
+  for(const g of G){
+    const worst=g.ms.reduce((a,o)=>KIND[o.m.k].s<KIND[a.m.k].s?o:a), avg=g.ms.reduce((a,o)=>a+KIND[o.m.k].s,0)/g.ms.length;
+    const x=g.x;
+    const tip=`<title>${g.ms.map(o=>`${fmtHM(new Date(o.t))} ${KIND[o.m.k].e} ${KIND[o.m.k].l}`).join("\n")}</title>`;
+    if(style==="b"){ out+=`<rect x="${(X(g.ms[0].t)-3).toFixed(1)}" y="${top+2}" width="${Math.max(6,X(g.ms[g.ms.length-1].t)-X(g.ms[0].t)+6).toFixed(1)}" height="8" rx="4" fill="${col(avg)}">${tip}</rect>`;
+      if(KIND[worst.m.k].s<=1.5) out+=`<text x="${x.toFixed(1)}" y="${top+26}" text-anchor="middle" font-size="12">${tip}${KIND[worst.m.k].e}</text>`; continue; }
+    if(style==="c"&&KIND[worst.m.k].s>1.5){ out+=`<circle cx="${x.toFixed(1)}" cy="${top+9}" r="4" fill="${col(avg)}">${tip}</circle>`; continue; }
+    out+=`<text x="${x.toFixed(1)}" y="${top+15}" text-anchor="middle" font-size="14">${tip}${KIND[worst.m.k].e}</text>`;
+    if(g.ms.length>1&&style==="a"){ const t=`×${g.ms.length}`, w=5+t.length*4.2, bx=x+1.5, by=top+9.5;   // "×3" in a small filled pill at the bottom right of the smiley
+      out+=`<rect x="${bx.toFixed(1)}" y="${by}" width="${w.toFixed(1)}" height="9" rx="4.5" fill="var(--press)" stroke="var(--sheet-2)" stroke-width="1.2"/><text x="${(bx+w/2).toFixed(1)}" y="${by+6.8}" text-anchor="middle" font-size="7" font-weight="500" fill="var(--on-acc)" font-family="Onest,system-ui,sans-serif">${t}</text>`; }
   }
-  for(const {x,n} of more.values()) out+=`<text x="${x.toFixed(1)}" y="${(top+fs*0.85+ROWS*(fs+2)).toFixed(1)}" text-anchor="middle" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">+${n}</text>`;
   return out;
 }
 /* ---- archive on demand: each metric loads only its own data, only for the chosen period ---- */
@@ -3281,7 +3291,7 @@ function drawOverlay(from,to,loading){
   const x0=+from, x1=+to, W=360, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw; REP.vx=[x0,x1];
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
   const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
-  const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
+  const hasMood=REP.sel.includes("mood"), T=hasMood?30:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
   // the chart is as tall as what is chosen: no empty line area when only bars are on, and bars get taller when alone
   const lines=REP.sel.some(k=>["bp","pulse","glu","press","temp","hum","wind"].includes(k)), moodLine=hasMood&&(x1-x0)/DAY>62;
   const lineH=lines?(hasMood?162:190):moodLine?70:hasMood?16:0, barH=!bars.length?0:lineH>16?44:bars.length*60;
