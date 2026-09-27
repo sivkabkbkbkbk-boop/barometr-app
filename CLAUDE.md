@@ -11,3 +11,5 @@
 - For any change that alters how the app or the widget looks, first show a preview and ask before
   pushing to GitHub. Changes that do not affect the look can be pushed right away.
 - Talk to the owner in Russian.
+- The goal of the work: make the app simpler to use and add features that are useful for weather-sensitive
+  people. Stay within that. Now and then suggest ideas of your own in that direction, with pictures or without.
