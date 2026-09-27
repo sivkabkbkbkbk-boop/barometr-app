@@ -975,6 +975,8 @@ jobs:
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   CrashLogPlugin.install(getApplicationContext());
+                  // lets an off-screen WebView draw the whole page, for the PDF report; must come before any WebView exists
+                  android.webkit.WebView.enableSlowWholeDocumentDraw();
                   CrashLogPlugin.note(this, "activity create" + (savedInstanceState != null ? " (restored after the system closed it)" : "")
                       + " · Android " + Build.VERSION.RELEASE + " · " + Build.MANUFACTURER + " " + Build.MODEL);
                   registerPlugin(ApkUpdatePlugin.class);
@@ -986,6 +988,7 @@ jobs:
                   registerPlugin(FcNotifyPlugin.class);
                   registerPlugin(CrashLogPlugin.class);
                   registerPlugin(PhoneStepsPlugin.class);
+                  registerPlugin(PdfReportPlugin.class);
                   super.onCreate(savedInstanceState);
               }
 
@@ -1265,6 +1268,125 @@ jobs:
               public void clear(PluginCall call) {
                   getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).edit().remove("last").remove("trail").apply();
                   call.resolve();
+              }
+          }
+          JAVA
+          # the doctor's report: the app gives the pages as HTML, we draw them into a PDF and share or save it
+          cat > $J/PdfReportPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.ContentValues;
+          import android.content.Intent;
+          import android.graphics.pdf.PdfDocument;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.provider.MediaStore;
+          import android.view.View;
+          import android.view.ViewGroup;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.FrameLayout;
+          import androidx.core.content.FileProvider;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.io.File;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.io.InputStream;
+          import java.io.OutputStream;
+
+          @CapacitorPlugin(name = "PdfReport")
+          public class PdfReportPlugin extends Plugin {
+              static final int PW = 595, PH = 842;          // A4 in points
+              static final int WPX = 1190;                   // drawing width in pixels (2x), scaled back onto the page
+
+              // html: pages of A4 height (width 100vw); pages: how many; name: file name; mode: share | save
+              @PluginMethod
+              public void make(final PluginCall call) {
+                  final String html = call.getString("html", "");
+                  final int pages = Math.max(1, call.getInt("pages", 1));
+                  final String name = call.getString("name", "report");
+                  final String mode = call.getString("mode", "share");
+                  getActivity().runOnUiThread(new Runnable() { public void run() {
+                      try {
+                          final int hPx = Math.round(WPX * (float) PH / PW);
+                          final WebView wv = new WebView(getContext());
+                          wv.getSettings().setJavaScriptEnabled(false);
+                          wv.setBackgroundColor(0xFFFFFFFF);
+                          // attached but out of sight: some WebViews draw nothing while detached
+                          final ViewGroup root = (ViewGroup) getActivity().getWindow().getDecorView();
+                          FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(WPX, hPx * pages);
+                          wv.setLayoutParams(lp);
+                          wv.setTranslationX(-10 * WPX);
+                          root.addView(wv);
+                          wv.measure(View.MeasureSpec.makeMeasureSpec(WPX, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(hPx * pages, View.MeasureSpec.EXACTLY));
+                          wv.layout(0, 0, WPX, hPx * pages);
+                          wv.setWebViewClient(new WebViewClient() {
+                              boolean done = false;
+                              @Override public void onPageFinished(WebView v, String url) {
+                                  if (done) return; done = true;
+                                  new Handler(Looper.getMainLooper()).postDelayed(new Runnable() { public void run() {
+                                      try {
+                                          PdfDocument doc = new PdfDocument();
+                                          float k = (float) PW / WPX;
+                                          for (int i = 0; i < pages; i++) {
+                                              PdfDocument.Page p = doc.startPage(new PdfDocument.PageInfo.Builder(PW, PH, i + 1).create());
+                                              android.graphics.Canvas c = p.getCanvas();
+                                              c.scale(k, k);
+                                              c.translate(0, -i * hPx);
+                                              wv.draw(c);
+                                              doc.finishPage(p);
+                                          }
+                                          File dir = new File(getContext().getCacheDir(), "reports");
+                                          dir.mkdirs();
+                                          File f = new File(dir, name + ".pdf");
+                                          FileOutputStream out = new FileOutputStream(f);
+                                          doc.writeTo(out); out.close(); doc.close();
+                                          root.removeView(wv); wv.destroy();
+                                          deliver(call, f, mode);
+                                      } catch (Throwable e) { root.removeView(wv); call.reject(e.toString()); }
+                                  }}, 600);
+                              }
+                          });
+                          wv.loadDataWithBaseURL("https://localhost/", html, "text/html", "utf-8", null);
+                      } catch (Throwable e) { call.reject(e.toString()); }
+                  }});
+              }
+
+              private void deliver(PluginCall call, File f, String mode) throws Exception {
+                  JSObject r = new JSObject();
+                  if ("save".equals(mode) && Build.VERSION.SDK_INT >= 29) {
+                      ContentValues cv = new ContentValues();
+                      cv.put(MediaStore.Downloads.DISPLAY_NAME, f.getName());
+                      cv.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+                      cv.put(MediaStore.Downloads.RELATIVE_PATH, "Download/");
+                      Uri uri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                      if (uri == null) throw new Exception("no place in Downloads");
+                      OutputStream os = getContext().getContentResolver().openOutputStream(uri);
+                      InputStream is = new FileInputStream(f);
+                      byte[] buf = new byte[16384]; int n;
+                      while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
+                      is.close(); os.close();
+                      r.put("where", "Загрузки/" + f.getName());
+                      call.resolve(r);
+                      return;
+                  }
+                  // share (and "save" on Android 9 and older, where the share sheet offers saving)
+                  Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", f);
+                  Intent i = new Intent(Intent.ACTION_SEND);
+                  i.setType("application/pdf");
+                  i.putExtra(Intent.EXTRA_STREAM, uri);
+                  i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                  Intent ch = Intent.createChooser(i, "Дневник самонаблюдения");
+                  ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                  getContext().startActivity(ch);
+                  r.put("shared", true);
+                  call.resolve(r);
               }
           }
           JAVA
