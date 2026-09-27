@@ -46,7 +46,7 @@ jobs:
       - name: Разрешения, цвета, иконка
         run: |
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />\n    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
           # native parts: in-app update, daily update check, chat notifications, weather icon and the "how do you feel" notification
           J=android/app/src/main/java/ru/barometr/neba
@@ -700,9 +700,15 @@ jobs:
                   PendingIntent pi = PendingIntent.getBroadcast(c, 1, new Intent(c, MoodAlarmReceiver.class), FLAGS);
                   am.cancel(pi);
                   long t = nextAt(c, System.currentTimeMillis());
+                  prefs(c).edit().putLong("next", t).apply();
                   if (t <= 0) return;
-                  if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
-                  else am.set(AlarmManager.RTC_WAKEUP, t, pi);
+                  // an exact alarm: phones that save battery hard (vivo, Xiaomi…) put off the inexact ones for hours
+                  boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
+                  try {
+                      if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      else if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      else am.setExact(AlarmManager.RTC_WAKEUP, t, pi);
+                  } catch (SecurityException e) { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi); }
               }
 
               static void channel(Context c) {
@@ -838,6 +844,60 @@ jobs:
                   call.resolve();
               }
 
+              // what can keep the questions from coming: notifications off, the channel off, battery saving, no exact alarms
+              @PluginMethod
+              public void status(PluginCall call) {
+                  android.content.Context c = getContext();
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  JSObject r = new JSObject();
+                  r.put("notif", androidx.core.app.NotificationManagerCompat.from(c).areNotificationsEnabled());
+                  boolean ch = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 26) {
+                      android.app.NotificationManager nm = (android.app.NotificationManager) c.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+                      android.app.NotificationChannel x = nm.getNotificationChannel(MoodNotify.CH);
+                      ch = x == null || x.getImportance() != android.app.NotificationManager.IMPORTANCE_NONE;
+                  }
+                  r.put("channel", ch);
+                  boolean battery = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 23) {
+                      android.os.PowerManager pm = (android.os.PowerManager) c.getSystemService(android.content.Context.POWER_SERVICE);
+                      battery = pm.isIgnoringBatteryOptimizations(c.getPackageName());
+                  }
+                  r.put("battery", battery);
+                  boolean exact = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 31) exact = ((android.app.AlarmManager) c.getSystemService(android.content.Context.ALARM_SERVICE)).canScheduleExactAlarms();
+                  r.put("exact", exact);
+                  r.put("next", s.getLong("next", 0));
+                  r.put("lastFire", s.getLong("lastFire", 0));
+                  r.put("lastPosted", s.getLong("lastPosted", 0));
+                  r.put("maker", android.os.Build.MANUFACTURER);
+                  call.resolve(r);
+              }
+
+              @PluginMethod
+              public void openSettings(PluginCall call) {
+                  android.content.Context c = getContext();
+                  String what = call.getString("what", "notif");
+                  android.content.Intent i;
+                  if ("battery".equals(what) && android.os.Build.VERSION.SDK_INT >= 23) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("exact".equals(what) && android.os.Build.VERSION.SDK_INT >= 31) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("app".equals(what)) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if (android.os.Build.VERSION.SDK_INT >= 26) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, c.getPackageName());
+                  } else {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  }
+                  i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                  try { c.startActivity(i); call.resolve(); }
+                  catch (Exception e) {
+                      try { c.startActivity(new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName())).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)); call.resolve(); }
+                      catch (Exception e2) { call.reject("no settings screen"); }
+                  }
+              }
+
               @PluginMethod
               public void takePending(PluginCall call) {
                   SharedPreferences s = MoodNotify.prefs(getContext());
@@ -873,7 +933,9 @@ jobs:
                   } else {
                       recent = now - last < every * 60000L / 2;
                   }
-                  if (every > 0 && !recent) MoodNotify.post(c);
+                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now);
+                  if (every > 0 && !recent) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
+                  ed.apply();
                   MoodNotify.schedule(c);
               }
           }
