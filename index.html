@@ -3235,10 +3235,14 @@ function repSummary(from,to){
 
 /* all chosen indicators on ONE chart: each line is scaled to its own range (no second axis); values are read with the finger */
 function drawOverlay(from,to,loading){
-  const x0=+from, x1=+to, W=360, Hh=270, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
+  const x0=+from, x1=+to, W=360, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
   const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
-  const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain"), barH=bars.length?44:0;
+  const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
+  // the chart is as tall as what is chosen: no empty line area when only bars are on, and bars get taller when alone
+  const lines=REP.sel.some(k=>["bp","pulse","glu","press","temp"].includes(k)), moodLine=hasMood&&(x1-x0)/DAY>62;
+  const lineH=lines?(hasMood?162:190):moodLine?70:hasMood?16:0, barH=!bars.length?0:lineH>16?44:bars.length*60;
+  const Hh=Math.max(96,T+lineH+(bars.length?6+barH:0)+B);
   const lineTop=T, lineBot=Hh-B-barH-(bars.length?6:0);
   let g="", legend=[], ends=[];
   REP.data={};
@@ -3293,7 +3297,7 @@ function drawOverlay(from,to,loading){
   g+=`<line class="rcur" x1="0" x2="0" y1="${T-6}" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/>`;
   return `<div class="rpan one" data-pk="one"><svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-label="Общий график выбранных показателей">${g}</svg>
     <div class="olg">${legend.map(l=>`<div class="oli${l.dim?" dim":""}"><i style="background:${l.c}"></i><span>${l.txt}${l.note?` <small>${l.note}</small>`:""}</span><b id="rpv-${l.k}"></b></div>`).join("")}</div>
-    <div class="fhm" style="padding:2px 8px 6px">Каждая линия в своём масштабе — смотрите на совпадения подъёмов и спадов. Точные значения — проведите пальцем.</div></div>`;
+    <div class="fhm" style="padding:2px 8px 6px">${REP.sel.length>1?"Каждая линия в своём масштабе — смотрите на совпадения подъёмов и спадов. ":""}Точные значения — проведите пальцем.</div></div>`;
 }
 function repCursor(e){
   const svg=e.target.closest(".rpan svg"); if(!svg) return;
