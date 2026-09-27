@@ -935,7 +935,6 @@ header{position:relative}
       <span class="rtime">—</span>
     </div>
     <div class="rleg"><span class="b"><i style="background:rgb(125,195,255)"></i>слабый</span><span class="b"><i style="background:rgb(70,140,255)"></i>умеренный</span><span class="b"><i style="background:rgb(45,90,235)"></i>сильный</span><span class="b"><i style="background:rgb(245,200,70)"></i>очень сильный</span><span class="b"><i style="background:rgb(255,105,95)"></i>ливень</span><span class="b"><i style="background:rgb(210,195,255)"></i>снег</span><span class="b">⚡ гроза</span><span class="b"><i style="background:rgba(255,205,90,.55);outline:1px dashed #ffd66e"></i>ясно</span><span class="b"><i style="background:rgba(232,238,247,.5)"></i>облачно</span><span class="b"><i style="background:rgba(165,178,198,.8);outline:1px dashed #eef3f8"></i>пасмурно</span></div>
-    <button class="mlink" data-metric="rain">Архив осадков ›</button>
     <div hidden><div id="prbars"></div><div id="praxis"></div></div>
   </section>
 
@@ -1007,29 +1006,6 @@ header{position:relative}
 
 <div class="scrim" id="scrim" hidden></div>
 
-<section class="sheet" id="hist" role="dialog" aria-modal="true" aria-labelledby="histTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead">
-    <div><h2 id="histTitle">История</h2><div class="sc" id="histCity"></div></div>
-    <button class="xbtn" data-close aria-label="Закрыть">×</button>
-  </div>
-  <div class="sbody">
-    <div class="tabs" role="tablist" id="mtabs"></div>
-    <div class="chips" id="pchips"></div>
-    <div class="range" id="range">
-      <input type="date" id="dFrom" aria-label="С даты">
-      <span>—</span>
-      <input type="date" id="dTo" aria-label="По дату">
-    </div>
-    <div class="chartbox">
-      <div class="readout"><span class="rv" id="rv"></span><span class="rt" id="rt"></span></div>
-      <svg id="chart" viewBox="0 0 360 210" role="img" aria-label="График"></svg>
-    </div>
-    <div class="stats" id="stats"></div>
-    <div class="gap" id="gap" hidden></div>
-    <div class="src" id="hsrc"></div>
-  </div>
-</section>
 
 
 <section class="sheet" id="mapSheet" role="dialog" aria-modal="true" aria-labelledby="mapTitle" hidden>
@@ -1561,7 +1537,6 @@ function render(){
   if(typeof iconPlanSoon==="function") iconPlanSoon();
   if(typeof fcRender==="function") fcRender();
   sky.set(c, cur);
-  if(!$("hist").hidden) drawHistory();
 }
 
 function drawGauge(p){
@@ -1775,33 +1750,8 @@ const METRICS = {
   hum:{name:"Влажность",unit:"%",color:"#9fc3ff",digits:0},
   wind:{name:"Ветер",unit:"м/с",color:"#c9b6ff",digits:0}
 };
-const PERIODS = [["1d","Сутки",1],["3d","3 дня",3],["7d","Неделя",7],["30d","Месяц",30],["custom","Свой период",0]];
-const HS = { metric:"press", period:"7d", from:null, to:null };
-
-function setPeriod(p){
-  HS.period=p;
-  const now=new Date();
-  if(p!=="custom"){ const days=PERIODS.find(x=>x[0]===p)[2]; HS.to=now; HS.from=new Date(+now-days*DAY); }
-  $("dFrom").value=isoDay(HS.from); $("dTo").value=isoDay(HS.to);
-  $("dFrom").max=$("dTo").max=isoDay(now);
-}
-function openHistory(metric){
-  HS.metric=metric||HS.metric;
-  if(!HS.from) setPeriod("7d");
-  $("mtabs").innerHTML=Object.entries(METRICS).map(([k,m])=>`<button class="tab" role="tab" data-m="${k}" aria-selected="${k===HS.metric}">${m.name}</button>`).join("");
-  showSheet("hist");
-  drawHistory();
-}
-$("mtabs").addEventListener("click",e=>{const b=e.target.closest("[data-m]"); if(!b) return; HS.metric=b.dataset.m; $("mtabs").querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t===b)); drawHistory();});
-$("pchips").addEventListener("click",e=>{const b=e.target.closest("[data-p]"); if(!b) return; setPeriod(b.dataset.p); if(b.dataset.p==="custom") $("dFrom").focus(); drawHistory();});
-function onRange(){
-  const a=$("dFrom").value, b=$("dTo").value; if(!a||!b) return;
-  let f=new Date(a+"T00:00:00"), t=new Date(b+"T23:59:59");
-  if(f>t){[f,t]=[new Date(b+"T00:00:00"),new Date(a+"T23:59:59")];}
-  const now=new Date(); if(t>now) t=now;
-  HS.period="custom"; HS.from=f; HS.to=t; drawHistory();
-}
-$("dFrom").addEventListener("change",onRange); $("dTo").addEventListener("change",onRange);
+// the old History sheet is gone: taps on today's figures open the same indicator in Reports
+function openHistory(metric){ openReport([metric||"temp","mood"]); }
 
 function seriesFor(metric, from, to){
   const slug=S.slug, city=cityOf(slug);
@@ -1848,129 +1798,12 @@ function markEmojis(X, x0, x1, top, ih, right){
   for(const {x,n} of more.values()) out+=`<text x="${x.toFixed(1)}" y="${(top+fs*0.85+ROWS*(fs+2)).toFixed(1)}" text-anchor="middle" font-size="9" fill="#9fb1c5" font-family="JetBrains Mono,monospace">+${n}</text>`;
   return out;
 }
-function marksNear(t, slot){ return S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-t)<=slot/2); }
-function drawHistory(){
-  const m=METRICS[HS.metric];
-  $("histTitle").textContent=m.name;
-  $("histCity").textContent=`${cityOf(S.slug).name} · ${fmtDMY(HS.from)} — ${fmtDMY(HS.to)}`;
-  $("pchips").innerHTML=PERIODS.map(([k,l])=>`<button class="chip" data-p="${k}" aria-pressed="${HS.period===k}" style="--accent:${m.color}">${l}</button>`).join("");
-  const {type,pts}=seriesFor(HS.metric,HS.from,HS.to);
-  const svg=$("chart"), W=360, Hc=210, L=34, R=10, B=26, T=(+HS.to-+HS.from)/DAY<=62&&S.marks.some(m=>!S.marksDel[m.id]&&+new Date(m.t)>=+HS.from&&+new Date(m.t)<=+HS.to+DAY)?30:10, iw=W-L-R, ih=Hc-T-B;
-  const x0=+HS.from, x1=+HS.to, X=t=>L+(+t-x0)/(x1-x0||1)*iw;
-  let s="";
-  if(!pts.length){
-    $("rv").textContent=""; $("rt").textContent=""; $("stats").innerHTML=""; CH=null; renderGap(); renderSrc();
-    const loading=$("gap").classList.contains("loading")&&!$("gap").hidden;
-    svg.innerHTML=`<text x="${W/2}" y="${Hc/2}" text-anchor="middle" fill="#9fb1c5" font-size="13" font-family="Onest, system-ui">${loading?"Загружаю архив…":"За этот период данных нет"}</text>`;
-    return;
-  }
-  const vals=pts.map(p=>p.v);
-  let lo=Math.min(...vals), hi=Math.max(...vals);
-  if(type!=="line"){lo=0; hi=Math.max(hi, HS.metric==="kp"?5:1);}
-  else { const pad=(hi-lo)*.12||1; lo-=pad; hi+=pad; }
-  const ticks=niceTicks(lo,hi); lo=ticks[0]; hi=ticks[ticks.length-1];
-  const Y=v=>T+ih-(v-lo)/(hi-lo||1)*ih;
-  for(const tv of ticks){ s+=`<line x1="${L}" x2="${W-R}" y1="${Y(tv)}" y2="${Y(tv)}" stroke="rgba(238,243,248,.08)"/><text x="${L-5}" y="${Y(tv)+3.5}" text-anchor="end" font-size="9.5" fill="#9fb1c5" font-family="JetBrains Mono, monospace">${+tv.toFixed(2)}</text>`; }
-  if(HS.metric==="kp") s+=`<line x1="${L}" x2="${W-R}" y1="${Y(5)}" y2="${Y(5)}" stroke="#ff7a6b" stroke-dasharray="3 3" opacity=".6"/><text x="${W-R}" y="${Y(5)-3}" text-anchor="end" font-size="9" fill="#ff7a6b" font-family="Onest, system-ui">буря</text>`;
-  if(HS.metric==="press" && lo<=760 && hi>=760) s+=`<line x1="${L}" x2="${W-R}" y1="${Y(760)}" y2="${Y(760)}" stroke="#9fb1c5" stroke-dasharray="2 4" opacity=".5"/><text x="${W-R}" y="${Y(760)-3}" text-anchor="end" font-size="9" fill="#9fb1c5" font-family="Onest, system-ui">760 — 1 атм</text>`;
-  if(HS.metric==="temp" && lo<0 && hi>0) s+=`<line x1="${L}" x2="${W-R}" y1="${Y(0)}" y2="${Y(0)}" stroke="#9fc3ff" opacity=".35"/>`;
-  // x ticks
-  const spanD=(x1-x0)/DAY, stepD=spanD<=1.5?0:spanD<=4?1:spanD<=10?2:spanD<=20?4:spanD<=45?7:Math.ceil(spanD/6);
-  const xt=[];
-  if(stepD===0){ for(let t=Math.ceil(x0/(6*H))*6*H; t<=x1; t+=6*H) xt.push([t,fmtH(new Date(t))+":00"]); }
-  else { let d=new Date(isoDay(new Date(x0))+"T00:00:00"); if(+d<x0) d=new Date(+d+DAY); for(let t=+d; t<=x1; t+=stepD*DAY) xt.push([t,fmtDM(new Date(t))]); }
-  for(const [t,l] of xt){ s+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ih}" stroke="rgba(238,243,248,.05)"/><text x="${X(t)}" y="${Hc-8}" text-anchor="middle" font-size="9.5" fill="#9fb1c5" font-family="JetBrains Mono, monospace">${l}</text>`; }
-  // marks
-  const gid="hg"+HS.metric;
-  s+=`<defs><linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${m.color}" stop-opacity=".35"/><stop offset="1" stop-color="${m.color}" stop-opacity="0"/></linearGradient><clipPath id="clipR"><rect x="${L}" y="0" width="0" height="${Hc}"><animate attributeName="width" from="0" to="${iw+2}" dur="${reduce?"0.01":"0.9"}s" fill="freeze"/></rect></clipPath></defs>`;
-  if(type==="line"){
-    const segs=[]; let cur=[];
-    pts.forEach((p,k)=>{ if(k&&+p.t-+pts[k-1].t>7*H){segs.push(cur);cur=[];} cur.push(p); }); segs.push(cur);
-    let g="";
-    for(const sg of segs){
-      const d=sg.map((p,k)=>`${k?"L":"M"}${X(p.t).toFixed(1)} ${Y(p.v).toFixed(1)}`).join("");
-      if(sg.length>1) g+=`<path d="${d}L${X(sg[sg.length-1].t).toFixed(1)} ${T+ih}L${X(sg[0].t).toFixed(1)} ${T+ih}Z" fill="url(#${gid})"/>`;
-      g+=`<path d="${d}" fill="none" stroke="${m.color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>`;
-      if(sg.length===1) g+=`<circle cx="${X(sg[0].t)}" cy="${Y(sg[0].v)}" r="2.5" fill="${m.color}"/>`;
-    }
-    s+=`<g clip-path="url(#clipR)">${g}</g>`;
-    const lp=pts[pts.length-1]; s+=`<circle cx="${X(lp.t)}" cy="${Y(lp.v)}" r="3.2" fill="${m.color}" stroke="#172538" stroke-width="1.5"/>`;
-  } else {
-    const slot = type==="barsDay"?DAY:3*H, bw=Math.max(1.2, slot/(x1-x0)*iw - (slot/(x1-x0)*iw>6?2:0.6));
-    s+=`<g clip-path="url(#clipR)">`+pts.map(p=>{const col=HS.metric==="kp"?kpColor(p.v):m.color; const y=Y(Math.max(p.v, p.v>0?0:0)); const hgt=Math.max(p.v>0?1.5:0.8,T+ih-y); return `<rect x="${(X(+p.t)+ (type==="barsDay"?1:0.3)).toFixed(1)}" y="${(T+ih-hgt).toFixed(1)}" width="${bw.toFixed(1)}" height="${hgt.toFixed(1)}" rx="1" fill="${col}" opacity="${p.v>0?.9:.35}"/>`}).join("")+`</g>`;
-  }
-  s+=markEmojis(X, x0, x1, T, ih, W-R);
-  s+=`<g id="cursor" style="display:none"><line id="cl" y1="${T}" y2="${T+ih}" stroke="#eef3f8" stroke-width="1" opacity=".5"/><circle id="cc" r="4" fill="${m.color}" stroke="#eef3f8" stroke-width="1.5"/></g><rect x="${L}" y="0" width="${iw}" height="${Hc}" fill="transparent" id="hit"/>`;
-  svg.innerHTML=s;
-  CH={pts,X,Y,type,m,L,iw,x0,x1};
-  showPoint(pts[pts.length-1], true);
-  renderStats(pts,type); renderGap(); renderSrc();
-}
-function fmtVal(v,m){ if(HS.metric==="rain"&&S.rainMode==="hours") return Math.round(v)+" ч"; return (HS.metric==="press"||HS.metric==="temp"||HS.metric==="rain"||HS.metric==="kp") ? v.toFixed(1).replace(".",",")+" "+m.unit : Math.round(v)+" "+m.unit; }
-function showPoint(p, silent){
-  if(!CH||!p) return;
-  const {X,Y,m,type}=CH;
-  $("rv").textContent=fmtVal(p.v,m); $("rv").style.color=HS.metric==="kp"?kpColor(p.v):m.color;
-  let when = type==="barsDay" ? fmtDMY(p.t) : type==="bars3h" ? `${fmtDM(p.t)}, ${fmtHM(p.t)}–${fmtHM(new Date(+p.t+3*H))}` : fmtDMH(p.t);
-  if(p.o&&p.o.ph) when+=" · "+p.o.ph;
-  { const near=marksNear(type==="line"?+p.t:+p.t+(type==="barsDay"?DAY:3*H)/2, type==="barsDay"?DAY:type==="bars3h"?3*H:2*H); if(near.length) when+=" · "+[...new Set(near.map(m=>KIND[m.k].e))].join(""); }
-  $("rt").textContent=when;
-  const cur=$("cursor"); if(!cur) return;
-  if(silent){cur.style.display="none";return;}
-  cur.style.display="";
-  const cx = type==="line"?X(p.t):X(+p.t+(type==="barsDay"?DAY:3*H)/2);
-  $("cl").setAttribute("x1",cx);$("cl").setAttribute("x2",cx);
-  $("cc").setAttribute("cx",cx);$("cc").setAttribute("cy",Y(p.v));
-}
-function scrub(e){
-  if(!CH) return;
-  const r=$("chart").getBoundingClientRect(), x=(e.clientX-r.left)/r.width*360;
-  const t=CH.x0+(x-CH.L)/CH.iw*(CH.x1-CH.x0);
-  let best=null,bd=Infinity; for(const p of CH.pts){const pc=CH.type==="line"?+p.t:+p.t+(CH.type==="barsDay"?DAY:3*H)/2; const d=Math.abs(pc-t); if(d<bd){bd=d;best=p;}}
-  showPoint(best);
-}
-$("chart").addEventListener("pointermove",scrub);
-$("chart").addEventListener("pointerdown",scrub);
-
-function stat(k,v,d){return `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div>${d?`<div class="d">${d}</div>`:""}</div>`;}
-function renderStats(pts,type){
-  const m=METRICS[HS.metric], f=v=>fmtVal(v,m).replace(" "+m.unit,"");
-  const minP=pts.reduce((a,p)=>p.v<a.v?p:a), maxP=pts.reduce((a,p)=>p.v>a.v?p:a), avg=pts.reduce((a,p)=>a+p.v,0)/pts.length;
-  const when=p=>type==="barsDay"?fmtDM(p.t):fmtDMH(p.t);
-  let h="";
-  if(HS.metric==="rain"){
-    const sum=pts.reduce((a,p)=>a+p.v,0), wet=pts.filter(p=>p.v>=0.1).length;
-    if(S.rainMode==="hours") h=stat("Часов с осадками",`${Math.round(sum)} ч`)+stat("Дней с осадками",`${wet} из ${pts.length}`)+stat("Дольше всего",`${maxP.v} ч`,fmtDM(maxP.t));
-    else h=stat("Сумма",f(sum)+" мм")+stat("Дней с осадками",`${wet} из ${pts.length}`)+stat("Больше всего",f(maxP.v)+" мм",fmtDM(maxP.t));
-  } else if(HS.metric==="kp"){
-    const storms=pts.filter(p=>p.v>=5).length, dist=pts.filter(p=>p.v>=4).length;
-    h=stat("Максимум",f(maxP.v),when(maxP))+stat("Среднее",f(avg))+stat("Бури (Kp≥5)",storms?`${storms*3} ч`:"не было")+stat("Возмущения (Kp≥4)",dist?`${dist*3} ч`:"не было");
-  } else {
-    h=stat("Минимум",f(minP.v)+" "+m.unit,when(minP))+stat("Максимум",f(maxP.v)+" "+m.unit,when(maxP))+stat("Среднее",f(avg)+" "+m.unit);
-    if(HS.metric==="press"&&pts.length>2){
-      let best=null; for(let k=1;k<pts.length;k++){ let j=k-1; while(j>0&&+pts[k].t-+pts[j].t<3*H-1) j--; if(Math.abs(+pts[k].t-+pts[j].t-3*H)>0.6*H) continue; const d=pts[k].v-pts[j].v; if(!best||Math.abs(d)>Math.abs(best.d)) best={d,t:pts[k].t}; }
-      if(best) h+=stat("Резкий перепад",(best.d>0?"+":"")+best.d.toFixed(1).replace(".",",")+" за 3 ч",fmtDMH(best.t));
-    }
-    if(HS.metric==="temp"){
-      const days=archDays(S.slug).filter(d=>{const s=new Date(d.d+"T12:00:00");return s>=HS.from&&s<=new Date(+HS.to+12*H)&&d.anom!=null;});
-      if(days.length){const an=days.reduce((a,d)=>a+d.anom,0)/days.length; h+=stat("От нормы",(an>0?"+":"")+an.toFixed(1).replace(".",",")+" °C","в среднем за дни");}
-    }
-  }
-  $("stats").innerHTML=h;
-}
 /* ---- archive on demand: each metric loads only its own data, only for the chosen period ---- */
 const SRC_OF = {temp:"obs",press:"obs",hum:"obs",wind:"obs",rain:"obs",kp:"kp"};
-const SRC_NAME = {obs:"погоды", kp:"геомагнитного фона"};
 const asked = new Set();
 function coveredDays(src, id){
   if(src==="kp"){ const set=new Set(S.kpChecked); for(const k of Object.keys(S.kpMonths)){ const cnt={}; for(const x of S.kpMonths[k]){const d=isoDay(new Date(x.t)); cnt[d]=(cnt[d]||0)+1;} for(const d in cnt) if(cnt[d]>=7) set.add(d);} return set; }
   histMap(id); return S.histDays[id];
-}
-function missingRange(){
-  const src=SRC_OF[HS.metric], cov=coveredDays(src,S.slug), today=isoDay(new Date());
-  const miss=[];
-  for(let t=+new Date(isoDay(HS.from)+"T12:00:00"); t<=+HS.to+12*H; t+=DAY){ const d=isoDay(new Date(t)); if(d>=today) break; if(!cov.has(d)) miss.push(d); }
-  return {src, miss};
 }
 async function ensure(src, id, from, to){
   const key=`${src}:${src==="kp"?"":id}:${from}:${to}`;
@@ -1978,22 +1811,6 @@ async function ensure(src, id, from, to){
   try{ if(src==="kp") await loadKpRange(from,to); else await loadHistRange(id,from,to); return true; }
   catch(e){ toast("Не удалось загрузить архив. Проверьте интернет и попробуйте ещё раз."); asked.delete(key); return false; }
   finally{ delete S.loading[key]; }
-}
-function renderGap(){
-  const g=$("gap");
-  if($("hist").hidden) return;
-  const {src, miss}=missingRange();
-  if(!miss.length){ g.hidden=true; g.classList.remove("loading"); return; }
-  const key=`${src}:${src==="kp"?"":S.slug}:${miss[0]}:${miss[miss.length-1]}`;
-  if(asked.has(key)&&!S.loading[key]){ g.hidden=false; g.classList.remove("loading"); g.innerHTML=`<div>За часть дней данных в источнике нет.</div>`; return; }
-  g.hidden=false; g.classList.add("loading");
-  g.innerHTML=`<div class="ld"><span class="spin"></span>Загружаю архив ${SRC_NAME[src]} за ${fmtDM(new Date(miss[0]+"T12:00:00"))} — ${fmtDM(new Date(miss[miss.length-1]+"T12:00:00"))}…</div>`;
-  if(!S.loading[key]) ensure(src, S.slug, miss[0], miss[miss.length-1]).then(()=>{ if(!$("hist").hidden) drawHistory(); if(moodShown()) renderMoodSheet(); });
-}
-function renderSrc(){
-  $("hsrc").textContent = HS.metric==="kp" ? "Наблюдённые значения Kp по 3-часовым интервалам (GFZ Potsdam, NOAA)." :
-    HS.metric==="rain" ? "Суточные суммы осадков по почасовым данным Open-Meteo для координат города." :
-    (HS.metric==="press"?"Давление на уровне земли в мм рт. ст. ":"")+"Почасовые данные Open-Meteo (реанализ ERA5 и наблюдения) для координат города.";
 }
 
 /* ---------- city picker: list, online search, GPS ---------- */
@@ -2721,7 +2538,7 @@ function saveMarks(){
   store.set("marks", JSON.stringify(S.marks)); store.set("marksDel", JSON.stringify(S.marksDel));
   rebuildMood();
   ySyncSoon(); if(typeof scheduleReminders==="function") scheduleReminders();
-  renderMood(); if(moodShown()) renderMoodSheet(); if(!$("hist").hidden) drawHistory();
+  renderMood(); if(moodShown()) renderMoodSheet();
   if(typeof TAB!=="undefined"&&TAB==="rep") drawReport();
 }
 function addMark(k, when){
@@ -3071,7 +2888,7 @@ renderHealth();
 let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
 
 /* ---------- report: any combination of indicators on one time axis ---------- */
-const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
+const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"],["hum","Влажность","#1aa3c4"],["wind","Ветер","#8792a6"]];
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
 const repOn=k=>k==="bp"?tr("bp"):k==="pulse"?tr("pulse"):k==="glu"?tr("glu"):true;
 const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:"one"};   // one chart with all lines (the "separately" view was removed)
@@ -3082,7 +2899,7 @@ function repRange(){
 function openReport(sel){ RSEG="data"; store.set("rseg",RSEG); if(sel){ REP.sel=sel; store.set("repSel",JSON.stringify(REP.sel)); } if(openSheet) hideSheet(true); showTab("rep"); }
 function repEnsure(from,to){
   const today=isoDay(new Date()), need={obs:[],kp:[]};
-  const want={obs:REP.sel.some(k=>["press","temp","rain"].includes(k)), kp:REP.sel.includes("kp")};
+  const want={obs:REP.sel.some(k=>["press","temp","rain","hum","wind"].includes(k)), kp:REP.sel.includes("kp")};
   for(const src of ["obs","kp"]){ if(!want[src]) continue; const cov=coveredDays(src,S.slug);
     for(let t=+new Date(isoDay(from)+"T12:00:00"); t<=+to; t+=DAY){ const d=isoDay(new Date(t)); if(d>=today) break; if(!cov.has(d)) need[src].push(d); } }
   let busy=false;
@@ -3240,7 +3057,7 @@ function drawOverlay(from,to,loading){
   const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
   const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
   // the chart is as tall as what is chosen: no empty line area when only bars are on, and bars get taller when alone
-  const lines=REP.sel.some(k=>["bp","pulse","glu","press","temp"].includes(k)), moodLine=hasMood&&(x1-x0)/DAY>62;
+  const lines=REP.sel.some(k=>["bp","pulse","glu","press","temp","hum","wind"].includes(k)), moodLine=hasMood&&(x1-x0)/DAY>62;
   const lineH=lines?(hasMood?162:190):moodLine?70:hasMood?16:0, barH=!bars.length?0:lineH>16?44:bars.length*60;
   const Hh=Math.max(96,T+lineH+(bars.length?6+barH:0)+B);
   const lineTop=T, lineBot=Hh-B-barH-(bars.length?6:0);
@@ -3272,7 +3089,7 @@ function drawOverlay(from,to,loading){
   if(REP.sel.includes("glu")){ lineSeries("glu",gl.map(m=>({t:m.t,v:m.v,c:gluCat(m.v,m.ctx).c})),v=>fmtNum(v),{dots:1});
     if(gl.length) legend.push({k:"glu",txt:`Сахар ${fmtNum(Math.min(...gl.map(m=>m.v)))}–${fmtNum(Math.max(...gl.map(m=>m.v)))}`,c:col("glu")}); REP.data.glu={pts:gl.map(m=>({t:+new Date(m.t),txt:`${fmtNum(m.v)} ммоль`}))}; }
   // weather lines
-  for(const k of ["press","temp"]){ if(!REP.sel.includes(k)) continue;
+  for(const k of ["press","temp","hum","wind"]){ if(!REP.sel.includes(k)) continue;
     const P=seriesFor(k,from,to).pts.filter(p=>p.v!=null), u=METRICS[k].unit, d=k==="temp"?1:0;
     lineSeries(k,P.map(p=>({t:p.t,v:p.v})),v=>fmtNum(v,0),{w:1.8,op:.9});
     if(P.length) legend.push({k,txt:`${lab(k)} ${fmtNum(Math.min(...P.map(p=>p.v)),0)}–${fmtNum(Math.max(...P.map(p=>p.v)),0)} ${u}`,c:col(k)});
