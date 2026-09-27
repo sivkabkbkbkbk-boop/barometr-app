@@ -2914,13 +2914,13 @@ const HM = {list: loadJSON("meas",[])||[], del: loadJSON("measDel",{})||{}, tab:
 function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet){ ySyncSoon(); if(SH.on) shareSoon(); } }
 const GCTX={fast:"натощак",before:"до еды",after:"после еды",night:"перед сном",other:"в другое время"};
 /* what the person tracks; installs from before this choice keep everything that existed then */
-var TRACK = Object.assign({bp:true, pulse:true, glu:true, steps:true, weight:false}, loadJSON("track",{})||{});
+var TRACK = Object.assign({bp:true, pulse:true, glu:true, steps:true}, loadJSON("track",{})||{});
 const tr=k=>!TRACK||TRACK[k]!==false;       // TRACK is a var: undefined while the script loads, then everything counts as on
 const TR_ITEMS=[["mood","😊","Самочувствие","вручную: смайлики и симптомы",1],["bp","🩺","Давление","вручную"],["pulse","💓","Пульс","вручную"],
-  ["glu","🩸","Сахар в крови","вручную"],["steps","👣","Шаги","считает телефон сам"],["weight","⚖️","Вес","вручную"]];
-// measurement types in the Health tab: pressure, pulse, sugar, weight
+  ["glu","🩸","Сахар в крови","вручную"],["steps","👣","Шаги","считает телефон сам"]];
+// measurement types in the Health tab: pressure, pulse, sugar
 const MT={bp:{e:"🩺",l:"Давление",tr:"bp",add:"＋ Записать давление"},hr:{e:"💓",l:"Пульс",tr:"pulse",add:"＋ Записать пульс",u:"уд/мин"},
-  glu:{e:"🩸",l:"Сахар",tr:"glu",add:"＋ Записать сахар"},wt:{e:"⚖️",l:"Вес",tr:"weight",add:"＋ Записать вес",u:"кг"}};
+  glu:{e:"🩸",l:"Сахар",tr:"glu",add:"＋ Записать сахар"}};
 const mtOn=k=>tr(MT[k].tr);
 const hrCat=v=>v<50?{l:"низкий",c:"#78adff",k:-1}:v<=90?{l:"норма",c:"#8be38f",k:0}:v<=100?{l:"повышенный",c:"#f2c94c",k:1}:{l:"высокий",c:"#ff7a6b",k:2};
 // pulse lives in pressure readings and in separate pulse records
@@ -2943,14 +2943,13 @@ const fmtNum=(v,d=1)=>v.toFixed(d).replace(".",",");
 const whenTxt=t=>{ const d=new Date(t), td=isoDay(new Date()), yd=isoDay(new Date(Date.now()-DAY)), dd=isoDay(d); return (dd===td?"сегодня":dd===yd?"вчера":fmtDM(d))+", "+fmtHM(d); };
 function lastOf(type){ for(let i=HM.list.length-1;i>=0;i--) if(HM.list[i].type===type&&!HM.del[HM.list[i].id]) return HM.list[i]; return null; }
 function renderHealth(){
-  const bp=lastOf("bp"), gl=lastOf("glu"), hr=pulseList().slice(-1)[0], wt=lastOf("wt");
+  const bp=lastOf("bp"), gl=lastOf("glu"), hr=pulseList().slice(-1)[0];
   const tile=(kind,title,val,unit,sub,cat)=>`<button class="htile" data-hopen="${kind}"><span class="ht">${title}</span><span class="hv">${val}<small>${unit}</small></span><span class="hs">${sub}</span>${cat?`<span class="hp" style="--c:${cat.c}">${cat.l}</span>`:""}</button>`;
   $("hTiles").innerHTML =
     (tr("bp")?(bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",`${bp.pulse&&tr("pulse")?`пульс ${bp.pulse} · `:""}${whenTxt(bp.t)}`,bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)):"") +
     (tr("pulse")&&!tr("bp")?(hr?tile("hr","Пульс",String(hr.v),"уд/мин",whenTxt(hr.t),hrCat(hr.v)):tile("hr","Пульс","—","","нажмите, чтобы записать",null)):"") +
-    (tr("glu")?(gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null)):"") +
-    (tr("weight")?(wt?tile("wt","Вес",fmtNum(wt.v),"кг",whenTxt(wt.t),null):tile("wt","Вес","—","","нажмите, чтобы записать",null)):"");
-  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","pulse","glu","weight"].some(tr);
+    (tr("glu")?(gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null)):"");
+  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","pulse","glu"].some(tr);
 }
 function openMeas(tab){ HM.tab=tab||HM.tab; renderMeas(); showSheet("measSheet"); }
 function nowLocal(){ const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
@@ -2958,7 +2957,7 @@ function renderMeas(){
   const tabs=Object.keys(MT).filter(mtOn); if(!tabs.includes(HM.tab)) HM.tab=tabs[0]||"bp";
   const bp=HM.tab==="bp", tt=HM.tab;
   $("measTabs").innerHTML=tabs.map(k=>`<button class="tab" role="tab" data-mt="${k}" aria-selected="${k===tt}">${MT[k].e} ${k==="bp"?"Давление":k==="glu"?"Сахар":MT[k].l}</button>`).join("");
-  if(tt==="hr"||tt==="wt"){ renderMeasSimple(tt); return; }
+  if(tt==="hr"){ renderMeasSimple(tt); return; }
   $("measForm").innerHTML = bp ? `
     <div class="mrow"><label>Верхнее<input id="mSys" inputmode="numeric" pattern="[0-9]*" placeholder="120" maxlength="3"></label><span class="sl">/</span><label>Нижнее<input id="mDia" inputmode="numeric" pattern="[0-9]*" placeholder="80" maxlength="3"></label>${tr("pulse")?`<label>Пульс<input id="mPul" inputmode="numeric" pattern="[0-9]*" placeholder="70" maxlength="3"></label>`:""}</div>
     <div class="mrow2"><input id="mTime" type="datetime-local" value="${nowLocal()}" aria-label="Время измерения"><input id="mNote" placeholder="Заметка (необязательно)" maxlength="80"></div>
@@ -2983,7 +2982,7 @@ function renderMeasSimple(tt){
   $("measList").innerHTML=list.length?list.map(m=>{ const c=hr?hrCat(m.v):{l:"",c:"#78adff"};
     return `<div class="mitem"><i style="background:${c.c}"></i><span class="mv">${hr?m.v:fmtNum(m.v)} <small>${MT[tt].u}</small></span><span class="mw">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}</span><span class="mc" style="color:${c.c}">${c.l}</span>${m.type===tt?`<button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button>`:""}</div>`; }).join(""):`<div class="src" style="text-align:center">Записей пока нет.</div>`;
 }
-// Health tab body for pulse and weight: the last value, a week chart, the list
+// Health tab body for pulse: the last value, a week chart, the list
 function simpleBody(type){
   const hr=type==="hr", list=valList(type), u=MT[type].u, f=v=>hr?String(Math.round(v)):fmtNum(v);
   if(!list.length) return `<div class="card hempty"><div style="font-size:40px">${MT[type].e}</div><div>${hr?"Записывайте пульс в покое — утром, до кофе. Приложение сопоставит его с погодой и самочувствием.":"Записывайте вес раз в несколько дней, утром натощак — так цифры можно сравнивать."}</div></div>`;
@@ -3015,10 +3014,9 @@ function saveMeasure(){
   const tv=$("mTime").value, t=tv?new Date(tv):new Date(); if(isNaN(+t)||+t>Date.now()+5*60000){ toast("Проверьте время измерения."); return; }
   const note=($("mNote").value||"").trim().slice(0,80), id="h"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   let m;
-  if(HM.tab==="hr"||HM.tab==="wt"){
+  if(HM.tab==="hr"){
     const v=parseFloat(String($("mVal").value).replace(",","."));
     if(HM.tab==="hr"&&!(v>=30&&v<=220)){ toast("Введите пульс, например 72."); $("mVal").focus(); return; }
-    if(HM.tab==="wt"&&!(v>=20&&v<=300)){ toast("Введите вес в кг, например 72,5."); $("mVal").focus(); return; }
     m={id,t:t.toISOString(),type:HM.tab,v:HM.tab==="hr"?Math.round(v):Math.round(v*10)/10};
   } else if(HM.tab==="bp"){
     const sys=parseInt($("mSys").value,10), dia=parseInt($("mDia").value,10), pul=$("mPul")?parseInt($("mPul").value,10):NaN;
@@ -3033,7 +3031,6 @@ function saveMeasure(){
   HM.list.push(m); saveHM(); renderMeas(); renderHealth(); if(TAB==="health") renderHealthPage();
   if(openSheet&&openSheet.id==="measSheet") setTimeout(()=>hideSheet(), 700);
   if(m.type==="hr"){ toast(`Записано: пульс ${m.v} — ${hrCat(m.v).l}`); return; }
-  if(m.type==="wt"){ toast(`Записано: вес ${fmtNum(m.v)} кг`); return; }
   const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
   toast(m.type==="bp"?`Записано: ${m.sys}/${m.dia} — ${c.l}`:`Записано: сахар ${fmtNum(m.v)} — ${c.l}`);
 }
@@ -3053,9 +3050,9 @@ renderHealth();
 let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
 
 /* ---------- report: any combination of indicators on one time axis ---------- */
-const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["wt","Вес","#7a8f3a"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
+const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
-const repOn=k=>k==="bp"?tr("bp"):k==="pulse"?tr("pulse"):k==="glu"?tr("glu"):k==="wt"?tr("weight"):true;
+const repOn=k=>k==="bp"?tr("bp"):k==="pulse"?tr("pulse"):k==="glu"?tr("glu"):true;
 const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:"one"};   // one chart with all lines (the "separately" view was removed)
 function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
@@ -3236,9 +3233,6 @@ function drawOverlay(from,to,loading){
     } else legend.push({k:"bp",txt:"А/Д: нет данных",c:col("bp"),dim:1});
     REP.data.bp={pts:bp.map(m=>({t:+new Date(m.t),txt:`${m.sys}/${m.dia}`}))};
   }
-  if(REP.sel.includes("wt")){ const ww=HM.list.filter(m=>m.type==="wt"&&!HM.del[m.id]&&inR(m.t)); lineSeries("wt",ww.map(m=>({t:m.t,v:m.v})),v=>fmtNum(v),{dots:1});
-    if(ww.length) legend.push({k:"wt",txt:`Вес ${fmtNum(Math.min(...ww.map(m=>m.v)))}–${fmtNum(Math.max(...ww.map(m=>m.v)))} кг`,c:col("wt")}); else legend.push({k:"wt",txt:"Вес: нет данных",c:col("wt"),dim:1});
-    REP.data.wt={pts:ww.map(m=>({t:+new Date(m.t),txt:`${fmtNum(m.v)} кг`}))}; }
   if(REP.sel.includes("pulse")){ const pp=pulseList().filter(m=>inR(m.t)).map(m=>({t:m.t,pulse:m.v})); lineSeries("pulse",pp.map(m=>({t:m.t,v:m.pulse})),v=>Math.round(v),{dots:1});
     if(pp.length) legend.push({k:"pulse",txt:`Пульс ${Math.min(...pp.map(m=>m.pulse))}–${Math.max(...pp.map(m=>m.pulse))}`,c:col("pulse")}); REP.data.pulse={pts:pp.map(m=>({t:+new Date(m.t),txt:`${m.pulse}`}))}; }
   if(REP.sel.includes("glu")){ lineSeries("glu",gl.map(m=>({t:m.t,v:m.v,c:gluCat(m.v,m.ctx).c})),v=>fmtNum(v),{dots:1});
@@ -3392,7 +3386,7 @@ function renderHealthPage(){
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
   h+=hcTiles();
-  if(HSEG==="hr"||HSEG==="wt"){ h+=simpleBody(HSEG); box.innerHTML=h; hFabSet(HSEG); return; }
+  if(HSEG==="hr"){ h+=simpleBody(HSEG); box.innerHTML=h; hFabSet(HSEG); return; }
   const type=HSEG, last=lastOf(type);
   if(last){
     const c=type==="bp"?bpCat(last.sys,last.dia):gluCat(last.v,last.ctx);
@@ -3743,7 +3737,7 @@ function showWelcome(tries=0){
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
   if(busy){ if(tries<40) setTimeout(()=>showWelcome(tries+1), 1500); return; }
   $("welGo").href=yAuthUrl(false); thRender();
-  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,pulse:true,glu:false,steps:true,weight:false});
+  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,pulse:true,glu:false,steps:true});
   renderTrack(); showSheet("welSheet");
 }
 $("welGo").addEventListener("click",()=>{ store.set("welcomeY","1"); setTimeout(()=>hideSheet(), 400); });
