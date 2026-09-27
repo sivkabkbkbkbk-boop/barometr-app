@@ -4781,7 +4781,9 @@ table{width:100%;border-collapse:collapse;font-size:.86rem}th{text-align:left;co
 .ins{display:flex;flex-direction:column;gap:.3rem}.mut,.cap{color:#6b717c;font-size:.8rem}.cap{margin-top:.3rem}.lg{margin-top:.5rem;color:#6b717c;font-size:.8rem}
 .foot{position:absolute;left:2.8rem;right:2.8rem;bottom:1.4rem;border-top:.1rem solid #e3e6ea;padding-top:.5rem;color:#8a909b;font-size:.72rem;display:flex;gap:1rem;justify-content:space-between}.pn{white-space:nowrap}`;
   const html=`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Дневник самонаблюдения</title><style>${css}</style></head><body>${pages.map((p,i)=>`<div class="page">${i?small:head}${p.join("")}${foot(i+1)}</div>`).join("")}</body></html>`;
-  return {html, pages:pages.length, name:`Дневник ${pdfDY(from)}-${pdfDY(to)}`};
+  // file name: "Дневник <name> ddmmyyyy", the date of making it
+  const d=new Date(), stamp=String(d.getDate()).padStart(2,"0")+String(d.getMonth()+1).padStart(2,"0")+d.getFullYear();
+  return {html, pages:pages.length, name:["Дневник", (who.n||"").trim(), stamp].filter(Boolean).join(" ")};
 }
 async function pdfMake(mode){
   const who={n:$("pdfName").value.trim().slice(0,80), y:$("pdfYear").value.trim().slice(0,4), m:$("pdfMeds").value.trim().slice(0,200)};
@@ -4789,7 +4791,7 @@ async function pdfMake(mode){
   const [from,to]=pdfRange();
   if(PDF.on.wx||PDF.on.ins) await pdfPrepare(from,to);
   const r=pdfBuild(from,to);
-  if(PDFP){ try{ const x=await PDFP.make({html:r.html, pages:r.pages, name:r.name.replace(/[^\w\d.\- А-Яа-яЁё]/g,"_"), mode});
+  if(PDFP){ try{ const x=await PDFP.make({html:r.html, pages:r.pages, name:r.name.replace(/[^\w\d.\- А-Яа-яЁё]/g,"").replace(/\s+/g," ").trim(), mode});
       if(mode==="save") toast(x?.where?`Сохранено: ${x.where}`:"Сохранено в «Загрузки»."); }
     catch(e){ toast("Не получилось сделать PDF: "+(e?.message||e)); } return; }
   // browser: the report in a new tab, where it can be printed or saved as PDF
