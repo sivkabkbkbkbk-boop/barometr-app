@@ -4774,6 +4774,8 @@ if(HCP){
       $("crashTxt").textContent=(r.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false;
       toast("В прошлый раз приложение закрылось. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
     window.showTrail=()=>CL.get().then(r=>{ const trail=String(r?.trail||""); $("crashTxt").textContent=(r?.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false; }).catch(()=>{});
+    // five taps on the version line in Settings show the diagnostic trail
+    { let n=0, t0=0; $("appVer").addEventListener("click",()=>{ const now=Date.now(); n=now-t0<1500?n+1:1; t0=now; if(n>=5){ n=0; window.showTrail(); toast("Журнал шагов — ниже, его можно скопировать."); } }); }
     window.CLnote=t=>{ try{ CL.note({text:t}).catch(()=>{}); }catch(e){} };
     document.addEventListener("visibilitychange",()=>CLnote(document.hidden?"page hidden":"page visible"));
     $("crashCopy").addEventListener("click",async()=>{ const t=$("crashTxt").textContent;
