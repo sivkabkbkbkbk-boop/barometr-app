@@ -1073,6 +1073,7 @@ header{position:relative}
       </div>
       <div class="remrow" id="remHours"><span id="remFromL">с</span> <input type="time" id="remFrom" value="09:00" aria-label="С какого времени"> <span id="remToW">до <input type="time" id="remTo" value="22:00" aria-label="До какого времени"></span></div>
       <div class="src" id="remNote">В шторке появится «Как себя чувствуешь?» со всеми смайликами — нажмите нужный, и отметка сохранится, не открывая приложение.</div>
+      <label class="rsw" id="remKeepW" hidden style="justify-content:space-between;margin-top:8px"><span>Надёжный режим<br><span class="fhm">тихая строка в шторке — телефон не усыпляет приложение, и вопросы приходят вовремя</span></span><input type="checkbox" id="remKeep"><span class="knob" aria-hidden="true"></span></label>
       <div class="remstat" id="remStat" hidden></div>
       <button class="btn ghost" id="remTest">👀 Показать пример уведомления</button>
     </div>
@@ -1576,6 +1577,8 @@ function render(){
     ["press","Атмосферное давление",`${cv(cPr,pm)} <small>мм</small><i class="par" style="color:${cAr}" title="${dp>0?"+":""}${dp.toFixed(1)} мм за 6 ч">${arrow}</i>`],
     ...(kp.length?[["kp","Геомагнитный фон",`${cv(kc.kp>=5?HI:kc.kp>=4?MID:OK,(+kc.kp).toFixed(kc.kp%1?1:0))} <small>Kp</small>`]]:[])
   ].map(([k,l,v])=>`<span class="tap fx" data-metric="${k}" role="button" tabindex="0" aria-label="${l}">${fic(k)}<b>${v}</b></span>`).join("");
+  { const t=`${Math.round(cur.temp)}° · ${pm} мм ${arrow} · Kp ${(+kc.kp).toFixed(kc.kp%1?1:0)}`;   // the quiet line in the shade (reliable mode)
+    if(t!==window.KEEP_TXT){ window.KEEP_TXT=t; try{ window.Capacitor?.Plugins?.MoodNotify?.keep?.({text:t})?.catch?.(()=>{}); }catch(e){} } }
   const pr=hrs.slice(i,i+24), mx=Math.max(0.5,...pr.map(x=>x.pr));
   $("prbars").innerHTML=pr.map((x,n)=>`<i class="${x.pr>0?"":"zero"}" style="height:${x.pr>0?Math.max(8,x.pr/mx*100):4}%;animation-delay:${n*25}ms"></i>`).join("");
   $("praxis").innerHTML=[0,6,12,18,23].map(n=>`<span>${pr[n]?fmtH(new Date(pr[n].t))+":00":""}</span>`).join("");
@@ -4565,6 +4568,7 @@ async function scheduleReminders(){
   if(MN){
     try{ const pend=await LN?.getPending(); if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}   // old-style ones
     try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KINDS.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
+    try{ if(MN.keep) await MN.keep({on:!!r.every&&store.get("remKeep")!=="0", text:window.KEEP_TXT||""}); }catch(e){}
     return;
   }
   if(!LN) return;
@@ -4598,6 +4602,7 @@ function renderRemind(){
   $("remHours").hidden=!r.every; $("remToW").hidden=r.every>=1440; $("remFromL").textContent=r.every>=1440?"в":"с";
   $("remFrom").value=r.every>=1440?r.from:r.from; $("remTo").value=r.to;
   $("remTest").hidden=!(MN||LN) || !r.every; remStatus();
+  $("remKeepW").hidden=!MN||!MN.keep||!r.every; $("remKeep").checked=store.get("remKeep")!=="0";
   $("remNote").textContent = !NATIVE ? "Уведомления работают в приложении для Android."
     : !r.every ? "Выберите, как часто спрашивать — вопрос появится в шторке телефона."
     : MN ? `Спрошу ${remindText(r)}. В шторке будут все смайлики — нажмите нужный, и отметка сохранится без открытия приложения. Если вы недавно отметились, вопрос пропущу.`
@@ -4618,6 +4623,7 @@ async function remStatus(){
   if(st.every!==r.every) probs.push(["","Телефон не получил новые настройки — выберите частоту ещё раз.",""]);
   if(!st.pending&&r.every) probs.push(["","Будильник для вопросов не установлен.",""]);
   if(st.schedErr) probs.push(["","Ошибка будильника: "+esc(st.schedErr),""]);
+  if(st.keep&&!st.keepOn) probs.push(["","Надёжный режим включён, но телефон его не запустил"+(st.keepErr?": "+esc(st.keepErr):"")+".",""]);
   box.innerHTML=(st.next?`<div>⏰ Следующий вопрос: <b>${when(st.next)}</b></div>`:"")
     +`<div class="fhm">Будильник последний раз сработал: ${st.lastFire?`${when(st.lastFire)}${why?` — ${why}`:""}`:"<b>ни разу</b>"}</div>`
     +(st.testAt&&st.testAt>Date.now()-10*60000?`<div class="fhm">Проверка назначена на ${fmtHM(new Date(st.testAt))}${st.lastWhy==="test"&&st.lastFire>=st.testAt-5000?" — <b>сработала ✓</b>":""}</div>`:"")
@@ -4626,6 +4632,7 @@ async function remStatus(){
     +(/vivo|oppo|realme|xiaomi|redmi|huawei|honor|oneplus|meizu/i.test(st.maker||"")?`<div class="fhm">На телефонах ${esc(st.maker)} ещё проверьте: Настройки → Приложения → Не18мнеуже → включите «Автозапуск» и разрешите работу в фоне. <button class="mlink" data-remset="app" style="padding:0">Открыть</button></div>`:"");
   box.hidden=false;
 }
+$("remKeep").addEventListener("change",async()=>{ store.set("remKeep",$("remKeep").checked?"1":"0"); await scheduleReminders(); setTimeout(remStatus,800); });
 $("remStat").addEventListener("click",e=>{
   if(e.target.closest("#remProbe")){ if(MN?.testIn) MN.testIn({sec:60}).then(()=>{ toast("Через минуту в шторке появится вопрос. Можно закрыть приложение."); setTimeout(remStatus,300); }).catch(()=>toast("В этой версии проверки нет — обновите приложение.")); return; }
   const b=e.target.closest("[data-remset]"); if(b&&MN?.openSettings) MN.openSettings({what:b.dataset.remset}).catch(()=>toast("Не удалось открыть настройки телефона.")); });
