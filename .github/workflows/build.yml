@@ -1661,7 +1661,7 @@ jobs:
               static void sample(final Context c, final Runnable done) {
                   final SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
                   final Sensor s = sm == null ? null : sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-                  if (s == null) { done.run(); return; }
+                  if (s == null) { CrashLogPlugin.note(c, "steps: no step sensor"); done.run(); return; }
                   final HandlerThread th = new HandlerThread("steps");
                   th.start();
                   final Handler h = new Handler(th.getLooper());
@@ -1670,17 +1670,20 @@ jobs:
                       public void onSensorChanged(SensorEvent e) {
                           synchronized (fin) { if (fin[0]) return; fin[0] = true; }
                           sm.unregisterListener(this);
-                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable ignored) { }
+                          CrashLogPlugin.note(c, "steps: sensor says " + (long) e.values[0]);
+                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable x) { CrashLogPlugin.note(c, "steps: " + x); }
                           done.run(); th.quitSafely();
                       }
                       public void onAccuracyChanged(Sensor sensor, int a) { }
                   };
-                  sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, h);
-                  // no event within 5 s (no steps since boot on some phones): give up for now
+                  boolean ok = sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, 0, h);
+                  CrashLogPlugin.note(c, "steps: listening, registered=" + ok);
+                  // no event within 10 s (some phones answer only after a step): give up for now
                   h.postDelayed(new Runnable() { public void run() {
                       synchronized (fin) { if (fin[0]) return; fin[0] = true; }
+                      CrashLogPlugin.note(c, "steps: sensor silent for 10 s");
                       sm.unregisterListener(l); done.run(); th.quitSafely();
-                  }}, 5000);
+                  }}, 10000);
               }
 
               static synchronized void add(Context c, long count, long now) throws Exception {
@@ -1740,6 +1743,7 @@ jobs:
                   r.put("sensor", PhoneSteps.hasSensor(getContext()));
                   r.put("granted", granted());
                   r.put("on", PhoneSteps.prefs(getContext()).getBoolean("on", false));
+                  r.put("since", PhoneSteps.prefs(getContext()).getLong("since", 0));
                   call.resolve(r);
               }
 
@@ -1747,17 +1751,20 @@ jobs:
               @PluginMethod
               public void start(PluginCall call) {
                   if (!call.getBoolean("on", true)) { PhoneSteps.prefs(getContext()).edit().putBoolean("on", false).apply(); PhoneSteps.schedule(getContext()); call.resolve(); return; }
+                  CrashLogPlugin.note(getContext(), "steps: start, sensor=" + PhoneSteps.hasSensor(getContext()) + " granted=" + granted());
                   if (!granted()) { requestPermissionForAlias("activity", call, "onPermission"); return; }
                   begin(call);
               }
 
               @PermissionCallback
               private void onPermission(PluginCall call) {
+                  CrashLogPlugin.note(getContext(), "steps: permission answer, granted=" + granted());
                   if (!granted()) { JSObject r = new JSObject(); r.put("granted", false); call.resolve(r); return; }
                   begin(call);
               }
 
               private void begin(final PluginCall call) {
+                  if (PhoneSteps.prefs(getContext()).getLong("since", 0) == 0) PhoneSteps.prefs(getContext()).edit().putLong("since", System.currentTimeMillis()).apply();
                   PhoneSteps.prefs(getContext()).edit().putBoolean("on", true).apply();
                   PhoneSteps.schedule(getContext());
                   PhoneSteps.sample(getContext(), new Runnable() { public void run() {

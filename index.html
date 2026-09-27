@@ -4597,11 +4597,12 @@ async function phoneStepsStart(ask){
   let st=null; try{ st=await PSP.status(); }catch(e){ return; }
   if(!st.sensor) return;
   if(!tr("steps")){ if(st.on) PSP.start({on:false}).catch(()=>{}); return; }
-  if(st.on&&st.granted){ phoneStepsRead(); return; }
+  if(st.on&&st.granted){ if(st.since) store.set("stepsSince",String(st.since)); phoneStepsRead(); if(TAB==="health") renderHealthPage(); return; }
   // ask for "physical activity" once by itself; again only when the person switches steps on
   if(!st.granted&&!ask&&store.get("stepsAsked")) return;
   store.set("stepsAsked","1");
-  try{ const r=await PSP.start({on:true}); if(r&&r.granted===false) toast("Без разрешения «Физическая активность» шаги с телефона не посчитать."); else phoneStepsRead(); }catch(e){}
+  try{ const r=await PSP.start({on:true}); if(r&&r.granted===false) toast("Без разрешения «Физическая активность» шаги с телефона не посчитать.");
+    else { store.set("stepsSince",String(Date.now())); phoneStepsRead(); if(TAB==="health") renderHealthPage(); } }catch(e){}
 }
 if(PSP){
   setTimeout(()=>phoneStepsStart(false),6000);
@@ -4695,6 +4696,8 @@ async function hcWrite(list){
 }
 function hcTiles(){
   if(!HC||!HCD) return "";            // vars: undefined while the script is still loading
+  const counting=tr("steps")&&!Object.keys(HCD.psteps).length&&+store.get("stepsSince")>0;
+  if(counting&&!HC.on) return `<div class="card"><div class="label">Шаги</div><div class="src" style="font-size:13px;margin-top:6px">👣 Считаю шаги с ${whenTxt(new Date(+store.get("stepsSince")).toISOString())}. Походите с телефоном — цифра появится здесь.</div></div>`;
   if(!HC.on&&!Object.keys(HCD.psteps).length) return "";
   const today=isoDay(new Date()), yest=isoDay(new Date(Date.now()-DAY)), sl=tr("sleep")&&HC.on?HCD.sleep[today]:null, st=tr("steps")?stepsOf(yest):null, stToday=tr("steps")?stepsOf(today):null;
   const o2d=tr("spo2")?[today,yest].find(d=>HCD.spo2&&HCD.spo2[d]!=null):null, o2=o2d?HCD.spo2[o2d]:null;
