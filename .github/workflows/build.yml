@@ -756,6 +756,14 @@ jobs:
 
               static void post(Context c) {
                   channel(c);
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  try { nm.notify(NID, question(c, CH).build()); } catch (SecurityException e) { /* notifications not allowed */ }
+                  // phones like vivo fold all of an app's notifications under the quiet line: that line turns into the question too
+                  prefs(c).edit().putLong("askPending", System.currentTimeMillis()).apply();
+                  MoodKeep.refresh(c);
+              }
+
+              static NotificationCompat.Builder question(Context c, String channel) {
                   JSONArray a = kinds(c);
                   RemoteViews small = new RemoteViews(c.getPackageName(), R.layout.mood_small);
                   for (int i = 0; i < SMALL.length; i++) {
@@ -772,7 +780,7 @@ jobs:
                       big.setTextViewText(LAB[i], o.optString("l"));
                       big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
                   }
-                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                  return new NotificationCompat.Builder(c, channel)
                       .setSmallIcon(R.drawable.ic_stat_barometr)
                       .setColor(0xFFFFB04A)
                       .setContentTitle("Как себя чувствуешь?")
@@ -785,8 +793,6 @@ jobs:
                       .setAutoCancel(true)
                       .setPriority(NotificationCompat.PRIORITY_HIGH)
                       .setCategory(NotificationCompat.CATEGORY_REMINDER);
-                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-                  try { nm.notify(NID, b.build()); } catch (SecurityException e) { /* notifications not allowed */ }
               }
 
               static void confirm(Context c, String k) {
@@ -1011,6 +1017,8 @@ jobs:
                       s.edit().putString("pending", a.toString()).putLong("lastMark", now).apply();
                   } catch (Exception e) { }
                   MoodNotify.confirm(c, k);
+                  s.edit().remove("askPending").apply();
+                  MoodKeep.refresh(c);
                   MoodNotifyPlugin.emit();
               }
           }
@@ -1041,7 +1049,12 @@ jobs:
           public class MoodKeep extends Service {
               static final String CH = "keep_quiet";
               static final int NID = 7310;
+              static MoodKeep live;
               final Handler h = new Handler(Looper.getMainLooper());
+              static void refresh(Context c) {
+                  MoodKeep k = live; if (k == null) return;
+                  try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NID, k.build()); } catch (Exception e) { }
+              }
               final Runnable tick = new Runnable() { public void run() { check(); } };
 
               static boolean wanted(Context c) {
@@ -1065,6 +1078,9 @@ jobs:
                       nm.createNotificationChannel(ch);
                   }
                   SharedPreferences s = MoodNotify.prefs(this);
+                  long ask = s.getLong("askPending", 0);
+                  if (ask > 0 && System.currentTimeMillis() - ask < 50 * 60000L && ask > s.getLong("lastMark", 0))
+                      return MoodNotify.question(this, CH).setOngoing(true).setOnlyAlertOnce(true).setAutoCancel(false).build();
                   long next = MoodNotify.nextAt(this, System.currentTimeMillis());
                   String wx = s.getString("keepText", "");
                   String when = next > 0 ? "Следующий вопрос о самочувствии в " + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date(next)) : "Вопросы о самочувствии";
@@ -1099,12 +1115,13 @@ jobs:
                       if (Build.VERSION.SDK_INT >= 34) startForeground(NID, build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
                       else startForeground(NID, build());
                   } catch (Exception e) { MoodNotify.prefs(this).edit().putString("keepErr", e.toString()).apply(); stopSelf(); return START_NOT_STICKY; }
+                  live = this;
                   MoodNotify.prefs(this).edit().putLong("keepSince", System.currentTimeMillis()).putString("keepErr", "").apply();
                   MoodNotify.schedule(this);
                   h.removeCallbacks(tick); h.postDelayed(tick, 30000);
                   return START_STICKY;
               }
-              @Override public void onDestroy() { h.removeCallbacks(tick); super.onDestroy(); }
+              @Override public void onDestroy() { h.removeCallbacks(tick); if (live == this) live = null; super.onDestroy(); }
               @Override public IBinder onBind(Intent i) { return null; }
           }
           JAVA
