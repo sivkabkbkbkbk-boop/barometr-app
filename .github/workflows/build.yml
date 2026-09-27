@@ -1474,8 +1474,10 @@ jobs:
                           e.printStackTrace(new PrintWriter(sw));
                           String s = sw.toString();
                           if (s.length() > 6000) s = s.substring(0, 6000);
+                          String ver = "?";
+                          try { ver = app.getPackageManager().getPackageInfo(app.getPackageName(), 0).versionName; } catch (Throwable ignored) { }
                           app.getSharedPreferences("crash", Context.MODE_PRIVATE).edit()
-                              .putString("last", new Date() + " · сборка " + BuildConfig.VERSION_NAME + "\n" + s).commit();
+                              .putString("last", new Date() + " · сборка " + ver + "\n" + s).commit();
                       } catch (Throwable ignored) { }
                       if (prev != null) prev.uncaughtException(t, e);
                   });
