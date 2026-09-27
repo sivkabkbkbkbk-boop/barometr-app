@@ -862,6 +862,9 @@ header{position:relative}
 .wbx{display:flex;justify-content:space-between;font:10px var(--f-mono);color:var(--muted);margin-top:3px}
 .wcalm{margin-top:8px}
 .rzoom{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 8px 0;font:11.5px var(--f-mono);color:var(--muted)}.rzoom .mlink{padding:0;font-family:var(--f-body)}
+.facts .fx{display:inline-flex;align-items:center;gap:5px;border-bottom:0}
+.facts .fi{display:inline-flex;width:18px;height:18px;color:var(--ink);opacity:.85;filter:drop-shadow(0 1px 2px rgb(var(--shc) / .6))}.facts .fi svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.facts .fx b small{font-size:11px;color:var(--muted);font-family:var(--f-body);font-weight:400}
 </style>
 
 </head>
@@ -1528,7 +1531,6 @@ function render(){
   $("temp").innerHTML=`${Math.round(cur.temp)}<sup>°C</sup>`;
   $("cicon").innerHTML=icon(cur.sym);
   $("ctext").textContent=c.text;
-  $("facts").innerHTML=`<span class="tap" data-metric="hum" role="button" tabindex="0">Влажность <b>${cur.hum}%</b></span><span class="tap" data-metric="wind" role="button" tabindex="0">Ветер <b>${cur.wind.toFixed(1)} м/с</b> ${windDir(cur.wdir)}</span>`;
 
   const elev=city.elev||0, p=toMm(cur.p,elev), j=Math.min(hrs.length-1,i+6), dp=toMm(hrs[j].p,elev)-p;
   $("pval").innerHTML=`${Math.round(p)}<small>мм рт. ст.</small>`;
@@ -1556,6 +1558,19 @@ function render(){
   au.style.opacity = Math.min(1, Math.max(kc.kp,maxNext)/7).toFixed(2);
   }
 
+  // under the temperature: humidity, wind, pressure and the geomagnetic field — icons instead of words; a tap opens the Reports
+  const FI={hum:'<svg viewBox="0 0 24 24"><path d="M12 3.5C9 7.6 6.5 10.7 6.5 14a5.5 5.5 0 0 0 11 0c0-3.3-2.5-6.4-5.5-10.5z"/></svg>',
+    wind:'<svg viewBox="0 0 24 24"><path d="M3 8.5h11a2.6 2.6 0 1 0-2.6-2.6M3 12.5h15a2.8 2.8 0 1 1-2.8 2.8M3 16.5h7"/></svg>',
+    press:'<svg viewBox="0 0 24 24"><path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.3"/></svg>',
+    kp:'<svg viewBox="0 0 24 24"><path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/><path d="M12 2.5v2M9.5 21l1-2M14.5 21l-1-2" opacity=".6"/></svg>'};
+  const fic=k=>`<i class="fi">${FI[k]}</i>`;
+  const arrow=Math.abs(dp)<0.8?"":dp>0?"↗":"↘";
+  $("facts").innerHTML=[
+    ["hum","Влажность",`${cur.hum}%`],
+    ["wind","Ветер",`${cur.wind.toFixed(1)} м/с <small>${windDir(cur.wdir)}</small>`],
+    ["press","Атмосферное давление",`${Math.round(p)}${arrow?` <small>${arrow}</small>`:""}`],
+    ...(kp.length?[["kp","Геомагнитный фон",`<span style="color:${kpColor(kc.kp)}">${(+kc.kp).toFixed(kc.kp%1?1:0)}</span>`]]:[])
+  ].map(([k,l,v])=>`<span class="tap fx" data-metric="${k}" role="button" tabindex="0" aria-label="${l}">${fic(k)}<b>${v}</b></span>`).join("");
   const pr=hrs.slice(i,i+24), mx=Math.max(0.5,...pr.map(x=>x.pr));
   $("prbars").innerHTML=pr.map((x,n)=>`<i class="${x.pr>0?"":"zero"}" style="height:${x.pr>0?Math.max(8,x.pr/mx*100):4}%;animation-delay:${n*25}ms"></i>`).join("");
   $("praxis").innerHTML=[0,6,12,18,23].map(n=>`<span>${pr[n]?fmtH(new Date(pr[n].t))+":00":""}</span>`).join("");
