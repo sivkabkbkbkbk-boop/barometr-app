@@ -3408,14 +3408,13 @@ function renderHealthPage(){
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
   $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
   if(typeof fcRender==="function") fcRender();
-  const box=$("hBody"); let h="";
+  const box=$("hBody"); let h=hcTiles();      // steps: on every segment
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
     h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("")}</div>
       <div class="mtoday" style="margin-top:8px">${(rec?.marks||[]).map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join("")}</div></div>`;
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
-  h+=hcTiles();
   if(HSEG==="hr"){ h+=simpleBody(HSEG); box.innerHTML=h; hFabSet(HSEG); return; }
   const type=HSEG, last=lastOf(type);
   if(last){
