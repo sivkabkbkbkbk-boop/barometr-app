@@ -1101,7 +1101,6 @@ jobs:
           import android.content.Context;
           import android.content.Intent;
           import android.content.SharedPreferences;
-          import android.content.res.Configuration;
           import android.widget.RemoteViews;
           import java.text.SimpleDateFormat;
           import java.util.Date;
@@ -1109,43 +1108,35 @@ jobs:
           import org.json.JSONArray;
           import org.json.JSONObject;
 
-          // Home-screen widget 2x1: city, weather, temperature, the day's high and low, pressure with where it goes
-          // in the next 6 hours, and the Kp index. The app leaves an hourly plan for two days; each update picks the current hour.
+          // Home-screen widget 2x1 on a background that shows the weather of the current hour (drawn by
+          // widget/frames.py; with animation on, the launcher flips its 20 frames 10 times a second while it is on screen).
+          // Text: city, the day's high and low, temperature, pressure with its change over the last 3 hours, and Kp.
+          // The app leaves an hourly plan for two days; each update picks the current hour.
           public class WxWidget extends AppWidgetProvider {
               static final String PREFS = "wx_widget";
               static final long HOUR = 3600 * 1000L;
+              static final int FRAMES = 20;
+              static final int GREEN = 0xFFB6FFB9, YELLOW = 0xFFFFE28A, RED = 0xFFFFB3A8, DIM = 0xBFFFFFFF;
 
               static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
               @Override
               public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
-                  RemoteViews v = build(c);
-                  for (int id : ids) m.updateAppWidget(id, v);
+                  for (int id : ids) m.updateAppWidget(id, build(c));
               }
 
               static void refresh(Context c) {
                   AppWidgetManager m = AppWidgetManager.getInstance(c);
                   int[] ids = m.getAppWidgetIds(new ComponentName(c, WxWidget.class));
-                  if (ids == null || ids.length == 0) return;
-                  RemoteViews v = build(c);
-                  for (int id : ids) m.updateAppWidget(id, v);
+                  if (ids == null) return;
+                  for (int id : ids) m.updateAppWidget(id, build(c));
               }
 
-              static boolean dark(Context c, String theme) {
-                  if ("dark".equals(theme)) return true;
-                  if ("light".equals(theme)) return false;
-                  return (c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-              }
-
-              static String icon(String k, boolean night) {
-                  if ("clear".equals(k)) return night ? "🌙" : "☀️";
-                  if ("fair".equals(k)) return night ? "🌙" : "🌤";
-                  if ("partly".equals(k)) return night ? "☁️" : "⛅";
-                  if ("rain".equals(k)) return "🌧";
-                  if ("snow".equals(k)) return "🌨";
-                  if ("thunder".equals(k)) return "⛈";
-                  if ("fog".equals(k)) return "🌫";
-                  return "☁️";
+              static String scene(String k, boolean night) {
+                  if ("clear".equals(k)) return night ? "clear_n" : "clear_d";
+                  if ("fair".equals(k) || "partly".equals(k)) return night ? "fair_n" : "fair_d";
+                  if ("rain".equals(k) || "snow".equals(k) || "thunder".equals(k) || "fog".equals(k)) return k;
+                  return "cloud";
               }
 
               static String deg(int t) { return (t > 0 ? "+" : "") + t + "°"; }
@@ -1162,20 +1153,22 @@ jobs:
                   return bd <= 2 * HOUR ? best : null;
               }
 
+              static void frames(Context c, RemoteViews v, String scene, boolean anim) {
+                  String pkg = c.getPackageName();
+                  for (int f = 0; f < (anim ? FRAMES : 1); f++) {
+                      int img = c.getResources().getIdentifier("wxf_" + scene + "_" + (f < 10 ? "0" : "") + f, "drawable", pkg);
+                      int view = c.getResources().getIdentifier("wx_f" + f, "id", pkg);
+                      if (img != 0 && view != 0) v.setImageViewResource(view, img);
+                  }
+              }
+
               static RemoteViews build(Context c) {
                   SharedPreferences p = prefs(c);
-                  RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.wx_widget);
-                  boolean dk = dark(c, p.getString("theme", "auto"));
-                  int ink = dk ? 0xFFF2F2F2 : 0xFF16322D, muted = dk ? 0xFFA3A7AE : 0xFF557D73;
-                  v.setInt(R.id.wx_root, "setBackgroundResource", dk ? R.drawable.wx_bg_dark : R.drawable.wx_bg_light);
-                  v.setTextColor(R.id.wx_temp, ink);
-                  v.setTextColor(R.id.wx_press, ink);
-                  v.setTextColor(R.id.wx_kp, ink);
-                  v.setTextColor(R.id.wx_city, muted);
-                  v.setTextColor(R.id.wx_hilo, muted);
+                  boolean anim = p.getBoolean("anim", true);
+                  RemoteViews v = new RemoteViews(c.getPackageName(), anim ? R.layout.wx_widget_anim : R.layout.wx_widget);
                   Intent open = new Intent(c, MainActivity.class);
                   open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                  v.setOnClickPendingIntent(R.id.wx_root, PendingIntent.getActivity(c, 30, open,
+                  v.setOnClickPendingIntent(android.R.id.background, PendingIntent.getActivity(c, 30, open,
                       PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
                   try {
                       JSONObject d = new JSONObject(p.getString("data", "{}"));
@@ -1183,34 +1176,46 @@ jobs:
                       long now = System.currentTimeMillis();
                       JSONObject o = s == null ? null : nearest(s, now);
                       if (o == null) throw new Exception("no data for now");
+                      frames(c, v, scene(o.optString("k"), o.optBoolean("n")), anim);
                       v.setTextViewText(R.id.wx_city, d.optString("city", ""));
-                      v.setTextViewText(R.id.wx_icon, icon(o.optString("k"), o.optBoolean("n")));
                       v.setTextViewText(R.id.wx_temp, deg(o.optInt("tp")));
                       JSONObject days = d.optJSONObject("days");
                       JSONArray hl = days == null ? null : days.optJSONArray(new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(now)));
                       v.setTextViewText(R.id.wx_hilo, hl == null ? "" : deg(hl.optInt(0)) + " " + deg(hl.optInt(1)));
+                      // pressure now, and how it changed over the last 3 hours: the arrow shows where it went,
+                      // green when slowly (under 2 mm in 3 h), red when fast
                       if (o.has("p")) {
-                          int pr = o.optInt("p");
-                          JSONObject later = nearest(s, o.optLong("t") + 6 * HOUR);
-                          int dp = later != null && later.has("p") ? later.optInt("p") - pr : 0;
-                          String arrow = dp <= -1 ? " ↓" + (-dp) : dp >= 1 ? " ↑" + dp : " →";
-                          v.setTextViewText(R.id.wx_press, pr + " мм" + arrow);
-                      } else v.setTextViewText(R.id.wx_press, "— мм");
+                          double pr = o.optDouble("p");
+                          JSONObject before = nearest(s, o.optLong("t") - 3 * HOUR);
+                          double dp = before != null && before.has("p") && before != o ? pr - before.optDouble("p") : 0;
+                          v.setTextViewText(R.id.wx_press, Math.round(pr) + " ");
+                          if (Math.abs(dp) < 0.5) {
+                              v.setTextViewText(R.id.wx_parr, "→");
+                              v.setTextColor(R.id.wx_parr, DIM);
+                          } else {
+                              long n = Math.max(1, Math.round(Math.abs(dp)));
+                              v.setTextViewText(R.id.wx_parr, (dp > 0 ? "↑" : "↓") + n);
+                              v.setTextColor(R.id.wx_parr, Math.abs(dp) >= 2 ? RED : GREEN);
+                          }
+                      } else {
+                          v.setTextViewText(R.id.wx_press, "—");
+                          v.setTextViewText(R.id.wx_parr, "");
+                      }
                       if (o.has("kp")) {
                           double kp = o.optDouble("kp");
-                          int col = kp >= 5 ? (dk ? 0xFFFF7A6B : 0xFFD9463A) : kp >= 4 ? (dk ? 0xFFF2C94C : 0xFFC98500) : (dk ? 0xFF8BE38F : 0xFF1F9D55);
-                          v.setTextColor(R.id.wx_kpdot, col);
+                          v.setTextColor(R.id.wx_kpdot, kp >= 5 ? RED : kp >= 4 ? YELLOW : GREEN);
                           v.setTextViewText(R.id.wx_kp, "Kp " + Math.round(kp) + (kp >= 5 ? " буря" : ""));
                       } else {
-                          v.setTextColor(R.id.wx_kpdot, muted);
+                          v.setTextColor(R.id.wx_kpdot, DIM);
                           v.setTextViewText(R.id.wx_kp, "Kp —");
                       }
                   } catch (Exception e) {
+                      frames(c, v, "cloud", anim);
                       v.setTextViewText(R.id.wx_city, "Не18мнеуже");
                       v.setTextViewText(R.id.wx_hilo, "");
-                      v.setTextViewText(R.id.wx_icon, "🌤");
                       v.setTextViewText(R.id.wx_temp, "");
                       v.setTextViewText(R.id.wx_press, "Откройте");
+                      v.setTextViewText(R.id.wx_parr, "");
                       v.setTextColor(R.id.wx_kpdot, 0x00000000);
                       v.setTextViewText(R.id.wx_kp, "приложение");
                   }
@@ -1229,53 +1234,21 @@ jobs:
 
           @CapacitorPlugin(name = "WxWidget")
           public class WxWidgetPlugin extends Plugin {
-              // data: {city, slots: [{t, tp, k, n, p, kp}], days: {"yyyy-mm-dd": [high, low]}}; theme: light | dark | auto
+              // data: {city, slots: [{t, tp, k, n, p, kp}], days: {"yyyy-mm-dd": [high, low]}}; anim: flip the background frames
               @PluginMethod
               public void set(PluginCall call) {
                   JSObject d = call.getObject("data");
                   WxWidget.prefs(getContext()).edit()
                       .putString("data", d == null ? "{}" : d.toString())
-                      .putString("theme", call.getString("theme", "auto")).apply();
+                      .putBoolean("anim", Boolean.TRUE.equals(call.getBoolean("anim", true))).apply();
                   WxWidget.refresh(getContext());
                   call.resolve();
               }
           }
           JAVA
-          cat > $L/wx_widget.xml <<'XML'
-          <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wx_root"
-              android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
-              android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp"
-              android:paddingTop="6dp" android:paddingBottom="6dp" android:background="@drawable/wx_bg_dark">
-              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                  <TextView android:id="@+id/wx_city" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                      android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
-                  <TextView android:id="@+id/wx_hilo" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:textSize="11sp" android:maxLines="1" android:paddingLeft="4dp" />
-              </LinearLayout>
-              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
-                  android:gravity="center_vertical">
-                  <TextView android:id="@+id/wx_icon" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:textSize="22sp" android:paddingRight="2dp" />
-                  <TextView android:id="@+id/wx_temp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                      android:textSize="24sp" android:textStyle="bold" android:maxLines="1" />
-                  <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                      android:orientation="vertical" android:gravity="end">
-                      <TextView android:id="@+id/wx_press" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="12sp" android:maxLines="1" />
-                      <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
-                          <TextView android:id="@+id/wx_kpdot" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                              android:textSize="11sp" android:text="●" android:paddingRight="3dp" />
-                          <TextView android:id="@+id/wx_kp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                              android:textSize="12sp" android:maxLines="1" />
-                      </LinearLayout>
-                  </LinearLayout>
-              </LinearLayout>
-          </LinearLayout>
-          XML
-          mkdir -p android/app/src/main/res/drawable android/app/src/main/res/xml
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n  <solid android:color="#F21C1F24" />\n  <corners android:radius="22dp" />\n</shape>\n' > android/app/src/main/res/drawable/wx_bg_dark.xml
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n  <solid android:color="#F2F4FCF9" />\n  <corners android:radius="22dp" />\n</shape>\n' > android/app/src/main/res/drawable/wx_bg_light.xml
+          mkdir -p android/app/src/main/res/xml
+          # weather backgrounds (20 frames per scene) and the two widget layouts: animated and still
+          python3 widget/frames.py android/app/src/main/res
           printf '<?xml version="1.0" encoding="utf-8"?>\n<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"\n    android:minWidth="110dp" android:minHeight="40dp" android:targetCellWidth="2" android:targetCellHeight="1"\n    android:minResizeWidth="110dp" android:minResizeHeight="40dp" android:resizeMode="horizontal|vertical"\n    android:updatePeriodMillis="1800000" android:initialLayout="@layout/wx_widget" android:previewLayout="@layout/wx_widget"\n    android:description="@string/wx_widget_desc" android:widgetCategory="home_screen" />\n' > android/app/src/main/res/xml/wx_widget_info.xml
           printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n  <string name="wx_widget_label">Погода и давление</string>\n  <string name="wx_widget_desc">Температура, давление и магнитные бури</string>\n</resources>\n' > android/app/src/main/res/values/wx_widget_strings.xml
           sed -i 's|</application>|    <receiver android:name=".WxWidget" android:exported="false" android:label="@string/wx_widget_label">\n            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>\n            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wx_widget_info" />\n        </receiver>\n    </application>|' $M
