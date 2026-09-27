@@ -4597,7 +4597,7 @@ async function phoneStepsStart(ask){
   let st=null; try{ st=await PSP.status(); }catch(e){ return; }
   if(!st.sensor) return;
   if(!tr("steps")){ if(st.on) PSP.start({on:false}).catch(()=>{}); return; }
-  if(st.on&&st.granted){ if(st.since) store.set("stepsSince",String(st.since)); phoneStepsRead(); if(TAB==="health") renderHealthPage(); return; }
+  if(st.on&&st.granted){ if(!store.get("stepsSince")) store.set("stepsSince",String(st.since||Date.now())); phoneStepsRead(); if(TAB==="health") renderHealthPage(); return; }
   // ask for "physical activity" once by itself; again only when the person switches steps on
   if(!st.granted&&!ask&&store.get("stepsAsked")) return;
   store.set("stepsAsked","1");

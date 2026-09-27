@@ -1690,7 +1690,16 @@ jobs:
                   SharedPreferences p = prefs(c);
                   JSONObject days = new JSONObject(p.getString("days", "{}"));
                   long last = p.getLong("last", -1), lastT = p.getLong("lastT", 0);
-                  if (last >= 0) {
+                  String today = day(now);
+                  if (last < 0) {
+                      // the very first reading: the sensor counts since the phone was switched on,
+                      // so when that was today, all of it is today's walking
+                      Calendar mid = Calendar.getInstance(); mid.setTimeInMillis(now);
+                      mid.set(Calendar.HOUR_OF_DAY, 0); mid.set(Calendar.MINUTE, 0); mid.set(Calendar.SECOND, 0); mid.set(Calendar.MILLISECOND, 0);
+                      long boot = now - android.os.SystemClock.elapsedRealtime();
+                      if (boot >= mid.getTimeInMillis() && count < 100000) days.put(today, count);
+                      CrashLogPlugin.note(c, "steps: first reading " + count + (boot >= mid.getTimeInMillis() ? ", phone on since today: counted" : ", phone on since before today: from now on"));
+                  } else {
                       long delta = count >= last ? count - last : count;      // smaller: the phone was restarted
                       if (delta > 0 && delta < 100000) {
                           String d0 = day(lastT), d1 = day(now);
@@ -1705,6 +1714,7 @@ jobs:
                           }
                       }
                   }
+                  if (!days.has(today)) days.put(today, 0);    // today shows up even before the first step
                   // keep about four months
                   String old = day(now - 120L * 24 * 3600 * 1000);
                   for (Iterator<String> it = days.keys(); it.hasNext(); ) if (it.next().compareTo(old) < 0) it.remove();
