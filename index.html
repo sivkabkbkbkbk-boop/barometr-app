@@ -4570,20 +4570,27 @@ if(HCP){
     if(a==="perm"){ HCP.openSettings(); return; }
     if(a==="off"){ HC.on=false; saveHC(); renderHC(); if(TAB==="health") renderHealthPage(); toast("Health Connect отключён. Уже полученные записи остались."); return; }
     if(a==="sync"){ hcSync(true); return; }
-    if(a==="connect"){ let r=null; try{ r=await HCP.request({write:HC.write}); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); return; }
+    if(a==="connect"){ window.CLnote?.("connect pressed, icon switch "+(typeof icoOn==="function"&&icoOn()?"on":"off")); let r=null; try{ r=await HCP.request({write:HC.write}); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); return; }
       if(!r||!(r.granted||[]).length){ toast("Доступ не дан. Его можно открыть в «Разрешениях Health Connect»."); renderHC(); return; }
       HC.on=true; HC.last=0; saveHC(); renderHC(); hcSync(true); } });
   $("gearBtn").addEventListener("click",()=>renderHC());
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&HC.on&&Date.now()-HC.last>30*60000) hcSync(false); });
-  setTimeout(()=>{ if(HC.on) hcSync(false); },4000);
+  setTimeout(async()=>{
+    if(!HC.on){ try{ const st=await HCP.status(); if(st.status==="ok"&&(st.granted||[]).some(g=>g.startsWith("READ_"))){ HC.on=true; HC.last=0; saveHC(); toast("Health Connect подключён."); } }catch(e){} }
+    if(HC.on) hcSync(false); },4000);
 }
 
 /* ---------- the reason of the last crash (native, build 70+) ---------- */
 {
   const CL=(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?(window.Capacitor.Plugins?.CrashLog||null):null;
   if(CL){
-    CL.get().then(r=>{ if(!r||!r.text) return; $("crashTxt").textContent=r.text; $("crashBox").hidden=false;
-      toast("В прошлый раз приложение закрылось из-за ошибки. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
+    CL.get().then(r=>{ if(!r) return;
+      const trail=String(r.trail||""), lastReq=trail.lastIndexOf("hc request:"), cut=lastReq>=0&&trail.indexOf("hc result",lastReq)<0;
+      if(!r.text&&!cut) return;
+      $("crashTxt").textContent=(r.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false;
+      toast("В прошлый раз приложение закрылось. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
+    window.CLnote=t=>{ try{ CL.note({text:t}).catch(()=>{}); }catch(e){} };
+    document.addEventListener("visibilitychange",()=>CLnote(document.hidden?"page hidden":"page visible"));
     $("crashCopy").addEventListener("click",async()=>{ const t=$("crashTxt").textContent;
       try{ const CB=window.Capacitor.Plugins?.Clipboard; if(CB) await CB.write({string:t}); else await navigator.clipboard.writeText(t); toast("Ошибка скопирована — вставьте её в сообщение."); }catch(e){ toast("Не получилось скопировать."); } });
     $("crashClear").addEventListener("click",()=>{ CL.clear().catch(()=>{}); $("crashBox").hidden=true; });

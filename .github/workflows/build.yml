@@ -966,6 +966,7 @@ jobs:
           cat > $J/MainActivity.java <<'JAVA'
           package ru.barometr.neba;
 
+          import android.os.Build;
           import android.os.Bundle;
           import com.getcapacitor.BridgeActivity;
 
@@ -973,6 +974,8 @@ jobs:
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   CrashLogPlugin.install(getApplicationContext());
+                  CrashLogPlugin.note(this, "activity create" + (savedInstanceState != null ? " (restored after the system closed it)" : "")
+                      + " · Android " + Build.VERSION.RELEASE + " · " + Build.MANUFACTURER + " " + Build.MODEL);
                   registerPlugin(ApkUpdatePlugin.class);
                   registerPlugin(MoodNotifyPlugin.class);
                   registerPlugin(ChatWatchPlugin.class);
@@ -984,6 +987,12 @@ jobs:
                   registerPlugin(CrashLogPlugin.class);
                   super.onCreate(savedInstanceState);
               }
+
+              // steps of the activity, for the diagnostics in Settings
+              @Override public void onPause() { CrashLogPlugin.note(this, "activity pause"); super.onPause(); }
+              @Override public void onResume() { super.onResume(); CrashLogPlugin.note(this, "activity resume"); }
+              @Override public void onStop() { CrashLogPlugin.note(this, "activity stop, finishing=" + isFinishing()); super.onStop(); }
+              @Override public void onDestroy() { CrashLogPlugin.note(this, "activity destroy, finishing=" + isFinishing()); super.onDestroy(); }
           }
           JAVA
           cat > $L/mood_small.xml <<'XML'
@@ -1282,19 +1291,25 @@ jobs:
 
               @PluginMethod
               fun request(call: PluginCall) {
+                  CrashLogPlugin.note(context, "hc request: sdk status " + sdk())
                   if (sdk() != HealthConnectClient.SDK_AVAILABLE) { call.reject("unavailable"); return }
                   try {
                       val intent = PermissionController.createRequestPermissionResultContract(provider)
                           .createIntent(context, perms(call.getBoolean("write", false) == true))
+                      CrashLogPlugin.note(context, "hc request: intent " + intent.action + " → " + (intent.`package` ?: "any") +
+                          ", handled by " + (intent.resolveActivity(context.packageManager)?.flattenToShortString() ?: "nobody"))
                       startActivityForResult(call, intent, "onPermissions")
-                  } catch (e: Throwable) { call.reject(why(e)) }
+                      CrashLogPlugin.note(context, "hc request: screen launched")
+                  } catch (e: Throwable) { CrashLogPlugin.note(context, "hc request failed: " + why(e)); call.reject(why(e)) }
               }
 
               @ActivityCallback
               private fun onPermissions(call: PluginCall?, result: ActivityResult) {
+                  CrashLogPlugin.note(context, "hc result: code " + result.resultCode)
                   if (call == null) return
                   try {
                       val granted = PermissionController.createRequestPermissionResultContract(provider).parseResult(result.resultCode, result.data)
+                      CrashLogPlugin.note(context, "hc result: granted " + granted.size)
                       val r = JSObject()
                       r.put("granted", names(granted))
                       call.resolve(r)
@@ -1466,6 +1481,23 @@ jobs:
 
           @CapacitorPlugin(name = "CrashLog")
           public class CrashLogPlugin extends Plugin {
+              // the last 60 steps, oldest first
+              static synchronized void note(Context c, String what) {
+                  try {
+                      android.content.SharedPreferences p = c.getApplicationContext().getSharedPreferences("crash", Context.MODE_PRIVATE);
+                      String t = p.getString("trail", "") + new java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(new Date()) + " " + what + "\n";
+                      String[] lines = t.split("\n");
+                      if (lines.length > 60) t = android.text.TextUtils.join("\n", java.util.Arrays.copyOfRange(lines, lines.length - 60, lines.length)) + "\n";
+                      p.edit().putString("trail", t).commit();
+                  } catch (Throwable ignored) { }
+              }
+
+              @PluginMethod
+              public void note(PluginCall call) {
+                  note(getContext(), "js: " + call.getString("text", ""));
+                  call.resolve();
+              }
+
               static void install(final Context app) {
                   final Thread.UncaughtExceptionHandler prev = Thread.getDefaultUncaughtExceptionHandler();
                   Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
@@ -1487,12 +1519,13 @@ jobs:
               public void get(PluginCall call) {
                   JSObject r = new JSObject();
                   r.put("text", getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).getString("last", ""));
+                  r.put("trail", getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).getString("trail", ""));
                   call.resolve(r);
               }
 
               @PluginMethod
               public void clear(PluginCall call) {
-                  getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).edit().remove("last").apply();
+                  getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).edit().remove("last").remove("trail").apply();
                   call.resolve();
               }
           }
