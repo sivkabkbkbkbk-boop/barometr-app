@@ -635,7 +635,7 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 #hSeg.many button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;font-size:11px}
 #hSeg.many button span:first-child{font-size:17px;line-height:1.1}
 .wsteps{display:flex;gap:6px;margin-bottom:4px}.wsteps i{flex:1;height:4px;border-radius:2px;background:rgb(var(--inkc) / .12)}.wsteps i.on{background:var(--press)}
-/* Health Connect: sleep and steps tiles, settings */
+/* steps tiles */
 .hctiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .hctile{background:var(--sheet-2);border-radius:14px;padding:10px}
 .hctile .k{font-size:11.5px;color:var(--muted)}
@@ -644,7 +644,6 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .hctile .s{font-size:11.5px;margin-top:2px}
 .hcbars{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:6px}.hcbars i{flex:1;border-radius:2px;background:var(--rain);opacity:.75;min-height:2px}
 .hcsrc{white-space:nowrap;font-size:10.5px;background:var(--sheet-2);border-radius:6px;padding:1px 6px;color:var(--muted);margin-left:4px}
-.hcok{display:flex;align-items:center;gap:8px;font-size:13px}.hcok i{width:8px;height:8px;border-radius:50%;background:var(--kp-ok)}
 /* personal forecast for tomorrow: a strip on Today, the full card on Health */
 .fcstrip{display:flex;align-items:center;gap:10px;width:100%;background:var(--sheet);border:1px solid var(--glass-line);border-left:4px solid var(--fc);border-radius:16px;padding:10px 12px;margin:0 0 12px;font:inherit;font-size:14px;color:var(--ink);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fcstrip .e{font-size:22px;line-height:1}.fcstrip b{color:var(--fc)}.fcstrip .go{margin-left:auto;color:var(--muted)}
@@ -968,7 +967,6 @@ header{position:relative}
   <div class="rpanels" id="repPanels"></div>
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
-  <div class="card" id="repSleepC" hidden><div class="label">Сон · 30 дней</div><div id="repSleep"></div></div>
   <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="facs" id="mfacs"></div><div class="fhm" style="margin-top:10px">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div></div>
   <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
@@ -1083,8 +1081,6 @@ header{position:relative}
     <label class="rsw" id="wxwW" hidden style="justify-content:space-between"><span>Анимация фона виджета<br><span class="fhm">дождь идёт, снег падает, звёзды мерцают; выключите, если бережёте батарею</span></span><input type="checkbox" id="wxwAnim"><span class="knob" aria-hidden="true"></span></label>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
-    <div class="ctitle" id="hcT" hidden>Health Connect</div>
-    <div id="hcBox" hidden style="display:flex;flex-direction:column;gap:8px"></div>
     <div class="ctitle">О приложении</div>
     <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
     <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
@@ -2802,7 +2798,7 @@ function dayFeatures(date, slug){
   }
   const kp=kpSeries().filter(x=>x.k==="o"&&isoDay(new Date(x.t))===date).map(x=>x.kp);
   if(kp.length>=4) f.kp=Math.max(...kp);
-  if(typeof HCD!=="undefined"&&HCD){ if(HCD.sleep[date]!=null) f.sleep=HCD.sleep[date]; if(typeof stepsOf==="function"&&stepsOf(date)!=null) f.steps=stepsOf(date); }
+  if(typeof HCD!=="undefined"&&HCD&&HCD.psteps[date]!=null) f.steps=HCD.psteps[date];
   return f;
 }
 const FACTORS=[
@@ -2918,11 +2914,10 @@ const HM = {list: loadJSON("meas",[])||[], del: loadJSON("measDel",{})||{}, tab:
 function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet){ ySyncSoon(); if(SH.on) shareSoon(); } }
 const GCTX={fast:"натощак",before:"до еды",after:"после еды",night:"перед сном",other:"в другое время"};
 /* what the person tracks; installs from before this choice keep everything that existed then */
-var TRACK = Object.assign({bp:true, pulse:true, glu:true, sleep:true, steps:true, weight:false, spo2:false}, loadJSON("track",{})||{});
+var TRACK = Object.assign({bp:true, pulse:true, glu:true, steps:true, weight:false}, loadJSON("track",{})||{});
 const tr=k=>!TRACK||TRACK[k]!==false;       // TRACK is a var: undefined while the script loads, then everything counts as on
-const TR_ITEMS=[["mood","😊","Самочувствие","вручную: смайлики и симптомы",1],["bp","🩺","Давление","вручную, тонометр или часы"],["pulse","💓","Пульс","вручную или часы"],
-  ["glu","🩸","Сахар в крови","вручную или глюкометр"],["sleep","😴","Сон","с часов или браслета"],["steps","👣","Шаги","с часов или датчика телефона"],
-  ["weight","⚖️","Вес","вручную или умные весы"],["spo2","🫁","Кислород в крови","SpO₂ с часов"]];
+const TR_ITEMS=[["mood","😊","Самочувствие","вручную: смайлики и симптомы",1],["bp","🩺","Давление","вручную"],["pulse","💓","Пульс","вручную"],
+  ["glu","🩸","Сахар в крови","вручную"],["steps","👣","Шаги","считает телефон сам"],["weight","⚖️","Вес","вручную"]];
 // measurement types in the Health tab: pressure, pulse, sugar, weight
 const MT={bp:{e:"🩺",l:"Давление",tr:"bp",add:"＋ Записать давление"},hr:{e:"💓",l:"Пульс",tr:"pulse",add:"＋ Записать пульс",u:"уд/мин"},
   glu:{e:"🩸",l:"Сахар",tr:"glu",add:"＋ Записать сахар"},wt:{e:"⚖️",l:"Вес",tr:"weight",add:"＋ Записать вес",u:"кг"}};
@@ -3004,7 +2999,7 @@ function simpleBody(type){
   if(pts.length>1) g+=`<polyline points="${pts.map(m=>`${X(m.t).toFixed(1)},${Y(m.v).toFixed(1)}`).join(" ")}" fill="none" stroke="var(--press)" stroke-width="2" opacity=".55"/>`;
   for(const m of pts) g+=`<circle cx="${X(m.t).toFixed(1)}" cy="${Y(m.v).toFixed(1)}" r="4.2" fill="${hr?hrCat(m.v).c:"var(--press)"}"/>`;
   if(!pts.length) g+=`<text x="${L+iw/2}" y="${T+ih/2}" text-anchor="middle" font-size="11" fill="#9fb1c5">за неделю записей нет</text>`;
-  const srcTag=m=>m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:typeof HC!=="undefined"&&HC&&HC.on?`<span class="hcsrc">✍️ вручную</span>`:"";
+  const srcTag=m=>m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:"";
   return `<div class="card"><div class="label">Последнее · ${whenTxt(last.t)}</div>
     <div class="hbig"><div><span class="bv">${f(last.v)}<small> ${u}</small></span><div class="fhm">${last.note?esc(last.note):""}</div></div>${c?`<span class="hp" style="--c:${c.c}">${c.l}</span>`:""}</div>
     <svg viewBox="0 0 ${W} ${Hh}" class="wk" aria-hidden="true">${g}</svg>
@@ -3036,7 +3031,6 @@ function saveMeasure(){
   }
   if(note) m.note=note; m.city=S.slug;
   HM.list.push(m); saveHM(); renderMeas(); renderHealth(); if(TAB==="health") renderHealthPage();
-  if(m.type==="bp"&&typeof hcWrite==="function") hcWrite([m]);
   if(openSheet&&openSheet.id==="measSheet") setTimeout(()=>hideSheet(), 700);
   if(m.type==="hr"){ toast(`Записано: пульс ${m.v} — ${hrCat(m.v).l}`); return; }
   if(m.type==="wt"){ toast(`Записано: вес ${fmtNum(m.v)} кг`); return; }
@@ -3190,7 +3184,6 @@ function repSummary(from,to){
   cmpMood(f=>f.dpress==null?null:f.dpress>=5,"При перепаде атм. давления больше 5 мм за сутки","🧭");
   cmpMood(f=>f.kp==null?null:f.kp>=4,"В дни с магнитным фоном Kp ≥ 4","🧲");
   cmpMood(f=>f.dtemp==null?null:f.dtemp>=9,"При перепаде температуры больше 9°","🌡");
-  if(tr("sleep")) cmpMood(f=>f.sleep==null?null:f.sleep<360,"После ночи короче 6 часов","😴");
   if(tr("steps")) cmpMood(f=>f.steps==null?null:f.steps>=6000,"В дни, когда вы прошли больше 6 000 шагов,","👣");
   const cmpBp=(test,label,icon)=>{
     const a=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===true;}), b=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===false;});
@@ -3200,7 +3193,6 @@ function repSummary(from,to){
   cmpBp(f=>f.kp==null?null:f.kp>=4,"В дни с Kp ≥ 4","🧲");
   cmpBp(f=>f.dpress==null?null:f.dpress>=5,"В дни резких перепадов атм. давления","🧭");
   cmpBp(f=>f.press==null?null:f.press<745,"При низком атм. давлении (ниже 745 мм)","⬇️");
-  hcSleepChart();
   $("repIns").innerHTML = ins.length ? ins.sort((a,b)=>b[0]-a[0]).slice(0,3).map(([,i,t])=>`<div class="inr"><b>${i}</b><span>${t}</span></div>`).join("")
     : `<div class="fhm">${need.length?"Загружаю погоду за отмеченные дни…":"Пока мало данных для выводов. Отмечайте самочувствие и давление 2–3 недели — приложение сравнит дни с перепадами погоды и спокойные дни."}</div>`;
   // calendar of the last five weeks (Monday first) — removed from the screen, kept for the report text
@@ -3410,7 +3402,7 @@ function renderHealthPage(){
       ${weekChart(type)}<div class="wkc">${weekCompare(type)}</div></div>`;
     const list=HM.list.filter(m=>m.type===type).slice(-30).reverse();
     h+=`<div class="card" style="padding:4px 14px">`+list.map(m=>{ const c=type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
-      return `<div class="hli"><i style="background:${c.c}"></i><div class="hlt"><span class="mono">${type==="bp"?`${m.sys}/${m.dia}${m.pulse&&tr("pulse")?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]}</small>`}</span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}${m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:HCD&&HC.on?`<span class="hcsrc">✍️ вручную</span>`:""}</span></div><span class="hle">${moodNear(m.t)}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`; }).join("")+`</div>`;
+      return `<div class="hli"><i style="background:${c.c}"></i><div class="hlt"><span class="mono">${type==="bp"?`${m.sys}/${m.dia}${m.pulse&&tr("pulse")?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]}</small>`}</span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}${m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:""}</span></div><span class="hle">${moodNear(m.t)}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`; }).join("")+`</div>`;
     h+=`<button class="btn ghost" data-hact="rep">📊 Отчёт за месяц ›</button>`;
     h+=`<div class="src" style="margin-top:10px;text-align:center">Цвет — справочная подсказка, а не диагноз. Приложение не является медицинским изделием; при плохом самочувствии обратитесь к врачу.</div>`;
   } else h+=`<div class="card hempty"><div style="font-size:40px">${type==="bp"?"🩺":"🩸"}</div><div>${type==="bp"?"Записывайте давление утром и вечером — приложение сопоставит его с погодой и самочувствием.":"Записывайте сахар натощак и после еды — увидите, как он меняется день ото дня."}</div></div>`;
@@ -3751,7 +3743,7 @@ function showWelcome(tries=0){
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
   if(busy){ if(tries<40) setTimeout(()=>showWelcome(tries+1), 1500); return; }
   $("welGo").href=yAuthUrl(false); thRender();
-  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,pulse:true,glu:false,sleep:false,steps:false,weight:false,spo2:false});
+  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,pulse:true,glu:false,steps:true,weight:false});
   renderTrack(); showSheet("welSheet");
 }
 $("welGo").addEventListener("click",()=>{ store.set("welcomeY","1"); setTimeout(()=>hideSheet(), 400); });
@@ -4618,14 +4610,7 @@ function renderTrack(){
 async function trackSet(k,on){
   TRACK[k]=on; store.set("track",JSON.stringify(TRACK));
   renderTrack(); renderHealth(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") renderRepSeg(); fcRender();
-  // Health Connect: ask for what was just switched on, then read it
-  if(on&&typeof HC!=="undefined"&&HC&&HC.on&&HCP&&["bp","pulse","glu","sleep","steps","weight","spo2"].includes(k)){
-    // the new data type needs its own permission: open Health Connect's page for this app
-    try{ const st=await HCP.status(); if(st.status==="ok"){ await HCP.manage(); HC_WAIT=Date.now(); toast("Включите новые данные в Health Connect и вернитесь."); } }catch(e){}
-    HC.last=0;
-  }
   if(k==="steps") phoneStepsStart(true);
-  if(typeof renderHC==="function") renderHC();
 }
 $("trWel").addEventListener("click",e=>{ const b=e.target.closest("[data-tr]"); if(!b||b.disabled) return; trackSet(b.dataset.tr,!tr(b.dataset.tr)); });
 $("trList").addEventListener("change",e=>{ const c=e.target.closest("[data-trk]"); if(c) trackSet(c.dataset.trk,c.checked); });
@@ -4635,153 +4620,20 @@ $("welSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-wnex
   $("welSheet").querySelector(".sbody").scrollTop=0; });
 renderTrack();
 
-/* ---------- Health Connect (build 69+): pressure, pulse, sugar, sleep and steps from watches and meters ---------- */
-var HC_WAIT=0;
-var HCP = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.HealthConn||null) : null;
-var HC = Object.assign({on:false, write:false, last:0, got:null}, loadJSON("hc",{})||{});
-var HCD = Object.assign({sleep:{}, steps:{}, spo2:{}, psteps:{}}, loadJSON("hcDaily",{})||{});
-// steps of a day: from Health Connect (watch, band) when it has them, from the phone's sensor otherwise
-const stepsOf=d=>HCD?(HCD.steps[d]!=null&&HC&&HC.on?HCD.steps[d]:HCD.psteps[d]!=null?HCD.psteps[d]:null):null;
-const hcTypes=()=>["bp","pulse","glu","sleep","steps","weight","spo2"].filter(tr);
-const saveHC=()=>{ store.set("hc",JSON.stringify(HC)); store.set("hcDaily",JSON.stringify(HCD)); };
-const HC_SRC={"com.omronhealthcare.omronconnect":"Omron","jp.co.omron.healthcare.omron_connect":"Omron","com.mi.health":"Mi Fitness","com.xiaomi.wearable":"Mi Fitness",
-  "com.xiaomi.hm.health":"Zepp Life","com.huami.watch.hmwatchmanager":"Zepp","com.sec.android.app.shealth":"Samsung Health","com.huawei.health":"Huawei Health",
-  "com.google.android.apps.fitness":"Google Fit","com.fitbit.FitbitMobile":"Fitbit","com.garmin.android.apps.connectmobile":"Garmin","com.withings.wiscale2":"Withings",
-  "com.heytap.health":"HeyTap Health","com.oplus.health":"OHealth","com.realme.link":"realme Link","com.huawei.bone":"Huawei Health"};
-const hcSrc=p=>HC_SRC[p]||"часы";
-const hcMin=m=>`${Math.floor(m/60)} ч ${String(m%60).padStart(2,"0")}`;
-async function hcSync(manual){
-  if(!HCP||!HC.on) return;
-  const since=HC.last?HC.last-2*DAY:Date.now()-90*DAY;
-  let r; try{ r=await HCP.read({since, types:hcTypes()}); }catch(e){ HC.err=String(e?.message||e); saveHC(); if(manual) toast("Не удалось прочитать Health Connect: "+HC.err); return; }
-  HC.err="";
-  const have=new Set(HM.list.map(m=>m.id));
-  const near=(type,t,test)=>HM.list.some(m=>m.type===type&&Math.abs(+new Date(m.t)-t)<3*60000&&test(m));
-  let nb=0, ng=0;
-  if(tr("bp")) for(const x of r.bp||[]){
-    const id="hc"+x.id; if(have.has(id)||HM.del[id]||!(x.sys>=60&&x.sys<=260&&x.dia>=30&&x.dia<=160)) continue;
-    if(near("bp",x.t,m=>m.sys===x.sys&&m.dia===x.dia)) continue;      // the same reading typed by hand
-    const m={id,t:new Date(x.t).toISOString(),type:"bp",sys:x.sys,dia:x.dia,src:hcSrc(x.src),city:S.slug}; if(tr("pulse")&&x.pulse>=30&&x.pulse<=220) m.pulse=x.pulse;
-    HM.list.push(m); nb++;
-  }
-  const REL={2:"fast",3:"before",4:"after"};
-  if(tr("pulse")) for(const x of r.rhr||[]){       // resting pulse from watches
-    const id="hc"+x.id; if(have.has(id)||HM.del[id]||!(x.bpm>=30&&x.bpm<=220)) continue;
-    HM.list.push({id,t:new Date(x.t).toISOString(),type:"hr",v:x.bpm,note:"в покое",src:hcSrc(x.src),city:S.slug}); nb++;
-  }
-  if(tr("weight")) for(const x of r.wt||[]){
-    const id="hc"+x.id, v=Math.round(x.kg*10)/10; if(have.has(id)||HM.del[id]||!(v>=20&&v<=300)) continue;
-    if(near("wt",x.t,m=>Math.abs(m.v-v)<.2)) continue;
-    HM.list.push({id,t:new Date(x.t).toISOString(),type:"wt",v,src:hcSrc(x.src),city:S.slug}); nb++;
-  }
-  if(tr("spo2")){ const days={}; for(const x of r.spo2||[]){ const d=isoDay(new Date(x.t)); (days[d]=days[d]||[]).push(x.pct); }
-    for(const [d,a] of Object.entries(days)) HCD.spo2[d]=Math.round(a.reduce((p,q)=>p+q,0)/a.length); }
-  if(tr("glu")) for(const x of r.glu||[]){
-    const id="hc"+x.id, v=Math.round(x.mmol*10)/10; if(have.has(id)||HM.del[id]||!(v>=1&&v<=35)) continue;
-    if(near("glu",x.t,m=>m.v===v)) continue;
-    HM.list.push({id,t:new Date(x.t).toISOString(),type:"glu",v,ctx:REL[x.rel]||"other",src:hcSrc(x.src),city:S.slug}); ng++;
-  }
-  // a night belongs to the day you woke up; naps do not replace the main sleep
-  if(tr("sleep")) for(const x of r.sleep||[]){ const min=Math.round((x.end-x.start)/60000); if(min<60||min>16*60) continue;
-    const d=isoDay(new Date(x.end)); HCD.sleep[d]=Math.max(HCD.sleep[d]||0,min); }
-  if(tr("steps")) for(const x of r.steps||[]) if(x.n>0) HCD.steps[x.day]=x.n;
-  HC.last=Date.now(); HC.got={bp:HM.list.filter(m=>m.type==="bp"&&m.src).length, glu:HM.list.filter(m=>m.type==="glu"&&m.src).length, sleep:Object.keys(HCD.sleep).length};
-  saveHC(); if(nb||ng) saveHM();
-  renderHC(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") drawReport();
-  if(manual) toast(nb||ng?`Добавлено из Health Connect: ${nb+ng} ${nb+ng===1?"запись":nb+ng<5?"записи":"записей"}.`:"Новых измерений нет.");
-}
-async function hcWrite(list){
-  if(!HCP||!HC.on||!HC.write) return;
-  try{ await HCP.writeBp({items:list.filter(m=>m.type==="bp"&&!m.src).map(m=>({id:m.id,t:+new Date(m.t),sys:m.sys,dia:m.dia}))}); }catch(e){}
-}
+/* ---------- steps per day, from the phone's step sensor ---------- */
+var HCD = Object.assign({psteps:{}}, loadJSON("hcDaily",{})||{});
+const stepsOf=d=>HCD&&HCD.psteps[d]!=null?HCD.psteps[d]:null;
+const saveHC=()=>store.set("hcDaily",JSON.stringify({psteps:HCD.psteps}));
 function hcTiles(){
-  if(!HC||!HCD) return "";            // vars: undefined while the script is still loading
-  const counting=tr("steps")&&!Object.keys(HCD.psteps).length&&+store.get("stepsSince")>0;
-  if(counting&&!HC.on) return `<div class="card"><div class="label">Шаги</div><div class="src" style="font-size:13px;margin-top:6px">👣 Считаю шаги с ${whenTxt(new Date(+store.get("stepsSince")).toISOString())}. Походите с телефоном — цифра появится здесь.</div></div>`;
-  if(!HC.on&&!Object.keys(HCD.psteps).length) return "";
-  const today=isoDay(new Date()), yest=isoDay(new Date(Date.now()-DAY)), sl=tr("sleep")&&HC.on?HCD.sleep[today]:null, st=tr("steps")?stepsOf(yest):null, stToday=tr("steps")?stepsOf(today):null;
-  const o2d=tr("spo2")?[today,yest].find(d=>HCD.spo2&&HCD.spo2[d]!=null):null, o2=o2d?HCD.spo2[o2d]:null;
-  if(sl==null&&st==null&&stToday==null&&o2==null) return "";
-  const past=Object.entries(HCD.sleep).filter(([d])=>d<today).sort().slice(-14).map(([,v])=>v).sort((a,b)=>a-b);
-  const usual=past.length>=5?past[Math.floor(past.length/2)]:null, diff=usual!=null&&sl!=null?sl-usual:0;
-  const days=Array.from({length:7},(_,i)=>isoDay(new Date(Date.now()-(7-i)*DAY))), mx=Math.max(1,...days.map(d=>stepsOf(d)||0));
-  return `<div class="card"><div class="label">Сегодня ночью и вчера</div><div class="hctiles">
-    ${tr("sleep")&&HC.on?`<div class="hctile"><div class="k">😴 Сон</div>${sl!=null?`<div class="v">${hcMin(sl)} <small>мин</small></div>${Math.abs(diff)>=30?`<div class="s" style="color:${diff<0?"var(--kp-mid)":"var(--kp-ok)"}">${diff<0?"меньше":"больше"} обычного на ${Math.abs(diff)<60?Math.abs(diff):hcMin(Math.abs(diff))} мин</div>`:usual!=null?`<div class="s fhm">как обычно</div>`:""}`:`<div class="s fhm" style="margin-top:6px">нет данных за эту ночь</div>`}</div>`:""}
-    ${tr("steps")?`<div class="hctile"><div class="k">👣 Шаги вчера</div>${st!=null?`<div class="v">${st.toLocaleString("ru-RU")}</div>`:`<div class="s fhm" style="margin-top:6px">нет данных</div>`}${stToday!=null?`<div class="s fhm">сегодня ${stToday.toLocaleString("ru-RU")}</div>`:""}<div class="hcbars">${days.map(d=>`<i style="height:${Math.round((stepsOf(d)||0)/mx*100)}%"></i>`).join("")}</div></div>`:""}
-    ${o2!=null?`<div class="hctile"><div class="k">🫁 Кислород</div><div class="v">${o2}<small> %</small></div><div class="s" style="color:${o2<94?"var(--kp-mid)":"var(--muted)"}">${o2<94?"ниже обычного для взрослых":o2d===today?"сегодня, в среднем":"вчера, в среднем"}</div></div>`:""}
+  if(!HCD||!tr("steps")) return "";           // HCD is a var: undefined while the script is still loading
+  const since=+store.get("stepsSince")||0;
+  if(!Object.keys(HCD.psteps).length) return since?`<div class="card"><div class="label">Шаги</div><div class="src" style="font-size:13px;margin-top:6px">👣 Считаю шаги с ${whenTxt(new Date(since).toISOString())}. Походите с телефоном — цифра появится здесь.</div></div>`:"";
+  const today=isoDay(new Date()), yest=isoDay(new Date(Date.now()-DAY)), st=stepsOf(yest), stToday=stepsOf(today);
+  const days=Array.from({length:7},(_,i)=>isoDay(new Date(Date.now()-(6-i)*DAY))), mx=Math.max(1,...days.map(d=>stepsOf(d)||0));
+  return `<div class="card"><div class="label">Шаги</div><div class="hctiles">
+    <div class="hctile"><div class="k">👣 Сегодня</div><div class="v">${(stToday||0).toLocaleString("ru-RU")}</div><div class="hcbars">${days.map(d=>`<i style="height:${Math.round((stepsOf(d)||0)/mx*100)}%"></i>`).join("")}</div></div>
+    <div class="hctile"><div class="k">Вчера</div>${st!=null?`<div class="v">${st.toLocaleString("ru-RU")}</div>`:`<div class="s fhm" style="margin-top:6px">нет данных</div>`}<div class="s fhm">считает телефон, когда он с вами</div></div>
   </div></div>`;
-}
-function hcSleepChart(){
-  const c=$("repSleepC"); if(!c||!HCD) return;
-  if(!tr("sleep")){ c.hidden=true; return; }
-  const days=Array.from({length:30},(_,i)=>isoDay(new Date(Date.now()-(29-i)*DAY))), v=days.map(d=>HCD.sleep[d]);
-  const got=v.filter(x=>x!=null); if(got.length<3){ c.hidden=true; return; }
-  c.hidden=false; const avg=Math.round(got.reduce((a,b)=>a+b,0)/got.length), short=got.filter(x=>x<360).length;
-  $("repSleep").innerHTML=`<div class="hcbars" style="height:70px;margin-top:10px">${v.map(x=>`<i style="height:${x==null?0:Math.min(100,x/540*100)}%;${x!=null&&x<360?"background:var(--kp-mid)":""}"></i>`).join("")}</div>
-    <div class="fhm" style="margin-top:6px">в среднем ${hcMin(avg)} мин · ночей короче 6 ч: ${short}</div>`;
-}
-const HC_ITEMS=[["write","↩️ Записывать моё давление в Health Connect"]];
-const hcWhat=()=>TR_ITEMS.filter(([k])=>k!=="mood"&&tr(k)).map(([,e,l])=>`${e} ${l.toLowerCase()}`).join(", ")||"ничего — выберите в «Что отслеживать»";
-async function renderHC(){
-  if(!HCP) return;
-  $("hcT").hidden=false; $("hcBox").hidden=false;
-  let st={status:"unsupported"}; try{ st=await HCP.status(); }catch(e){}
-  const box=$("hcBox"), chk=`<div class="src">Будет браться: ${hcWhat()}</div>`+HC_ITEMS.filter(()=>tr("bp")).map(([k,l])=>`<label class="rsw" style="justify-content:space-between"><span>${l}</span><input type="checkbox" data-hc="${k}" ${HC[k]?"checked":""}><span class="knob" aria-hidden="true"></span></label>`).join("");
-  if(st.status==="noui"){ box.innerHTML=`<div class="src">На этом телефоне Health Connect недоступен: производитель убрал его из прошивки. Шаги считает датчик телефона, остальное можно вводить вручную.</div>`; return; }
-  if(st.status==="unsupported"){ box.innerHTML=`<div class="src">Health Connect работает на Android 9 и новее.</div>`; return; }
-  if(st.status==="install"){ box.innerHTML=`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами. Для этого нужно приложение Health Connect от Google.</div><button class="btn" data-hcact="install">Установить Health Connect</button>`; return; }
-  const errT=HC.err?`<div class="src" style="color:var(--kp-hi)">Ошибка: ${esc(HC.err)}</div>`:"";
-  if(!HC.on){ box.innerHTML=errT+`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами — вручную вводить не нужно.</div>${chk}<button class="btn" data-hcact="connect">Подключить Health Connect</button>`; return; }
-  const g=HC.got||{};
-  box.innerHTML=`${errT}${chk}<div class="hcok"><i></i>Подключено${HC.last?` · обновлено ${whenTxt(new Date(HC.last).toISOString())}`:""}</div>
-    <div class="src">Уже получено: давление ×${g.bp||0}, сахар ×${g.glu||0}, ночей сна ${g.sleep||0}</div>
-    <button class="btn ghost" data-hcact="sync">Обновить сейчас</button><button class="btn ghost" data-hcact="perm">Разрешения Health Connect</button><button class="btn ghost" data-hcact="off">Отключить</button>`;
-}
-if(HCP){
-  $("hcBox").addEventListener("change",async e=>{ const c=e.target.closest("[data-hc]"); if(!c) return; HC[c.dataset.hc]=c.checked; saveHC();
-    if(c.dataset.hc==="write"&&c.checked&&HC.on){ try{ const st=await HCP.status(); if(!(st.granted||[]).includes("WRITE_BLOOD_PRESSURE")){ await HCP.manage(); toast("Включите в Health Connect запись артериального давления и вернитесь."); } }catch(err){} }
- });
-  $("hcBox").addEventListener("click",async e=>{ const b=e.target.closest("[data-hcact]"); if(!b) return; const a=b.dataset.hcact;
-    if(a==="install"){ HCP.install(); return; }
-    if(a==="perm"){ HCP.manage().catch(()=>HCP.openSettings()); return; }
-    if(a==="off"){ HC.on=false; saveHC(); renderHC(); if(TAB==="health") renderHealthPage(); toast("Health Connect отключён. Уже полученные записи остались."); return; }
-    if(a==="sync"){ hcSync(true); return; }
-    if(a==="connect"){ window.CLnote?.("connect pressed");
-      // open Health Connect's page for this app; the person switches the data on there and comes back
-      let op=null; try{ op=await HCP.manage(); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); window.showTrail?.(); return; }
-      HC.err=""; saveHC(); HC_WAIT=Date.now(); toast(op?.appPage?"Откройте «Разрешения» → Health Connect, включите нужные данные и вернитесь в приложение.":"Включите нужные данные в Health Connect и вернитесь в приложение."); } });
-  // back from Health Connect: see what was granted
-  document.addEventListener("visibilitychange",async()=>{
-    if(document.hidden||!HC_WAIT||Date.now()-HC_WAIT>15*60000) return;
-    let st=null; try{ st=await HCP.status(); }catch(e){}
-    const g=(st?.granted||[]).filter(x=>x.startsWith("READ_"));
-    if(!g.length){ toast("Доступ пока не выдан. Нажмите «Подключить» ещё раз и включите переключатели."); return; }
-    HC_WAIT=0; HC.on=true; HC.last=0; HC.err=""; saveHC(); renderHC(); hcSync(true); });
-  $("gearBtn").addEventListener("click",()=>renderHC());
-  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&HC.on&&Date.now()-HC.last>30*60000) hcSync(false); });
-  setTimeout(async()=>{
-    if(!HC.on){ try{ const st=await HCP.status(); if(st.status==="ok"&&(st.granted||[]).some(g=>g.startsWith("READ_"))){ HC.on=true; HC.last=0; saveHC(); toast("Health Connect подключён."); } }catch(e){} }
-    if(HC.on) hcSync(false); },4000);
-}
-
-/* ---------- the reason of the last crash (native, build 70+) ---------- */
-{
-  const CL=(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?(window.Capacitor.Plugins?.CrashLog||null):null;
-  if(CL){
-    CL.get().then(r=>{ if(!r) return;
-      const trail=String(r.trail||""), lastReq=trail.lastIndexOf("hc request:"), cut=lastReq>=0&&trail.indexOf("hc result",lastReq)<0;
-      if(!r.text&&!cut) return;
-      $("crashTxt").textContent=(r.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false;
-      toast("В прошлый раз приложение закрылось. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
-    window.showTrail=()=>CL.get().then(r=>{ const trail=String(r?.trail||""); $("crashTxt").textContent=(r?.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false; }).catch(()=>{});
-    // five taps on the version line in Settings show the diagnostic trail
-    { let n=0, t0=0; $("appVer").addEventListener("click",()=>{ const now=Date.now(); n=now-t0<1500?n+1:1; t0=now; if(n>=5){ n=0; window.showTrail(); toast("Журнал шагов — ниже, его можно скопировать."); } }); }
-    window.CLnote=t=>{ try{ CL.note({text:t}).catch(()=>{}); }catch(e){} };
-    document.addEventListener("visibilitychange",()=>CLnote(document.hidden?"page hidden":"page visible"));
-    $("crashCopy").addEventListener("click",async()=>{ const t=$("crashTxt").textContent;
-      try{ const CB=window.Capacitor.Plugins?.Clipboard; if(CB) await CB.write({string:t}); else await navigator.clipboard.writeText(t); toast("Ошибка скопирована — вставьте её в сообщение."); }catch(e){ toast("Не получилось скопировать."); } });
-    $("crashClear").addEventListener("click",()=>{ CL.clear().catch(()=>{}); $("crashBox").hidden=true; });
-  }
 }
 
 /* ---------- personal forecast for tomorrow ----------
@@ -4959,7 +4811,7 @@ if(ICO){
   $("icoOn").addEventListener("change",async()=>{ store.set("iconWx",$("icoOn").checked?"1":"0"); await iconPlanSend();
     toast($("icoOn").checked?"Значок обновится, когда вы выйдете из приложения.":"Вернётся обычный значок, когда вы выйдете из приложения."); });
   // switching the icon while the app is on screen may close it, so do it when the person leaves.
-  // Not when the app itself opened a system screen (Health Connect permissions, sharing, Yandex login,
+  // Not when the app itself opened a system screen (a permission request, sharing, Yandex login,
   // installing an update): the app is still in use behind it, and Android would close it
   let lastTap=0;
   addEventListener("pointerdown",()=>{ lastTap=Date.now(); },true);
