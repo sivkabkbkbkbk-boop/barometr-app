@@ -866,6 +866,28 @@ header{position:relative}
 .facts .fi{display:inline-flex;width:1.35em;height:1.35em;color:var(--ink);opacity:.85;filter:drop-shadow(0 1px 2px rgb(var(--shc) / .6))}.facts .fi svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .facts .fx b small{font-size:.85em;color:var(--muted);font-family:var(--f-body);font-weight:400}
 .facts .par{font-style:normal;font-weight:700;margin-left:1px;font-family:var(--f-body)}
+
+/* tablets and wide screens: two columns of cards; the header, the weather, the map and wide charts span both */
+@media (min-width:760px){
+  .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:start}
+  .app>*,.app>header{min-width:0}
+  #pgToday>header,#pgToday>.notice,#pgToday>.hero,#pgToday>.fcstrip,#cardRain,#cardHours,#card5,
+  .app>.ptitle,.app>.src,.app>.seg3,#repData,#hBody,#fcCard,#moodDaysC{grid-column:1/-1}
+  #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:start}
+  #repData>*{min-width:0}
+  #repPer,#repRange,#repSelC,#repPanels,#repKpi,#repData>.src{grid-column:1/-1}
+  #hBody{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
+  #pgFriends{display:flex;max-width:760px}
+  #pgToday{grid-auto-flow:row dense}
+  #grid2{grid-column:auto}
+  #cardHealth{align-self:stretch}
+
+  #repData>.kpis:has(.kpi[style*="grid-column:1/-1"]){grid-column:1/-1}
+  .rmap{height:300px}
+  .sheet{max-width:680px}
+  .bnav{padding-inline:max(0px,calc((100% - 680px) / 2))}
+}
 </style>
 
 </head>
@@ -3291,7 +3313,9 @@ function repSummary(from,to){
 
 /* all chosen indicators on ONE chart: each line is scaled to its own range (no second axis); values are read with the finger */
 function drawOverlay(from,to,loading){
-  const x0=+from, x1=+to, W=360, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw; REP.vx=[x0,x1];
+  // on a wide screen the chart gets a wider drawing area instead of growing taller (text keeps its size)
+  const cw=$("repPanels")?.clientWidth||360, W=innerWidth>=760?Math.max(360,Math.round(360*cw/680)):360;
+  const x0=+from, x1=+to, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw; REP.vx=[x0,x1];
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
   const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
   const hasMood=REP.sel.includes("mood"), T=hasMood?30:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
@@ -3358,7 +3382,7 @@ function drawOverlay(from,to,loading){
 }
 function repCursor(e){
   const svg=e.target.closest(".rpan svg"); if(!svg) return;
-  const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), vx=(e.clientX-r.left)/r.width*360;
+  const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), vx=(e.clientX-r.left)/r.width*svg.viewBox.baseVal.width;
   if(RZ.p.size>1) return;                                  // two fingers: zooming, not reading values
   const [from,to]=document.querySelector("#repPanels .rpan.one")&&REP.vx?REP.vx:[+REP.from,+REP.to], t=from+(vx-L)/iw*(to-from); if(t<from||t>to) return;
   const win=(to-from)/40;
@@ -3405,12 +3429,12 @@ $("repPanels").addEventListener("pointerdown",e=>{
   RZ.p.set(e.pointerId,e.clientX);
   if(RZ.p.size===1){ const now=Date.now(); if(now-RZ.tap<300&&REP.zoom){ REP.zoom=null; rzRedraw(); RZ.tap=0; return; } RZ.tap=now; }
   if(RZ.p.size===2){ const box=$("repPanels"); for(const id of RZ.p.keys()) try{ box.setPointerCapture(id); }catch(x){}
-    const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), xs=[...RZ.p.values()], fr=x=>((x-r.left)/r.width*360-L)/iw;
-    const [a,b]=REP.vx; RZ.g={a,b,d0:Math.abs(xs[0]-xs[1])||1,m0:(fr(xs[0])+fr(xs[1]))/2,r,L,iw}; }
+    const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), xs=[...RZ.p.values()], VW=svg.viewBox.baseVal.width, fr=x=>((x-r.left)/r.width*VW-L)/iw;
+    const [a,b]=REP.vx; RZ.g={a,b,d0:Math.abs(xs[0]-xs[1])||1,m0:(fr(xs[0])+fr(xs[1]))/2,r,L,iw,VW}; }
 });
 $("repPanels").addEventListener("pointermove",e=>{
   if(!RZ.p.has(e.pointerId)) return; RZ.p.set(e.pointerId,e.clientX); if(RZ.p.size<2||!RZ.g) return;
-  const g=RZ.g, xs=[...RZ.p.values()], d=Math.abs(xs[0]-xs[1])||1, fr=x=>((x-g.r.left)/g.r.width*360-g.L)/g.iw, m=(fr(xs[0])+fr(xs[1]))/2;
+  const g=RZ.g, xs=[...RZ.p.values()], d=Math.abs(xs[0]-xs[1])||1, fr=x=>((x-g.r.left)/g.r.width*g.VW-g.L)/g.iw, m=(fr(xs[0])+fr(xs[1]))/2;
   const [from,to]=repRange(), full=+to-+from, w=Math.min(full,Math.max(3*H,(g.b-g.a)*g.d0/d)), tm=g.a+g.m0*(g.b-g.a);   // the moment under the fingers stays under them
   REP.zoom=w>=full*.98?null:[tm-m*w, tm-m*w+w];
   if(!RZ.raf) RZ.raf=requestAnimationFrame(rzRedraw);
