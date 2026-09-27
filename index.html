@@ -849,6 +849,18 @@ header{position:relative}
 .jnow[hidden]{display:none}
 .remstat{margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:13px}.remstat b{font-weight:600}
 .remwarn{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,122,107,.12);border:1px solid rgba(255,122,107,.3)}
+.wfind{padding:10px 0;border-top:1px solid var(--glass-line)}.wfind:first-child{border-top:0;padding-top:4px}
+.wfind .f{display:flex;gap:10px}.wfind .e{font-size:22px;line-height:1.1}.wfind .t{font-weight:600;font-size:14.5px;line-height:1.3}
+.wfind .s{color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.35}.wfind .s b{color:var(--ink);font-weight:600}
+.wconf{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:6px}
+.cdots{display:inline-flex;gap:3px}.cdots i{width:7px;height:7px;border-radius:50%;background:rgb(var(--inkc) / .18)}
+.wfind.c3 .cdots i.on{background:var(--kp-ok)}.wfind.c2 .cdots i.on{background:var(--kp-mid)}.wfind.c1 .cdots i.on{background:var(--muted)}
+.wbars{display:flex;align-items:flex-end;gap:5px;height:78px;margin:10px 0 0}
+.wbars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+.wbars i{width:100%;border-radius:5px 5px 2px 2px;background:rgb(var(--inkc) / .16)}.wbars i.hot{background:var(--kp-hi)}
+.wbars span{font:10px var(--f-mono);color:var(--ink)}.wbars em{font:normal 9.5px var(--f-mono);color:var(--muted)}
+.wbx{display:flex;justify-content:space-between;font:10px var(--f-mono);color:var(--muted);margin-top:3px}
+.wcalm{margin-top:8px}
 </style>
 
 </head>
@@ -3051,8 +3063,8 @@ function findingsFor(from,to,after){
     const a=days.filter(([d])=>F[d]&&test(F[d])===true), b=days.filter(([d])=>F[d]&&test(F[d])===false);
     if(a.length<3||b.length<3) return;
     const ra=a.filter(([,r])=>bad(r)).length/a.length, rb=b.filter(([,r])=>bad(r)).length/b.length;
-    if(ra>=rb*1.5&&ra-rb>=.2) ins.push([ra-rb,icon,`${label} плохое самочувствие бывает <b>${rb>0?`в ${fmtNum(ra/rb,1).replace(",0","")} раза чаще`:"заметно чаще"}</b> <span class="fhm">(${a.filter(([,r])=>bad(r)).length} из ${a.length} дней против ${b.filter(([,r])=>bad(r)).length} из ${b.length})</span>`]);
-    else if(rb>=ra*1.5&&rb-ra>=.2) ins.push([(rb-ra)/2,icon,`${label} вы чувствуете себя <b>скорее лучше</b>, чем в другие дни`]);
+    if(ra>=rb*1.5&&ra-rb>=.2) ins.push([ra-rb,icon,`${label} плохое самочувствие бывает <b>${rb>0?`в ${fmtNum(ra/rb,1).replace(",0","")} раза чаще`:"заметно чаще"}</b> <span class="fhm">(${a.filter(([,r])=>bad(r)).length} из ${a.length} дней против ${b.filter(([,r])=>bad(r)).length} из ${b.length})</span>`,"mood"]);
+    else if(rb>=ra*1.5&&rb-ra>=.2) ins.push([(rb-ra)/2,icon,`${label} вы чувствуете себя <b>скорее лучше</b>, чем в другие дни`,"mood"]);
   };
   cmpMood(f=>f.dpress==null?null:f.dpress>=5,"При перепаде атм. давления больше 5 мм за сутки","🧭");
   cmpMood(f=>f.kp==null?null:f.kp>=4,"В дни с магнитным фоном Kp ≥ 4","🧲");
@@ -3068,6 +3080,101 @@ function findingsFor(from,to,after){
   cmpBp(f=>f.press==null?null:f.press<745,"При низком атм. давлении (ниже 745 мм)","⬇️");
   return {ins, need};
 }
+/* ---------- weather ↔ wellbeing, the finer analysis ----------
+   The unit is a moment, not a calendar day: marks are grouped into 6-hour blocks, and for each block the weather is
+   taken around that moment — in the 12 hours before it ("во время"), in the 12 hours after it ("заранее": people often
+   feel a change before it comes) and 24–36 hours before it ("на следующий день": storms often catch up later).
+   What counts is how fast and which way things change (a pressure fall within 6 hours), with a threshold of this
+   person's own, and every finding carries a confidence from Fisher's exact test, corrected for the number of tries. */
+const WXA_F=[
+  {k:"pfall", i:"🧭", thr:[1,2,3,4,5,6,8], unit:"мм", t:v=>`когда давление падает быстрее ${v} мм за 6 часов`, ax:"падение, мм за 6 ч", name:"падение давления"},
+  {k:"prise", i:"🧭", thr:[1,2,3,4,5,6,8], unit:"мм", t:v=>`когда давление растёт быстрее ${v} мм за 6 часов`, ax:"рост, мм за 6 ч", name:"рост давления"},
+  {k:"kp",    i:"🧲", thr:[3,4,5,6],       unit:"",   t:v=>v>=5?`в магнитные бури (Kp ${v} и выше)`:`когда магнитный фон неспокойный (Kp ${v} и выше)`, ax:"Kp", name:"магнитный фон"},
+  {k:"cold",  i:"🌡", thr:[3,5,7,9],       unit:"°",  t:v=>`когда за 12 часов холодает больше чем на ${v}°`, ax:"похолодание, ° за 12 ч", name:"похолодание"},
+  {k:"warm",  i:"🌡", thr:[3,5,7,9],       unit:"°",  t:v=>`когда за 12 часов теплеет больше чем на ${v}°`, ax:"потепление, ° за 12 ч", name:"потепление"},
+  {k:"hum",   i:"💧", thr:[75,80,85,90],   unit:"%",  t:v=>`в сырую погоду, влажность выше ${v}%`, ax:"влажность, %", name:"влажность"}];
+const WXA_LAG=[{h:0,t:"в то же время"},{h:-12,t:"за 6–12 часов до того, как погода изменится"},{h:24,t:"примерно через сутки после изменения"}];
+function lnFact(n){ let s=0; for(let i=2;i<=n;i++) s+=Math.log(i); return s; }
+// one-sided Fisher exact test: is "bad" more frequent among exposed blocks (a of n1) than among the others (c of n2)?
+function fisherGreater(a,n1,c,n2){
+  const K=a+c, N=n1+n2, lc=(n,k)=>lnFact(n)-lnFact(k)-lnFact(n-k); let p=0;
+  for(let x=a;x<=Math.min(n1,K);x++) p+=Math.exp(lc(n1,x)+lc(n2,K-x)-lc(N,K));
+  return Math.min(1,p);
+}
+function wxSeries(id){                 // hourly pressure (mm), temperature and humidity of a city by hour
+  const P=new Map(), T=new Map(), U=new Map();
+  for(const o of archObs(id)){ const h=Math.round(+new Date(o.t)/H)*H; if(o.Po!=null) P.set(h,o.Po*HPA2MM); if(o.T!=null) T.set(h,o.T); if(o.f!=null) U.set(h,o.f); }
+  return {P,T,U};
+}
+function wxWindow(ws, kps, a, b){      // weather features of the hours [a, b]
+  const f={}; let pf=null, pr=null, n=0, cold=null, warm=null, hs=0, hn=0;
+  for(let h=a; h<=b; h+=H){
+    const p0=ws.P.get(h), p6=ws.P.get(h+6*H); if(p0!=null&&p6!=null&&h+6*H<=b+6*H){ pf=Math.max(pf??-99,p0-p6); pr=Math.max(pr??-99,p6-p0); n++; }
+    const t0=ws.T.get(h), t12=ws.T.get(h+12*H); if(t0!=null&&t12!=null){ cold=Math.max(cold??-99,t0-t12); warm=Math.max(warm??-99,t12-t0); }
+    const u=ws.U.get(h); if(u!=null){ hs+=u; hn++; }
+  }
+  if(n>=4){ f.pfall=pf; f.prise=pr; }
+  if(cold!=null){ f.cold=cold; f.warm=warm; }
+  if(hn>=6) f.hum=hs/hn;
+  const k=kps.filter(x=>x.t>=a-3*H&&x.t<=b); if(k.length>=2) f.kp=Math.max(...k.map(x=>x.v));
+  return f;
+}
+function wxAnalysis(from,to){
+  const x0=+from, x1=+to, today=isoDay(new Date());
+  const marks=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&+new Date(m.t)>=x0&&+new Date(m.t)<=x1);
+  // 6-hour blocks: "bad" if any mark in it is bad (a symptom or "плохо"); several marks in a row count once
+  const blocks=new Map();
+  for(const m of marks){ const t=+new Date(m.t), key=Math.floor(t/(6*H)), b=blocks.get(key)||{t, city:m.city||S.slug, bad:false, kinds:[]};
+    if(KIND[m.k].s<=1.5){ b.bad=true; b.kinds.push(m.k); } blocks.set(key,b); }
+  const B=[...blocks.values()];
+  // days whose weather is needed: from two days before a block to a day after it
+  const need={}; for(const b of B) for(let d=-2; d<=1; d++){ const day=isoDay(new Date(b.t+d*DAY)); if(day<today) (need[b.city]=need[b.city]||new Set()).add(day); }
+  const kps=kpSeries().filter(x=>x.k==="o").map(x=>({t:+new Date(x.t),v:x.kp})), WS={};
+  for(const b of B){ const ws=WS[b.city]||(WS[b.city]=wxSeries(b.city)); b.f={};
+    for(const L of WXA_LAG){ const end=b.t-L.h*H; b.f[L.h]=wxWindow(ws,kps,end-12*H,end); } }
+  const out=[], calm=[];
+  for(const F of WXA_F){
+    let best=null, tries=0, seen=false;
+    for(const L of WXA_LAG) for(const v of F.thr){
+      const have=B.filter(b=>b.f[L.h][F.k]!=null); if(have.length<8) continue;
+      const ex=have.filter(b=>b.f[L.h][F.k]>=v), no=have.filter(b=>b.f[L.h][F.k]<v);
+      if(ex.length<3||no.length<3) continue; tries++; seen=true;
+      const a=ex.filter(b=>b.bad).length, c=no.filter(b=>b.bad).length, p=fisherGreater(a,ex.length,c,no.length);
+      if(a/ex.length<=c/no.length) continue;
+      if(!best||p<best.p) best={F,L,v,p,a,n1:ex.length,c,n2:no.length,ex};
+    }
+    if(!best){ if(seen) calm.push(F.name); continue; }
+    const pa=Math.min(1,best.p*Math.sqrt(tries));   // a softened correction: many thresholds and lags were tried
+    const conf=pa<.01&&best.n1>=8?3:pa<.05&&best.n1>=5?2:pa<.2?1:0;
+    if(!conf){ if(pa>.5) calm.push(F.name); continue; }
+    const cnt={}; for(const b of best.ex) if(b.bad) for(const k of b.kinds) cnt[k]=(cnt[k]||0)+1;
+    const top=Object.entries(cnt).sort((p,q)=>q[1]-p[1])[0];
+    // how often it was bad at each step of the factor, for the small chart
+    const bins=F.thr.map((v,i)=>{ const hi=F.thr[i+1]??Infinity, lo=i?v:-Infinity; const bs=B.filter(b=>{ const x=b.f[best.L.h][F.k]; return x!=null&&x>=lo&&x<hi; });
+      return {lab:i?(hi===Infinity?`>${v}`:`${v}–${hi}`):`<${F.thr[1]}`, n:bs.length, r:bs.length?bs.filter(b=>b.bad).length/bs.length:null, hot:v>=best.v}; });
+    out.push({...best, conf, pa, top:top?KIND[top[0]]:null, bins});
+  }
+  // one direction per pair: keep the stronger of fall/rise, of cold/warm
+  const pick=out.sort((a,b)=>b.conf-a.conf||a.pa-b.pa).filter((o,i,arr)=>!arr.slice(0,i).some(q=>(q.F.k==="pfall"&&o.F.k==="prise")||(q.F.k==="prise"&&o.F.k==="pfall")||(q.F.k==="cold"&&o.F.k==="warm")||(q.F.k==="warm"&&o.F.k==="cold")));
+  const missing=[]; const cov={}; for(const id in need){ cov[id]=coveredDays("obs",id); const m=[...need[id]].filter(d=>!cov[id].has(d)).sort(); if(m.length) missing.push(["obs",id,m[0],m[m.length-1]]); }
+  const kc=coveredDays("kp"), km=[...new Set(Object.values(need).flatMap(s=>[...s]))].filter(d=>!kc.has(d)).sort(); if(km.length) missing.push(["kp","",km[0],km[km.length-1]]);
+  return {found:pick, calm:[...new Set(calm)].filter(n=>!pick.some(o=>o.F.name===n)), blocks:B.length, bad:B.filter(b=>b.bad).length, missing};
+}
+function wxAnalysisHTML(res){
+  const pct=x=>Math.round(x*100)+"%", dots=c=>`<span class="cdots">${[1,2,3].map(i=>`<i class="${i<=c?"on":""}"></i>`).join("")}</span>`;
+  const cl=["","низкая — нужно больше отметок","средняя","высокая"];
+  let h=res.found.map(o=>{
+    const who=o.top?`${o.top.e} ${o.top.l}`:"Плохое самочувствие";
+    const lag=o.L.h===0?"":`<div class="s"><b>Вы чувствуете ${o.L.h<0?"заранее":"с опозданием"}:</b> ${o.L.t}.</div>`;
+    const mx=Math.max(...o.bins.map(b=>b.r||0),.01);
+    const bars=o.F.k==="kp"||o.bins.filter(b=>b.n).length<3?"":`<div class="wbars">${o.bins.map(b=>`<div><span>${b.r==null?"":pct(b.r)}</span><i class="${b.hot&&b.r!=null?"hot":""}" style="height:${b.r==null?0:Math.max(4,b.r/mx*100)}%"></i><em>${b.lab}</em></div>`).join("")}</div><div class="wbx"><span>как часто было плохо</span><span>${o.F.ax}</span></div>`;
+    return `<div class="wfind c${o.conf}"><div class="f"><span class="e">${o.F.i}</span><div>
+      <div class="t">${who} — ${o.F.t(o.v)}</div>
+      <div class="s">Такое было ${o.n1} ${fcTimes(o.n1)}, плохо было в ${o.a} из них (${pct(o.a/o.n1)}). В остальное время — ${pct(o.c/o.n2)}.</div>${lag}
+      <div class="wconf">уверенность ${dots(o.conf)} ${cl[o.conf]}</div></div></div>${o.conf>=2?bars:""}</div>`; }).join("");
+  if(res.calm.length) h+=`<div class="fhm wcalm">✅ <b>Не видно влияния:</b> ${res.calm.join(", ")} — в такую погоду вы чувствуете себя как обычно.</div>`;
+  return h;
+}
 function repSummary(from,to){
   const x0=+from, x1=+to, span=x1-x0, inR=(t,a=x0,b=x1)=>{const v=+new Date(t);return v>=a&&v<=b;};
   const bp=HM.list.filter(m=>m.type==="bp"&&tr("bp")&&inR(m.t)), bpP=HM.list.filter(m=>m.type==="bp"&&tr("bp")&&inR(m.t,x0-span,x0));
@@ -3081,8 +3188,11 @@ function repSummary(from,to){
   if(days.length){ const good=days.filter(([,r])=>r.v>=2.5).length; k+=`<div class="kpi"><span class="kl">Хороших дней</span><span class="kv">${Math.round(good/days.length*100)}%</span><span class="ks">${good} из ${days.length} с отметками</span></div>`; }
   if(!k) k=`<div class="kpi" style="grid-column:1/-1"><span class="kl">За этот период ещё нет записей</span><span class="ks">Отмечайте самочувствие и записывайте давление — здесь появятся итоги.</span></div>`;
   $("repKpi").innerHTML=k;
-  const {ins,need}=findingsFor(from,to,()=>{ if(TAB==="rep") drawReport(); });
-  $("repIns").innerHTML = ins.length ? ins.sort((a,b)=>b[0]-a[0]).slice(0,3).map(([,i,t])=>`<div class="inr"><b>${i}</b><span>${t}</span></div>`).join("")
+  const {ins:ins0,need}=findingsFor(from,to,()=>{ if(TAB==="rep") drawReport(); });
+  const wa=wxAnalysis(new Date(Date.now()-365*DAY),new Date());         // all the marks of the last year: more data, surer findings
+  for(const [src,id,f0,t0] of wa.missing){ const key=`${src}:${id}:${f0}:${t0}`; if(!asked.has(key)&&!S.loading[key]) ensure(src,id||S.slug,f0,t0).then(ok=>{ if(ok&&TAB==="rep") drawReport(); }); }
+  const ins=ins0.filter(x=>x[3]!=="mood"), wh=wxAnalysisHTML(wa);
+  $("repIns").innerHTML = wh||ins.length ? wh+ins.sort((a,b)=>b[0]-a[0]).slice(0,3).map(([,i,t])=>`<div class="inr"><b>${i}</b><span>${t}</span></div>`).join("")
     : `<div class="fhm">${need.length?"Загружаю погоду за отмеченные дни…":"Пока мало данных для выводов. Отмечайте самочувствие и давление 2–3 недели — приложение сравнит дни с перепадами погоды и спокойные дни."}</div>`;
   // calendar of the last five weeks (Monday first) — removed from the screen, kept for the report text
   if($("repCal")){
