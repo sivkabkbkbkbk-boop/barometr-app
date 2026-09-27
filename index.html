@@ -4573,8 +4573,8 @@ if(HCP){
     if(a==="sync"){ hcSync(true); return; }
     if(a==="connect"){ window.CLnote?.("connect pressed");
       // open Health Connect's page for this app; the person switches the data on there and comes back
-      try{ await HCP.manage(); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); return; }
-      HC_WAIT=Date.now(); toast("Включите нужные данные в Health Connect и вернитесь в приложение."); } });
+      let op=null; try{ op=await HCP.manage(); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); window.showTrail?.(); return; }
+      HC_WAIT=Date.now(); toast(op?.appPage?"Откройте «Разрешения» → Health Connect, включите нужные данные и вернитесь в приложение.":"Включите нужные данные в Health Connect и вернитесь в приложение."); } });
   // back from Health Connect: see what was granted
   document.addEventListener("visibilitychange",async()=>{
     if(document.hidden||!HC_WAIT||Date.now()-HC_WAIT>15*60000) return;
@@ -4598,6 +4598,7 @@ if(HCP){
       if(!r.text&&!cut) return;
       $("crashTxt").textContent=(r.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false;
       toast("В прошлый раз приложение закрылось. Подробности — в ⚙ Настройках, внизу."); }).catch(()=>{});
+    window.showTrail=()=>CL.get().then(r=>{ const trail=String(r?.trail||""); $("crashTxt").textContent=(r?.text?r.text+"\n\n":"")+"Шаги:\n"+trail.split("\n").slice(-40).join("\n"); $("crashBox").hidden=false; }).catch(()=>{});
     window.CLnote=t=>{ try{ CL.note({text:t}).catch(()=>{}); }catch(e){} };
     document.addEventListener("visibilitychange",()=>CLnote(document.hidden?"page hidden":"page visible"));
     $("crashCopy").addEventListener("click",async()=>{ const t=$("crashTxt").textContent;

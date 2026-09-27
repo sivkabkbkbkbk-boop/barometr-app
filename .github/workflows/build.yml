@@ -1423,16 +1423,27 @@ jobs:
               fun manage(call: PluginCall) {
                   val me = context.packageName
                   val tries = mutableListOf<Intent>()
-                  if (Build.VERSION.SDK_INT >= 34) tries.add(Intent("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS").putExtra(Intent.EXTRA_PACKAGE_NAME, me))
+                  if (Build.VERSION.SDK_INT >= 34) {
+                      // Health Connect built into Android 14+
+                      tries.add(Intent("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS").putExtra(Intent.EXTRA_PACKAGE_NAME, me))
+                      tries.add(Intent("android.health.connect.action.HEALTH_HOME_SETTINGS"))
+                  }
+                  // the Health Connect app on Android 9–13
                   tries.add(Intent("androidx.health.ACTION_MANAGE_HEALTH_PERMISSIONS").setPackage(provider).putExtra(Intent.EXTRA_PACKAGE_NAME, me))
                   tries.add(Intent(HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS))
+                  // last resort: this app's page in Android settings, Permissions → Health Connect
+                  tries.add(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$me")))
                   for (i in tries) {
                       try {
+                          val who = i.resolveActivity(context.packageManager)
+                          CrashLogPlugin.note(context, "hc manage: " + i.action + " → " + (who?.flattenToShortString() ?: "nobody"))
+                          if (who == null) continue
                           i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                           context.startActivity(i)
                           CrashLogPlugin.note(context, "hc manage: opened " + i.action)
                           val r = JSObject()
                           r.put("opened", i.action)
+                          r.put("appPage", i.action == android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                           call.resolve(r)
                           return
                       } catch (e: Throwable) { CrashLogPlugin.note(context, "hc manage: " + i.action + " failed: " + why(e)) }
