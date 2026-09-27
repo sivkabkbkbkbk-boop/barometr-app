@@ -861,6 +861,7 @@ header{position:relative}
 .wbars span{font:10px var(--f-mono);color:var(--ink)}.wbars em{font:normal 9.5px var(--f-mono);color:var(--muted)}
 .wbx{display:flex;justify-content:space-between;font:10px var(--f-mono);color:var(--muted);margin-top:3px}
 .wcalm{margin-top:8px}
+.rzoom{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 8px 0;font:11.5px var(--f-mono);color:var(--muted)}.rzoom .mlink{padding:0;font-family:var(--f-body)}
 </style>
 
 </head>
@@ -2949,6 +2950,9 @@ const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["gl
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
 const repOn=k=>k==="bp"?tr("bp"):k==="pulse"?tr("pulse"):k==="glu"?tr("glu"):true;
 const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:"one"};   // one chart with all lines (the "separately" view was removed)
+// the part of the period the chart shows: all of it, or what was spread with two fingers
+function repView(from,to){ const a=+from, b=+to; if(!REP.zoom) return [a,b];
+  let [f,t]=REP.zoom; const w=Math.min(b-a,Math.max(3*H,t-f)); f=Math.max(a,Math.min(f,b-w)); return [f,f+w]; }
 function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
   return [REP.from, REP.to];
@@ -3039,7 +3043,7 @@ function drawReport(){
       <svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-hidden="true">${axis(Hh,B)}${g}<line class="rcur" x1="0" x2="0" y1="4" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/></svg></div>`);
   }
   document.querySelectorAll("#repMode [data-rm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.rm===REP.mode));
-  if(REP.mode==="one"&&REP.sel.length) $("repPanels").innerHTML=drawOverlay(from,to,loading);
+  if(REP.mode==="one"&&REP.sel.length){ const [zf,zt]=repView(from,to); $("repPanels").innerHTML=drawOverlay(new Date(zf),new Date(zt),loading); }
   else $("repPanels").innerHTML=panels.length?panels.join(""):`<div class="src" style="text-align:center">Выберите хотя бы один показатель выше.</div>`;
   repSummary(from,to);
 }
@@ -3207,7 +3211,7 @@ function repSummary(from,to){
 
 /* all chosen indicators on ONE chart: each line is scaled to its own range (no second axis); values are read with the finger */
 function drawOverlay(from,to,loading){
-  const x0=+from, x1=+to, W=360, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
+  const x0=+from, x1=+to, W=360, L=10, R=40, B=18, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw; REP.vx=[x0,x1];
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
   const col=k=>REP_SERIES.find(x=>x[0]===k)[2], lab=k=>REP_SERIES.find(x=>x[0]===k)[1];
   const hasMood=REP.sel.includes("mood"), T=hasMood?40:12, bars=REP.sel.filter(k=>k==="kp"||k==="rain");
@@ -3269,12 +3273,14 @@ function drawOverlay(from,to,loading){
   g+=`<line class="rcur" x1="0" x2="0" y1="${T-6}" y2="${Hh-B}" stroke="#eef3f8" stroke-width="1" opacity="0"/>`;
   return `<div class="rpan one" data-pk="one"><svg viewBox="0 0 ${W} ${Hh}" data-geo="${L},${iw}" aria-label="Общий график выбранных показателей">${g}</svg>
     <div class="olg">${legend.map(l=>`<div class="oli${l.dim?" dim":""}"><i style="background:${l.c}"></i><span>${l.txt}${l.note?` <small>${l.note}</small>`:""}</span><b id="rpv-${l.k}"></b></div>`).join("")}</div>
-    <div class="fhm" style="padding:2px 8px 6px">${REP.sel.length>1?"Каждая линия в своём масштабе — смотрите на совпадения подъёмов и спадов. ":""}Точные значения — проведите пальцем.</div></div>`;
+    ${REP.zoom?`<div class="rzoom"><span>${fmtDM(new Date(x0))} ${fmtHM(new Date(x0))} — ${fmtDM(new Date(x1))} ${fmtHM(new Date(x1))}</span><button class="mlink" data-rzoom>↺ Весь период</button></div>`:""}
+    <div class="fhm" style="padding:2px 8px 6px">${REP.sel.length>1?"Каждая линия в своём масштабе — смотрите на совпадения подъёмов и спадов. ":""}Точные значения — проведите пальцем${REP.zoom?"":", приблизить — разведите двумя пальцами"}.</div></div>`;
 }
 function repCursor(e){
   const svg=e.target.closest(".rpan svg"); if(!svg) return;
   const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), vx=(e.clientX-r.left)/r.width*360;
-  const [from,to]=[+REP.from,+REP.to], t=from+(vx-L)/iw*(to-from); if(t<from||t>to) return;
+  if(RZ.p.size>1) return;                                  // two fingers: zooming, not reading values
+  const [from,to]=document.querySelector("#repPanels .rpan.one")&&REP.vx?REP.vx:[+REP.from,+REP.to], t=from+(vx-L)/iw*(to-from); if(t<from||t>to) return;
   const win=(to-from)/40;
   const one=document.querySelector("#repPanels .rpan.one");
   if(one){ const cur=one.querySelector(".rcur"); cur.setAttribute("x1",vx); cur.setAttribute("x2",vx); cur.setAttribute("opacity",".5");
@@ -3306,11 +3312,32 @@ async function shareText(title, text){
   try{ await navigator.clipboard.writeText(text); toast("Отчёт скопирован — вставьте его в сообщение."); }catch(e){ toast("Не получилось поделиться."); }
 }
 $("pgRep").addEventListener("click",e=>{
-  const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
+  const p=e.target.closest("[data-rp]"); if(p){ REP.per=p.dataset.rp; REP.zoom=null; if(REP.per==="custom"&&!REP.from){ REP.to=new Date(); REP.from=new Date(Date.now()-30*DAY); } drawReport(); return; }
   const r=e.target.closest("[data-rs]"); if(r){ const k=r.dataset.rs; REP.sel=REP.sel.includes(k)?REP.sel.filter(x=>x!==k):REP_SERIES.map(x=>x[0]).filter(x=>x===k||REP.sel.includes(x)); store.set("repSel",JSON.stringify(REP.sel)); drawReport(); return; }
   if(e.target.closest("#repShare")) openPdfSheet();
 });
 $("repPanels").addEventListener("pointermove",repCursor); $("repPanels").addEventListener("pointerdown",repCursor);
+/* spread two fingers on the chart to see a shorter stretch of time in more detail; double tap or "↺" — the whole period */
+const RZ={p:new Map(), g:null, raf:0, tap:0};
+function rzRedraw(){ RZ.raf=0; const [from,to]=repRange(), [zf,zt]=repView(from,to); $("repPanels").innerHTML=drawOverlay(new Date(zf),new Date(zt),false); }
+$("repPanels").addEventListener("pointerdown",e=>{
+  const svg=e.target.closest(".rpan.one svg"); if(!svg) return;
+  RZ.p.set(e.pointerId,e.clientX);
+  if(RZ.p.size===1){ const now=Date.now(); if(now-RZ.tap<300&&REP.zoom){ REP.zoom=null; rzRedraw(); RZ.tap=0; return; } RZ.tap=now; }
+  if(RZ.p.size===2){ const box=$("repPanels"); for(const id of RZ.p.keys()) try{ box.setPointerCapture(id); }catch(x){}
+    const r=svg.getBoundingClientRect(), [L,iw]=svg.dataset.geo.split(",").map(Number), xs=[...RZ.p.values()], fr=x=>((x-r.left)/r.width*360-L)/iw;
+    const [a,b]=REP.vx; RZ.g={a,b,d0:Math.abs(xs[0]-xs[1])||1,m0:(fr(xs[0])+fr(xs[1]))/2,r,L,iw}; }
+});
+$("repPanels").addEventListener("pointermove",e=>{
+  if(!RZ.p.has(e.pointerId)) return; RZ.p.set(e.pointerId,e.clientX); if(RZ.p.size<2||!RZ.g) return;
+  const g=RZ.g, xs=[...RZ.p.values()], d=Math.abs(xs[0]-xs[1])||1, fr=x=>((x-g.r.left)/g.r.width*360-g.L)/g.iw, m=(fr(xs[0])+fr(xs[1]))/2;
+  const [from,to]=repRange(), full=+to-+from, w=Math.min(full,Math.max(3*H,(g.b-g.a)*g.d0/d)), tm=g.a+g.m0*(g.b-g.a);   // the moment under the fingers stays under them
+  REP.zoom=w>=full*.98?null:[tm-m*w, tm-m*w+w];
+  if(!RZ.raf) RZ.raf=requestAnimationFrame(rzRedraw);
+});
+const rzUp=e=>{ RZ.p.delete(e.pointerId); if(RZ.p.size<2) RZ.g=null; };
+$("repPanels").addEventListener("pointerup",rzUp); $("repPanels").addEventListener("pointercancel",rzUp);
+$("repPanels").addEventListener("click",e=>{ if(e.target.closest("[data-rzoom]")){ REP.zoom=null; rzRedraw(); } });
 for(const id of ["rFrom","rTo"]) $(id).addEventListener("change",()=>{ const f=new Date($("rFrom").value+"T00:00:00"), t=new Date($("rTo").value+"T23:59:59"); if(!isNaN(+f)&&!isNaN(+t)&&f<t){ REP.from=f; REP.to=new Date(Math.min(+t,Date.now())); drawReport(); } });
 
 
