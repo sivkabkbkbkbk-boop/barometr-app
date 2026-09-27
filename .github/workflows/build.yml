@@ -748,8 +748,8 @@ jobs:
                   return PendingIntent.getActivity(c, 2, open, FLAGS);
               }
 
-              static final int[] SMALL = {R.id.s0, R.id.s1, R.id.s2, R.id.s3, R.id.s4};
-              static final int[] SMALL_PICK = {0, 1, 2, 5, 9};
+              static final int[] SMALL = {R.id.s0, R.id.s1, R.id.s2, R.id.s3, R.id.s4, R.id.s5, R.id.s6, R.id.s7, R.id.s8, R.id.s9};
+              static final int[] SMALL_PICK = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};   // all ten smileys even when the notification is folded
               static final int[] CELL = {R.id.c0, R.id.c1, R.id.c2, R.id.c3, R.id.c4, R.id.c5, R.id.c6, R.id.c7, R.id.c8, R.id.c9};
               static final int[] EMO = {R.id.e0, R.id.e1, R.id.e2, R.id.e3, R.id.e4, R.id.e5, R.id.e6, R.id.e7, R.id.e8, R.id.e9};
               static final int[] LAB = {R.id.l0, R.id.l1, R.id.l2, R.id.l3, R.id.l4, R.id.l5, R.id.l6, R.id.l7, R.id.l8, R.id.l9};
@@ -1204,16 +1204,26 @@ jobs:
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent" android:layout_height="wrap_content"
               android:orientation="horizontal" android:gravity="center_vertical">
-              <TextView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <TextView android:id="@+id/s9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
           </LinearLayout>
           XML
           cat > $L/mood_big.xml <<'XML'
