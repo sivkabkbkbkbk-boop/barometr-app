@@ -4764,8 +4764,16 @@ if(ICO){
   $("icoT").hidden=false; $("icoW").hidden=false; $("icoOn").checked=icoOn();
   $("icoOn").addEventListener("change",async()=>{ store.set("iconWx",$("icoOn").checked?"1":"0"); await iconPlanSend();
     toast($("icoOn").checked?"Значок обновится, когда вы выйдете из приложения.":"Вернётся обычный значок, когда вы выйдете из приложения."); });
-  // switching the icon while the app is on screen may close it, so do it when the person leaves
-  document.addEventListener("visibilitychange",()=>{ if(document.hidden) ICO.applyNow().catch(()=>{}); });
+  // switching the icon while the app is on screen may close it, so do it when the person leaves.
+  // Not when the app itself opened a system screen (Health Connect permissions, sharing, Yandex login,
+  // installing an update): the app is still in use behind it, and Android would close it
+  let lastTap=0;
+  addEventListener("pointerdown",()=>{ lastTap=Date.now(); },true);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden){ window.ICO_HOLD=0; return; }
+    if(Date.now()-lastTap<2500||(window.ICO_HOLD||0)>Date.now()) return;
+    ICO.applyNow().catch(()=>{});
+  });
 }
 /* ---------- Android Back button (native app) ---------- */
 {
@@ -4846,7 +4854,7 @@ async function updInstall(){
   try{
     const ok=(await APKU.canInstall()).ok;
     if(!ok){ updWaitPerm=true; updText("Разрешите установку для «Не18мнеуже» и вернитесь назад"); await APKU.openInstallSettings(); return; }
-    updText("Подтвердите «Обновить» в окне Android"); await APKU.install();
+    updText("Подтвердите «Обновить» в окне Android"); window.ICO_HOLD=Date.now()+10*60000; await APKU.install();
   }catch(e){ updText("Не удалось открыть установку"); }
 }
 $("updGo").addEventListener("click",async e=>{
