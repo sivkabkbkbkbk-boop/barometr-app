@@ -3401,14 +3401,16 @@ function weekCompare(type){
 }
 function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-+new Date(t))<=3*H); return ms.length?KIND[ms[ms.length-1].k].e:""; }
 function renderHealthPage(){
-  const segs=Object.keys(MT).filter(mtOn).concat("mood"); if(!segs.includes(HSEG)) HSEG=segs[0];
-  $("hSeg").innerHTML=segs.map(k=>`<button data-hs="${k}"><span>${k==="mood"?"😊":MT[k].e}</span> <span>${k==="mood"?"Состояние":MT[k].l}</span></button>`).join("");
+  const segs=Object.keys(MT).filter(mtOn).concat(tr("steps")?["steps"]:[],"mood"); if(!segs.includes(HSEG)) HSEG=segs[0];
+  const SEGN={mood:["😊","Состояние"],steps:["👣","Шаги"]};
+  $("hSeg").innerHTML=segs.map(k=>`<button data-hs="${k}"><span>${SEGN[k]?SEGN[k][0]:MT[k].e}</span> <span>${SEGN[k]?SEGN[k][1]:MT[k].l}</span></button>`).join("");
   $("hSeg").classList.toggle("many",segs.length>3);
   $("hSeg").style.gridTemplateColumns=`repeat(${segs.length},1fr)`;
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
   $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
   if(typeof fcRender==="function") fcRender();
-  const box=$("hBody"); let h=hcTiles();      // steps: on every segment
+  const box=$("hBody"); let h="";
+  if(HSEG==="steps"){ box.innerHTML=hcTiles()||`<div class="card hempty"><div style="font-size:40px">👣</div><div>Телефон считает шаги сам, когда он с вами. Первая цифра появится после того, как вы походите с ним.</div></div>`; $("hFab")?.remove(); return; }
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
     h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("")}</div>
@@ -3432,7 +3434,8 @@ function renderHealthPage(){
   box.innerHTML=h;
   hFabSet(type);
 }
-$("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG); renderHealthPage(); });
+$("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG);
+  try{ renderHealthPage(); }catch(err){ toast("Ошибка: "+(err&&err.message||err)+" · "+String(err&&err.stack||"").split("\n")[1]?.trim()); throw err; } });
 $("hBody").addEventListener("click",e=>{
   const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(new Date())}`); setTimeout(()=>renderHealthPage(),500); return; }
   const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); renderHealthPage(); return; }
@@ -3627,7 +3630,7 @@ function showTab(t, sub){
   if(t==="rep") renderRepSeg();
   if(t==="friends"){ if(sub) FSEG=sub; renderFriendsPage(); fetchFriends(false); }
   if(t==="today"){ render(); drawRadar(); }
-  if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood";
+  if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood"||HSEG==="steps";
   $("moodChip").hidden = t!=="today" || !!LAYOUT.cardMood || !$("moodPop").hidden;
 }
 $("bnav").addEventListener("click",e=>{ if(e.target.closest("#navSet")){ $("gearBtn").click(); return; } const b=e.target.closest("[data-tab]"); if(b){ if(openSheet) hideSheet(true); showTab(b.dataset.tab); } });
