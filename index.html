@@ -4629,7 +4629,7 @@ async function remStatus(){
     +(st.testAt&&st.testAt>Date.now()-10*60000?`<div class="fhm">Проверка назначена на ${fmtHM(new Date(st.testAt))}${st.lastWhy==="test"&&st.lastFire>=st.testAt-5000?" — <b>сработала ✓</b>":""}</div>`:"")
     +`<button class="btn ghost" id="remProbe">🧪 Проверить: вопрос через 1 минуту</button>`
     +probs.map(([w,t,b])=>`<div class="remwarn">⚠️ ${t}${b?`<button class="btn ghost" data-remset="${w}">${b}</button>`:""}</div>`).join("")
-    +(/vivo|oppo|realme|xiaomi|redmi|huawei|honor|oneplus|meizu/i.test(st.maker||"")?`<div class="fhm">На телефонах ${esc(st.maker)} ещё проверьте: Настройки → Приложения → Не18мнеуже → включите «Автозапуск» и разрешите работу в фоне. <button class="mlink" data-remset="app" style="padding:0">Открыть</button></div>`:"");
+    +(/vivo|oppo|realme|xiaomi|redmi|huawei|honor|oneplus|meizu/i.test(st.maker||"")?`<div class="fhm">На телефонах ${esc(st.maker)} вопросы приходят, только если телефону разрешено не замораживать приложение: включите для «Не18мнеуже» <b>«Автозапуск»</b> и <b>«Высокое энергопотребление в фоне»</b> (Настройки → Батарея → Фоновое энергопотребление). <button class="mlink" data-remset="vendor" style="padding:0">Открыть автозапуск</button> · <button class="mlink" data-remset="app" style="padding:0">Настройки приложения</button></div>`:"");
   box.hidden=false;
 }
 $("remKeep").addEventListener("change",async()=>{ store.set("remKeep",$("remKeep").checked?"1":"0"); await scheduleReminders(); setTimeout(remStatus,800); });

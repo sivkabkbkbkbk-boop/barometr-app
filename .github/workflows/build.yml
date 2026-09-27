@@ -706,7 +706,9 @@ jobs:
                   boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
                   String err = "";
                   try {
-                      if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      // reliable mode: an alarm-clock alarm — strict phones (vivo) freeze apps but still let the user's alarms through
+                      if (exact && prefs(c).getBoolean("keep", false) && Build.VERSION.SDK_INT >= 21) am.setAlarmClock(new AlarmManager.AlarmClockInfo(t, openApp(c)), pi);
+                      else if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
                       else if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
                       else am.setExact(AlarmManager.RTC_WAKEUP, t, pi);
                   } catch (Exception e) { err = e.toString(); try { am.set(AlarmManager.RTC_WAKEUP, t, pi); } catch (Exception e2) { err += " / " + e2; } }
@@ -931,6 +933,19 @@ jobs:
                       i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, android.net.Uri.parse("package:" + c.getPackageName()));
                   } else if ("exact".equals(what) && android.os.Build.VERSION.SDK_INT >= 31) {
                       i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("vendor".equals(what)) {
+                      String[][] cands = {
+                          {"com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"},
+                          {"com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager"},
+                          {"com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"},
+                          {"com.vivo.abe", "com.vivo.applicationbehaviorengine.ui.ExcessivePowerManagerActivity"},
+                          {"com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"},
+                          {"com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"},
+                          {"com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"}};
+                      for (String[] x : cands) {
+                          try { c.startActivity(new android.content.Intent().setClassName(x[0], x[1]).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)); call.resolve(); return; } catch (Exception e) { }
+                      }
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
                   } else if ("app".equals(what)) {
                       i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
                   } else if (android.os.Build.VERSION.SDK_INT >= 26) {
