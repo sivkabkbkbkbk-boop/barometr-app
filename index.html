@@ -1512,6 +1512,7 @@ function themeApply(){
   try{ LIGHTMAP=t==="light"; if(typeof RAD!=="undefined"&&RAD.cur){ paintField(RAD.cur); RAD.maps.forEach(m=>m.draw()); } }catch(e){}
   try{ sky.refresh(); }catch(e){}
   // Android status and navigation bars (build 33+)
+  try{ if(typeof wxWidgetSoon==="function") wxWidgetSoon(); }catch(e){}
   try{ const TB=window.Capacitor?.Plugins?.ThemeBars; if(TB){ const c=t==="light"?"#e3f6ef":"#15171b"; TB.set({color:c, light:t==="light"}).catch(()=>{}); } }catch(e){}
   try{ if(typeof render==="function"&&was){ render(); if(typeof TAB!=="undefined"){ if(TAB==="rep") drawReport(); if(TAB==="health") renderHealthPage(); } } }catch(e){}
 }
@@ -4437,7 +4438,27 @@ renderRemind();
 const ICO = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.IconSwitch||null) : null;
 const icoOn = () => store.get("iconWx")!=="0";
 let icoTimer=0;
-function iconPlanSoon(){ if(!ICO) return; clearTimeout(icoTimer); icoTimer=setTimeout(iconPlanSend, 2500); }
+/* ---------- home-screen widget 2x1 (build 65+): an hourly plan for two days; the widget picks the current hour ---------- */
+var WXW = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.WxWidget||null) : null, wxwTimer=0;
+function wxWidgetSoon(){ if(!WXW) return; clearTimeout(wxwTimer); wxwTimer=setTimeout(wxWidgetSend,2000); }
+function wxWidgetData(){
+  const f=S.feed[S.slug]; if(!f||!f.hours) return null;
+  const from=Date.now()-3*H, to=Date.now()+48*H, kps=S.kpFc||[], slots=[], days={};
+  const kpAt=t=>{ let v=null; for(const x of kps){ const a=+new Date(x.t); if(a<=t&&t<a+3*H) v=x.kp; } return v; };
+  for(const h of f.hours){
+    const t=+new Date(h.t), d=isoDay(new Date(t)), tp=Math.round(h.temp);
+    days[d]=days[d]?[Math.max(days[d][0],tp),Math.min(days[d][1],tp)]:[tp,tp];
+    if(t<from||t>to) continue;
+    const c=cond(h.sym), o={t, tp, k:c.kind, n:!!c.night};
+    if(h.p!=null) o.p=Math.round(h.p*HPA2MM);
+    const kp=kpAt(t); if(kp!=null) o.kp=kp;
+    slots.push(o);
+  }
+  return slots.length?{city:cityOf(S.slug).name, slots, days}:null;
+}
+async function wxWidgetSend(){ if(!WXW) return; try{ const d=wxWidgetData(); if(d) await WXW.set({data:d, theme:themePref()}); }catch(e){} }
+if(WXW) document.addEventListener("visibilitychange",()=>{ if(document.hidden) wxWidgetSend(); });
+function iconPlanSoon(){ wxWidgetSoon(); if(!ICO) return; clearTimeout(icoTimer); icoTimer=setTimeout(iconPlanSend, 2500); }
 function iconPlan(){
   const plan=[], step=3*H, t0=Math.floor(Date.now()/step)*step;
   for(let t=t0; t<t0+5*DAY; t+=step){ const r=weatherRisk(t); if(!r) { if(t>Date.now()) break; else continue; }
