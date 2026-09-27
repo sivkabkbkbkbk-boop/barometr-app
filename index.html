@@ -4472,7 +4472,7 @@ const FC_F=[
   {k:"kp",     i:"🧲", on:f=>f.kp==null?null:f.kp>=4,         past:"В дни с Kp ≥ 4"},
   {k:"dtemp",  i:"🌡", on:f=>f.dtemp==null?null:f.dtemp>=9,   past:"При таких перепадах температуры"},
   {k:"low",    i:"⬇️", on:f=>f.press==null?null:f.press<745,  past:"При низком давлении"}];
-const FC_L={good:{e:"😊",t:"Хороший день",c:"var(--kp-ok)",n:1},mid:{e:"😐",t:"Возможно недомогание",c:"var(--kp-mid)",n:2},hard:{e:"😣",t:"Тяжёлый день",c:"var(--kp-hi)",n:3}};
+const FC_L={good:{e:"😊",t:"Скорее всего, хороший день",c:"var(--kp-ok)",n:1},mid:{e:"😐",t:"Возможно недомогание",c:"var(--kp-mid)",n:2},hard:{e:"😣",t:"Возможен тяжёлый день",c:"var(--kp-hi)",n:3}};
 const fcBad=r=>r.v<=1.6||(r.kinds||[]).some(x=>KIND[x]?.sym&&KIND[x].s<=1.5);
 const fcTimes=n=>n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?"раза":"раз";
 const fcDays=n=>n%10===1&&n%100!==11?"день":n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?"дня":"дней";
@@ -4534,8 +4534,8 @@ function fcFor(date){
   if(personal){ lv=risk>=.5?"hard":risk>=.25?"mid":"good";
     if(lv==="good"){ const r=weatherRisk(+new Date(date+"T02:00:00")); if(r&&r.sc>6) lv="mid"; } }
   else { const r=weatherRisk(+new Date(date+"T02:00:00")); lv=!r?"good":r.sc<=3?"good":r.sc<=6?"mid":"hard"; }
-  const tips=lv==="hard"?["Запланируйте поменьше дел","Держите тонометр под рукой, измерьте давление утром","Не пропускайте назначенные врачом лекарства"]
-    :lv==="mid"?["Измерьте давление утром","Прогулка без нагрузки, больше воды"]:[];
+  const tips=lv==="hard"?["Можно запланировать поменьше дел","Пригодится тонометр под рукой — измерить давление утром","Важно не пропускать назначенные врачом лекарства"]
+    :lv==="mid"?["Хорошо бы измерить давление утром","Прогулка без нагрузки, больше воды"]:[];
   return {date, lv, personal, why:why.slice(0,3), tips, n:st.n};
 }
 function fcRender(){
@@ -4546,7 +4546,7 @@ function fcRender(){
   const L=FC_L[F.lv];
   strip.hidden=!(F.personal&&F.lv!=="good");
   strip.style.setProperty("--fc",L.c);
-  strip.innerHTML=`<span class="e">${L.e}</span><span>Завтра для вас: <b>${L.t.toLowerCase()}</b></span><span class="go">›</span>`;
+  strip.innerHTML=`<span class="e">${L.e}</span><span>${F.lv==="hard"?"Завтра <b>может быть тяжело</b>":"Завтра <b>возможно недомогание</b>"}</span><span class="go">›</span>`;
   card.style.setProperty("--fc",L.c); card.hidden=false;
   const why=`<div class="why">${F.why.map(x=>`<div><span class="i">${x.i}</span><span>${x.t}${x.sub?`<br><span class="fhm">${x.sub}</span>`:""}</span></div>`).join("")}</div>`;
   if(!F.personal){
@@ -4580,8 +4580,8 @@ async function fcPlanSend(){
     if(!F||F.lv==="good") continue;
     const main=F.why.filter(x=>x.w).map((x,i)=>{ const t=x.t.replace(/<[^>]+>/g,""); return i?t[0].toLowerCase()+t.slice(1):t; }).slice(0,2).join(", ");
     const sub=(F.why.find(x=>x.w===2)?.sub||"").replace(/<[^>]+>/g,"");
-    items.push({t:+eve, title:F.lv==="hard"?"Завтра для вас, скорее всего, тяжёлый день":"Завтра возможно недомогание",
-      text:[main, sub].filter(Boolean).join(". ")+". Подготовьтесь с вечера."});
+    items.push({t:+eve, title:F.lv==="hard"?"Завтра, возможно, будет тяжёлый день":"Завтра возможно недомогание",
+      text:[main, sub].filter(Boolean).join(". ")+". Возможно, стоит подготовиться с вечера."});
   }
   try{ await FCN.schedule({items}); }catch(e){}
 }
