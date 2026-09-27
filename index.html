@@ -622,6 +622,19 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
 .msg .tm{align-self:flex-end;font-size:10px;color:rgb(var(--inkc) / .6);font-family:var(--f-mono)}
 .msg .er{color:#ff8b7e;cursor:pointer;padding:0 3px}
+/* "what to track": tiles on the welcome sheet */
+.trgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tropt{position:relative;border:1.5px solid var(--glass-line);border-radius:16px;padding:10px;background:var(--sheet-2);color:var(--ink);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tropt .e{font-size:24px;line-height:1;display:block}
+.tropt b{display:block;font-size:14px;margin-top:6px}
+.tropt small{display:block;color:var(--muted);font-size:11.5px;line-height:1.3;margin-top:2px}
+.tropt .ck{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgb(var(--inkc) / .25);display:grid;place-items:center;font-size:12px;color:transparent}
+.tropt[aria-pressed="true"]{border-color:var(--press);background:rgb(var(--pressc) / .12)}
+.tropt[aria-pressed="true"] .ck{background:var(--press);border-color:var(--press);color:var(--on-acc)}
+.tropt[disabled]{cursor:default;opacity:1}
+#hSeg.many button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;font-size:11px}
+#hSeg.many button span:first-child{font-size:17px;line-height:1.1}
+.wsteps{display:flex;gap:6px;margin-bottom:4px}.wsteps i{flex:1;height:4px;border-radius:2px;background:rgb(var(--inkc) / .12)}.wsteps i.on{background:var(--press)}
 /* Health Connect: sleep and steps tiles, settings */
 .hctiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .hctile{background:var(--sheet-2);border-radius:14px;padding:10px}
@@ -936,7 +949,7 @@ header{position:relative}
 <main class="app page" id="pgHealth" hidden>
   <div class="ptitle"><h1>Здоровье</h1></div>
   <section class="card fcc" id="fcCard" hidden></section>
-  <div class="seg3" id="hSeg"><button data-hs="bp">🩺 Давление</button><button data-hs="glu">🩸 Сахар</button><button data-hs="mood">😊 Состояние</button></div>
+  <div class="seg3" id="hSeg"></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
   <div class="card" id="moodDaysC" hidden><div class="label" style="margin-bottom:10px">Последние 7 дней</div>
     <div class="days" id="mdays"></div>
@@ -1045,6 +1058,9 @@ header{position:relative}
   <div class="sbody">
     <div class="ctitle">Оформление</div>
     <div id="thSet"></div>
+    <div class="ctitle">Что отслеживать</div>
+    <div class="tgl" id="trList"></div>
+    <div class="src">Выключенное прячется со всех экранов, из отчётов и прогноза, но не удаляется: включите — и всё на месте.</div>
     <div class="ctitle">Главный экран · что показывать</div>
     <div class="tgl" id="tglList"></div>
     <div class="src">💡 Порядок блоков: на главном экране и в «Отчётах» удерживайте блок полсекунды и перетащите его выше или ниже. <button class="mlink" id="orderReset" style="padding:0">Вернуть порядок по умолчанию</button></div>
@@ -1106,10 +1122,21 @@ header{position:relative}
 
 <section class="sheet" id="welSheet" role="dialog" aria-modal="true" aria-labelledby="welTitle" hidden>
   <div class="grab"></div>
-  <div class="shead"><div><h2 id="welTitle">Добро пожаловать в «Не18мнеуже»</h2><div class="sc">два коротких шага — оформление и Яндекс Диск</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="shead"><div><h2 id="welTitle">Добро пожаловать в «Не18мнеуже»</h2><div class="sc">три коротких шага: оформление, что отслеживать и Яндекс Диск</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
   <div class="sbody welc">
+    <div class="wsteps" aria-hidden="true"><i class="on"></i><i id="ws2"></i><i id="ws3"></i></div>
+    <div class="welc" data-ws="1">
     <div class="ctitle">Выберите оформление</div>
     <div id="thWel"></div>
+    <button class="btn" data-wnext="2">Далее</button>
+    </div>
+    <div class="welc" data-ws="2" hidden>
+    <div class="ctitle">Что вы хотите отслеживать?</div>
+    <div class="src" style="font-size:13px">Отметьте нужное — остальное не будет мешать. Потом можно изменить в ⚙ Настройках.</div>
+    <div class="trgrid" id="trWel"></div>
+    <button class="btn" data-wnext="3">Далее</button>
+    </div>
+    <div class="welc" data-ws="3" hidden>
     <div class="ctitle" style="margin-top:4px">Яндекс Диск</div>
     <div class="wl"><span class="wi">💾</span><span><b>Ничего не потеряется.</b> Отметки самочувствия, давление и сахар сохраняются копией на вашем Диске.</span></div>
     <div class="wl"><span class="wi">📱</span><span><b>Новый телефон — те же данные.</b> Войдите тем же Яндекс ID, и всё вернётся.</span></div>
@@ -1118,6 +1145,7 @@ header{position:relative}
     <button class="btn ghost" id="welLater">Позже</button>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="color:inherit">политикой конфиденциальности</a>.</div>
     <div class="note">Приложение получает доступ только к своей папке на Диске, другие ваши файлы оно не видит. Подключить или отключить можно в любой момент: ⚙ Настройки → Яндекс Диск.</div>
+    </div>
   </div>
 </section>
 
@@ -1212,7 +1240,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order","welcomeY","remind2"];
+const BACKUP_KEYS = ["track","layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order","welcomeY","remind2"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -2774,7 +2802,7 @@ function dayFeatures(date, slug){
   }
   const kp=kpSeries().filter(x=>x.k==="o"&&isoDay(new Date(x.t))===date).map(x=>x.kp);
   if(kp.length>=4) f.kp=Math.max(...kp);
-  if(typeof HCD!=="undefined"&&HCD){ if(HCD.sleep[date]!=null) f.sleep=HCD.sleep[date]; if(HCD.steps[date]!=null) f.steps=HCD.steps[date]; }
+  if(typeof HCD!=="undefined"&&HCD){ if(HCD.sleep[date]!=null) f.sleep=HCD.sleep[date]; if(typeof stepsOf==="function"&&stepsOf(date)!=null) f.steps=stepsOf(date); }
   return f;
 }
 const FACTORS=[
@@ -2889,6 +2917,20 @@ renderMood();
 const HM = {list: loadJSON("meas",[])||[], del: loadJSON("measDel",{})||{}, tab:"bp", ctx:"fast"};
 function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet){ ySyncSoon(); if(SH.on) shareSoon(); } }
 const GCTX={fast:"натощак",before:"до еды",after:"после еды",night:"перед сном",other:"в другое время"};
+/* what the person tracks; installs from before this choice keep everything that existed then */
+var TRACK = Object.assign({bp:true, pulse:true, glu:true, sleep:true, steps:true, weight:false, spo2:false}, loadJSON("track",{})||{});
+const tr=k=>!TRACK||TRACK[k]!==false;       // TRACK is a var: undefined while the script loads, then everything counts as on
+const TR_ITEMS=[["mood","😊","Самочувствие","вручную: смайлики и симптомы",1],["bp","🩺","Давление","вручную, тонометр или часы"],["pulse","💓","Пульс","вручную или часы"],
+  ["glu","🩸","Сахар в крови","вручную или глюкометр"],["sleep","😴","Сон","с часов или браслета"],["steps","👣","Шаги","с часов или датчика телефона"],
+  ["weight","⚖️","Вес","вручную или умные весы"],["spo2","🫁","Кислород в крови","SpO₂ с часов"]];
+// measurement types in the Health tab: pressure, pulse, sugar, weight
+const MT={bp:{e:"🩺",l:"Давление",tr:"bp",add:"＋ Записать давление"},hr:{e:"💓",l:"Пульс",tr:"pulse",add:"＋ Записать пульс",u:"уд/мин"},
+  glu:{e:"🩸",l:"Сахар",tr:"glu",add:"＋ Записать сахар"},wt:{e:"⚖️",l:"Вес",tr:"weight",add:"＋ Записать вес",u:"кг"}};
+const mtOn=k=>tr(MT[k].tr);
+const hrCat=v=>v<50?{l:"низкий",c:"#78adff",k:-1}:v<=90?{l:"норма",c:"#8be38f",k:0}:v<=100?{l:"повышенный",c:"#f2c94c",k:1}:{l:"высокий",c:"#ff7a6b",k:2};
+// pulse lives in pressure readings and in separate pulse records
+function pulseList(){ return HM.list.filter(m=>!HM.del[m.id]&&(m.type==="hr"||(m.type==="bp"&&m.pulse))).map(m=>({id:m.id,t:m.t,v:m.type==="hr"?m.v:m.pulse,src:m.src,note:m.type==="hr"?m.note:"вместе с давлением",type:m.type})); }
+function valList(type){ return type==="hr"?pulseList():HM.list.filter(m=>m.type===type&&!HM.del[m.id]); }
 function bpCat(sys,dia){
   if(sys>=180||dia>=110) return {l:"очень высокое",c:"#ff5b5b",k:3};
   if(sys>=140||dia>=90) return {l:"высокое",c:"#ff7a6b",k:2};
@@ -2906,19 +2948,24 @@ const fmtNum=(v,d=1)=>v.toFixed(d).replace(".",",");
 const whenTxt=t=>{ const d=new Date(t), td=isoDay(new Date()), yd=isoDay(new Date(Date.now()-DAY)), dd=isoDay(d); return (dd===td?"сегодня":dd===yd?"вчера":fmtDM(d))+", "+fmtHM(d); };
 function lastOf(type){ for(let i=HM.list.length-1;i>=0;i--) if(HM.list[i].type===type&&!HM.del[HM.list[i].id]) return HM.list[i]; return null; }
 function renderHealth(){
-  const bp=lastOf("bp"), gl=lastOf("glu");
+  const bp=lastOf("bp"), gl=lastOf("glu"), hr=pulseList().slice(-1)[0], wt=lastOf("wt");
   const tile=(kind,title,val,unit,sub,cat)=>`<button class="htile" data-hopen="${kind}"><span class="ht">${title}</span><span class="hv">${val}<small>${unit}</small></span><span class="hs">${sub}</span>${cat?`<span class="hp" style="--c:${cat.c}">${cat.l}</span>`:""}</button>`;
   $("hTiles").innerHTML =
-    (bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",`${bp.pulse?`пульс ${bp.pulse} · `:""}${whenTxt(bp.t)}`,bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)) +
-    (gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null));
+    (tr("bp")?(bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",`${bp.pulse&&tr("pulse")?`пульс ${bp.pulse} · `:""}${whenTxt(bp.t)}`,bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)):"") +
+    (tr("pulse")&&!tr("bp")?(hr?tile("hr","Пульс",String(hr.v),"уд/мин",whenTxt(hr.t),hrCat(hr.v)):tile("hr","Пульс","—","","нажмите, чтобы записать",null)):"") +
+    (tr("glu")?(gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null)):"") +
+    (tr("weight")?(wt?tile("wt","Вес",fmtNum(wt.v),"кг",whenTxt(wt.t),null):tile("wt","Вес","—","","нажмите, чтобы записать",null)):"");
+  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","pulse","glu","weight"].some(tr);
 }
 function openMeas(tab){ HM.tab=tab||HM.tab; renderMeas(); showSheet("measSheet"); }
 function nowLocal(){ const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
 function renderMeas(){
-  const bp=HM.tab==="bp";
-  $("measTabs").innerHTML=`<button class="tab" role="tab" data-mt="bp" aria-selected="${bp}">🩺 Давление (А/Д)</button><button class="tab" role="tab" data-mt="glu" aria-selected="${!bp}">🩸 Сахар в крови</button>`;
+  const tabs=Object.keys(MT).filter(mtOn); if(!tabs.includes(HM.tab)) HM.tab=tabs[0]||"bp";
+  const bp=HM.tab==="bp", tt=HM.tab;
+  $("measTabs").innerHTML=tabs.map(k=>`<button class="tab" role="tab" data-mt="${k}" aria-selected="${k===tt}">${MT[k].e} ${k==="bp"?"Давление":k==="glu"?"Сахар":MT[k].l}</button>`).join("");
+  if(tt==="hr"||tt==="wt"){ renderMeasSimple(tt); return; }
   $("measForm").innerHTML = bp ? `
-    <div class="mrow"><label>Верхнее<input id="mSys" inputmode="numeric" pattern="[0-9]*" placeholder="120" maxlength="3"></label><span class="sl">/</span><label>Нижнее<input id="mDia" inputmode="numeric" pattern="[0-9]*" placeholder="80" maxlength="3"></label><label>Пульс<input id="mPul" inputmode="numeric" pattern="[0-9]*" placeholder="70" maxlength="3"></label></div>
+    <div class="mrow"><label>Верхнее<input id="mSys" inputmode="numeric" pattern="[0-9]*" placeholder="120" maxlength="3"></label><span class="sl">/</span><label>Нижнее<input id="mDia" inputmode="numeric" pattern="[0-9]*" placeholder="80" maxlength="3"></label>${tr("pulse")?`<label>Пульс<input id="mPul" inputmode="numeric" pattern="[0-9]*" placeholder="70" maxlength="3"></label>`:""}</div>
     <div class="mrow2"><input id="mTime" type="datetime-local" value="${nowLocal()}" aria-label="Время измерения"><input id="mNote" placeholder="Заметка (необязательно)" maxlength="80"></div>
     <button class="btn" id="mSave">Записать давление</button>` : `
     <div class="mrow"><label class="wide">Сахар, ммоль/л<input id="mGlu" inputmode="decimal" placeholder="5,4" maxlength="5"></label></div>
@@ -2928,16 +2975,58 @@ function renderMeas(){
   const list=HM.list.filter(m=>m.type===HM.tab).slice(-40).reverse();
   $("measList").innerHTML = list.length ? list.map(m=>{
     const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
-    const v=m.type==="bp"?`${m.sys}/${m.dia}${m.pulse?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]||""}</small>`;
+    const v=m.type==="bp"?`${m.sys}/${m.dia}${m.pulse&&tr("pulse")?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]||""}</small>`;
     return `<div class="mitem"><i style="background:${c.c}"></i><span class="mv">${v}</span><span class="mw">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}</span><span class="mc" style="color:${c.c}">${c.l}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`;
   }).join("") : `<div class="src" style="text-align:center">Записей пока нет.</div>`;
+}
+function renderMeasSimple(tt){
+  const hr=tt==="hr";
+  $("measForm").innerHTML=`<div class="mrow"><label class="wide">${hr?"Пульс, уд/мин":"Вес, кг"}<input id="mVal" inputmode="${hr?"numeric":"decimal"}" placeholder="${hr?"72":"72,5"}" maxlength="5"></label></div>
+    <div class="mrow2"><input id="mTime" type="datetime-local" value="${nowLocal()}" aria-label="Время измерения"><input id="mNote" placeholder="Заметка (необязательно)" maxlength="80"></div>
+    <button class="btn" id="mSave">${hr?"Записать пульс":"Записать вес"}</button>`;
+  const list=valList(tt).slice(-40).reverse();
+  $("measList").innerHTML=list.length?list.map(m=>{ const c=hr?hrCat(m.v):{l:"",c:"#78adff"};
+    return `<div class="mitem"><i style="background:${c.c}"></i><span class="mv">${hr?m.v:fmtNum(m.v)} <small>${MT[tt].u}</small></span><span class="mw">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}</span><span class="mc" style="color:${c.c}">${c.l}</span>${m.type===tt?`<button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button>`:""}</div>`; }).join(""):`<div class="src" style="text-align:center">Записей пока нет.</div>`;
+}
+// Health tab body for pulse and weight: the last value, a week chart, the list
+function simpleBody(type){
+  const hr=type==="hr", list=valList(type), u=MT[type].u, f=v=>hr?String(Math.round(v)):fmtNum(v);
+  if(!list.length) return `<div class="card hempty"><div style="font-size:40px">${MT[type].e}</div><div>${hr?"Записывайте пульс в покое — утром, до кофе. Приложение сопоставит его с погодой и самочувствием.":"Записывайте вес раз в несколько дней, утром натощак — так цифры можно сравнивать."}</div></div>`;
+  const last=list[list.length-1], c=hr?hrCat(last.v):null, now=Date.now();
+  const a=list.filter(m=>+new Date(m.t)>=now-7*DAY), b=list.filter(m=>+new Date(m.t)<now-7*DAY&&+new Date(m.t)>=now-14*DAY), av=x=>x.reduce((q,m)=>q+m.v,0)/x.length;
+  const diff=a.length&&b.length?av(a)-av(b):null;
+  const x0=+new Date(isoDay(new Date(now-6*DAY))+"T00:00:00"), x1=x0+7*DAY, W=340,Hh=104,L=4,R=26,T=8,B=16, iw=W-L-R, ih=Hh-T-B, X=t=>L+(+new Date(t)-x0)/(x1-x0)*iw;
+  const pts=list.filter(m=>+new Date(m.t)>=x0), vs=pts.map(m=>m.v);
+  let lo=vs.length?Math.min(...vs,...(hr?[60]:[])):(hr?55:60), hi=vs.length?Math.max(...vs,...(hr?[90]:[])):(hr?95:80); const pad=(hi-lo)*.15||2; lo-=pad; hi+=pad;
+  const Y=v=>T+(1-(v-lo)/(hi-lo))*ih, dn=["вс","пн","вт","ср","чт","пт","сб"]; let g="";
+  for(let i=0;i<7;i++){ const t=x0+i*DAY; g+=`<text x="${X(t+DAY/2)}" y="${Hh-3}" text-anchor="middle" font-size="9.5" fill="#9fb1c5">${dn[new Date(t).getDay()]}</text>`; if(i) g+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ih}" stroke="rgba(238,243,248,.05)"/>`; }
+  if(hr) for(const v of [90,60]) g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v>70?"#f2c94c":"#78adff"}" stroke-dasharray="3 4" opacity=".5"/><text x="${W-2}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="${v>70?"#f2c94c":"#78adff"}">${v}</text>`;
+  if(pts.length>1) g+=`<polyline points="${pts.map(m=>`${X(m.t).toFixed(1)},${Y(m.v).toFixed(1)}`).join(" ")}" fill="none" stroke="var(--press)" stroke-width="2" opacity=".55"/>`;
+  for(const m of pts) g+=`<circle cx="${X(m.t).toFixed(1)}" cy="${Y(m.v).toFixed(1)}" r="4.2" fill="${hr?hrCat(m.v).c:"var(--press)"}"/>`;
+  if(!pts.length) g+=`<text x="${L+iw/2}" y="${T+ih/2}" text-anchor="middle" font-size="11" fill="#9fb1c5">за неделю записей нет</text>`;
+  const srcTag=m=>m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:typeof HC!=="undefined"&&HC&&HC.on?`<span class="hcsrc">✍️ вручную</span>`:"";
+  return `<div class="card"><div class="label">Последнее · ${whenTxt(last.t)}</div>
+    <div class="hbig"><div><span class="bv">${f(last.v)}<small> ${u}</small></span><div class="fhm">${last.note?esc(last.note):""}</div></div>${c?`<span class="hp" style="--c:${c.c}">${c.l}</span>`:""}</div>
+    <svg viewBox="0 0 ${W} ${Hh}" class="wk" aria-hidden="true">${g}</svg>
+    <div class="wkc">${a.length?`<span>за неделю <b>${f(av(a))}</b> ${u} в среднем</span>${diff!=null&&Math.abs(diff)>=(hr?1:.1)?`<span>${diff<0?"↓":"↑"} ${f(Math.abs(diff))} к прошлой</span>`:""}`:""}</div></div>
+    <div class="card" style="padding:4px 14px">${list.slice(-30).reverse().map(m=>`<div class="hli"><i style="background:${hr?hrCat(m.v).c:"var(--press)"}"></i><div class="hlt"><span class="mono">${f(m.v)} <small>${u}</small></span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}${srcTag(m)}</span></div><span class="hle">${moodNear(m.t)}</span>${m.type===type?`<button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button>`:""}</div>`).join("")}</div>
+    ${hr?`<div class="src" style="margin-top:10px;text-align:center">Пульс в покое у взрослых обычно 60–90 уд/мин. Это ориентир, а не диагноз.</div>`:""}`;
+}
+function hFabSet(type){
+  let fab=$("hFab"); if(!fab){ fab=document.createElement("button"); fab.id="hFab"; fab.className="hfab"; document.body.appendChild(fab); fab.addEventListener("click",()=>openMeas(HSEG)); }
+  fab.textContent=MT[type]?.add||"＋ Записать";
 }
 function saveMeasure(){
   const tv=$("mTime").value, t=tv?new Date(tv):new Date(); if(isNaN(+t)||+t>Date.now()+5*60000){ toast("Проверьте время измерения."); return; }
   const note=($("mNote").value||"").trim().slice(0,80), id="h"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   let m;
-  if(HM.tab==="bp"){
-    const sys=parseInt($("mSys").value,10), dia=parseInt($("mDia").value,10), pul=parseInt($("mPul").value,10);
+  if(HM.tab==="hr"||HM.tab==="wt"){
+    const v=parseFloat(String($("mVal").value).replace(",","."));
+    if(HM.tab==="hr"&&!(v>=30&&v<=220)){ toast("Введите пульс, например 72."); $("mVal").focus(); return; }
+    if(HM.tab==="wt"&&!(v>=20&&v<=300)){ toast("Введите вес в кг, например 72,5."); $("mVal").focus(); return; }
+    m={id,t:t.toISOString(),type:HM.tab,v:HM.tab==="hr"?Math.round(v):Math.round(v*10)/10};
+  } else if(HM.tab==="bp"){
+    const sys=parseInt($("mSys").value,10), dia=parseInt($("mDia").value,10), pul=$("mPul")?parseInt($("mPul").value,10):NaN;
     if(!(sys>=60&&sys<=260)||!(dia>=30&&dia<=160)||sys<=dia){ toast("Введите давление, например 120 / 80."); ($("mSys").value?$("mDia"):$("mSys")).focus(); return; }
     m={id,t:t.toISOString(),type:"bp",sys,dia}; if(pul>=30&&pul<=220) m.pulse=pul;
   } else {
@@ -2949,6 +3038,8 @@ function saveMeasure(){
   HM.list.push(m); saveHM(); renderMeas(); renderHealth(); if(TAB==="health") renderHealthPage();
   if(m.type==="bp"&&typeof hcWrite==="function") hcWrite([m]);
   if(openSheet&&openSheet.id==="measSheet") setTimeout(()=>hideSheet(), 700);
+  if(m.type==="hr"){ toast(`Записано: пульс ${m.v} — ${hrCat(m.v).l}`); return; }
+  if(m.type==="wt"){ toast(`Записано: вес ${fmtNum(m.v)} кг`); return; }
   const c=m.type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
   toast(m.type==="bp"?`Записано: ${m.sys}/${m.dia} — ${c.l}`:`Записано: сахар ${fmtNum(m.v)} — ${c.l}`);
 }
@@ -2968,8 +3059,9 @@ renderHealth();
 let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
 
 /* ---------- report: any combination of indicators on one time axis ---------- */
-const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
+const REP_SERIES=[["bp","А/Д","#d55181"],["pulse","Пульс","#9085e9"],["glu","Сахар","#c98500"],["wt","Вес","#7a8f3a"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"]];
 const REP_PER=[["7","Неделя"],["30","Месяц"],["90","3 месяца"],["365","Год"],["custom","Свой"]];
+const repOn=k=>k==="bp"?tr("bp"):k==="pulse"?tr("pulse"):k==="glu"?tr("glu"):k==="wt"?tr("weight"):true;
 const REP={sel:loadJSON("repSel",null)||["bp","mood","press"], per:"30", from:null, to:null, data:{}, mode:"one"};   // one chart with all lines (the "separately" view was removed)
 function repRange(){
   if(REP.per!=="custom"){ REP.to=new Date(); REP.from=new Date(Date.now()-(+REP.per)*DAY); }
@@ -2994,7 +3086,8 @@ function drawReport(){
   $("repPer").innerHTML=REP_PER.map(([k,l])=>`<button class="chip" data-rp="${k}" aria-pressed="${REP.per===k}">${l}</button>`).join("");
   $("repRange").hidden=REP.per!=="custom";
   if(REP.per==="custom"){ $("rFrom").value=isoDay(from); $("rTo").value=isoDay(to); }
-  $("repSel").innerHTML=REP_SERIES.map(([k,l,c])=>`<button class="chip rsel" data-rs="${k}" aria-pressed="${REP.sel.includes(k)}" style="--accent:${c}">${REP.sel.includes(k)?"✓ ":""}${l}</button>`).join("");
+  REP.sel=REP.sel.filter(repOn);
+  $("repSel").innerHTML=REP_SERIES.filter(([k])=>repOn(k)).map(([k,l,c])=>`<button class="chip rsel" data-rs="${k}" aria-pressed="${REP.sel.includes(k)}" style="--accent:${c}">${REP.sel.includes(k)?"✓ ":""}${l}</button>`).join("");
   const loading=repEnsure(from,to);
   const W=360,L=36,R=10, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
@@ -3067,8 +3160,8 @@ function drawReport(){
 /* key numbers, plain-language findings and a calendar of smileys */
 function repSummary(from,to){
   const x0=+from, x1=+to, span=x1-x0, inR=(t,a=x0,b=x1)=>{const v=+new Date(t);return v>=a&&v<=b;};
-  const bp=HM.list.filter(m=>m.type==="bp"&&inR(m.t)), bpP=HM.list.filter(m=>m.type==="bp"&&inR(m.t,x0-span,x0));
-  const gl=HM.list.filter(m=>m.type==="glu"&&inR(m.t)), glF=gl.filter(m=>m.ctx==="fast"||m.ctx==="before");
+  const bp=HM.list.filter(m=>m.type==="bp"&&tr("bp")&&inR(m.t)), bpP=HM.list.filter(m=>m.type==="bp"&&tr("bp")&&inR(m.t,x0-span,x0));
+  const gl=HM.list.filter(m=>m.type==="glu"&&tr("glu")&&inR(m.t)), glF=gl.filter(m=>m.ctx==="fast"||m.ctx==="before");
   const days=Object.entries(S.mood).filter(([d])=>inR(d+"T12:00:00"));
   const avg=(a,f)=>a.reduce((q,m)=>q+f(m),0)/a.length;
   let k="";
@@ -3097,8 +3190,8 @@ function repSummary(from,to){
   cmpMood(f=>f.dpress==null?null:f.dpress>=5,"При перепаде атм. давления больше 5 мм за сутки","🧭");
   cmpMood(f=>f.kp==null?null:f.kp>=4,"В дни с магнитным фоном Kp ≥ 4","🧲");
   cmpMood(f=>f.dtemp==null?null:f.dtemp>=9,"При перепаде температуры больше 9°","🌡");
-  cmpMood(f=>f.sleep==null?null:f.sleep<360,"После ночи короче 6 часов","😴");
-  cmpMood(f=>f.steps==null?null:f.steps>=6000,"В дни, когда вы прошли больше 6 000 шагов,","👣");
+  if(tr("sleep")) cmpMood(f=>f.sleep==null?null:f.sleep<360,"После ночи короче 6 часов","😴");
+  if(tr("steps")) cmpMood(f=>f.steps==null?null:f.steps>=6000,"В дни, когда вы прошли больше 6 000 шагов,","👣");
   const cmpBp=(test,label,icon)=>{
     const a=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===true;}), b=bp.filter(m=>{const f=F[isoDay(new Date(m.t))];return f&&test(f)===false;});
     if(a.length<3||b.length<3) return; const d=Math.round(avg(a,m=>m.sys)-avg(b,m=>m.sys));
@@ -3151,7 +3244,10 @@ function drawOverlay(from,to,loading){
     } else legend.push({k:"bp",txt:"А/Д: нет данных",c:col("bp"),dim:1});
     REP.data.bp={pts:bp.map(m=>({t:+new Date(m.t),txt:`${m.sys}/${m.dia}`}))};
   }
-  if(REP.sel.includes("pulse")){ const pp=bp.filter(m=>m.pulse); lineSeries("pulse",pp.map(m=>({t:m.t,v:m.pulse})),v=>Math.round(v),{dots:1});
+  if(REP.sel.includes("wt")){ const ww=HM.list.filter(m=>m.type==="wt"&&!HM.del[m.id]&&inR(m.t)); lineSeries("wt",ww.map(m=>({t:m.t,v:m.v})),v=>fmtNum(v),{dots:1});
+    if(ww.length) legend.push({k:"wt",txt:`Вес ${fmtNum(Math.min(...ww.map(m=>m.v)))}–${fmtNum(Math.max(...ww.map(m=>m.v)))} кг`,c:col("wt")}); else legend.push({k:"wt",txt:"Вес: нет данных",c:col("wt"),dim:1});
+    REP.data.wt={pts:ww.map(m=>({t:+new Date(m.t),txt:`${fmtNum(m.v)} кг`}))}; }
+  if(REP.sel.includes("pulse")){ const pp=pulseList().filter(m=>inR(m.t)).map(m=>({t:m.t,pulse:m.v})); lineSeries("pulse",pp.map(m=>({t:m.t,v:m.pulse})),v=>Math.round(v),{dots:1});
     if(pp.length) legend.push({k:"pulse",txt:`Пульс ${Math.min(...pp.map(m=>m.pulse))}–${Math.max(...pp.map(m=>m.pulse))}`,c:col("pulse")}); REP.data.pulse={pts:pp.map(m=>({t:+new Date(m.t),txt:`${m.pulse}`}))}; }
   if(REP.sel.includes("glu")){ lineSeries("glu",gl.map(m=>({t:m.t,v:m.v,c:gluCat(m.v,m.ctx).c})),v=>fmtNum(v),{dots:1});
     if(gl.length) legend.push({k:"glu",txt:`Сахар ${fmtNum(Math.min(...gl.map(m=>m.v)))}–${fmtNum(Math.max(...gl.map(m=>m.v)))}`,c:col("glu")}); REP.data.glu={pts:gl.map(m=>({t:+new Date(m.t),txt:`${fmtNum(m.v)} ммоль`}))}; }
@@ -3289,6 +3385,10 @@ function weekCompare(type){
 }
 function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-+new Date(t))<=3*H); return ms.length?KIND[ms[ms.length-1].k].e:""; }
 function renderHealthPage(){
+  const segs=Object.keys(MT).filter(mtOn).concat("mood"); if(!segs.includes(HSEG)) HSEG=segs[0];
+  $("hSeg").innerHTML=segs.map(k=>`<button data-hs="${k}"><span>${k==="mood"?"😊":MT[k].e}</span> <span>${k==="mood"?"Состояние":MT[k].l}</span></button>`).join("");
+  $("hSeg").classList.toggle("many",segs.length>3);
+  $("hSeg").style.gridTemplateColumns=`repeat(${segs.length},1fr)`;
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
   $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
   if(typeof fcRender==="function") fcRender();
@@ -3300,22 +3400,22 @@ function renderHealthPage(){
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
   h+=hcTiles();
+  if(HSEG==="hr"||HSEG==="wt"){ h+=simpleBody(HSEG); box.innerHTML=h; hFabSet(HSEG); return; }
   const type=HSEG, last=lastOf(type);
   if(last){
     const c=type==="bp"?bpCat(last.sys,last.dia):gluCat(last.v,last.ctx);
     h+=`<div class="card"><div class="label">Последнее · ${whenTxt(last.t)}</div>
       <div class="hbig"><div><span class="bv">${type==="bp"?`${last.sys}<span class="sl">/</span>${last.dia}`:`${fmtNum(last.v)}<small> ммоль/л</small>`}</span>
-      <div class="fhm">${type==="bp"?(last.pulse?`пульс ${last.pulse}`:""):GCTX[last.ctx]}${last.note?` · ${esc(last.note)}`:""}</div></div><span class="hp" style="--c:${c.c}">${c.l}</span></div>
+      <div class="fhm">${type==="bp"?(last.pulse&&tr("pulse")?`пульс ${last.pulse}`:""):GCTX[last.ctx]}${last.note?` · ${esc(last.note)}`:""}</div></div><span class="hp" style="--c:${c.c}">${c.l}</span></div>
       ${weekChart(type)}<div class="wkc">${weekCompare(type)}</div></div>`;
     const list=HM.list.filter(m=>m.type===type).slice(-30).reverse();
     h+=`<div class="card" style="padding:4px 14px">`+list.map(m=>{ const c=type==="bp"?bpCat(m.sys,m.dia):gluCat(m.v,m.ctx);
-      return `<div class="hli"><i style="background:${c.c}"></i><div class="hlt"><span class="mono">${type==="bp"?`${m.sys}/${m.dia}${m.pulse?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]}</small>`}</span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}${m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:HCD&&HC.on?`<span class="hcsrc">✍️ вручную</span>`:""}</span></div><span class="hle">${moodNear(m.t)}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`; }).join("")+`</div>`;
+      return `<div class="hli"><i style="background:${c.c}"></i><div class="hlt"><span class="mono">${type==="bp"?`${m.sys}/${m.dia}${m.pulse&&tr("pulse")?` <small>пульс ${m.pulse}</small>`:""}`:`${fmtNum(m.v)} <small>${GCTX[m.ctx]}</small>`}</span><span class="fhm">${whenTxt(m.t)}${m.note?` · ${esc(m.note)}`:""}${m.src?`<span class="hcsrc">⌚ ${esc(m.src)}</span>`:HCD&&HC.on?`<span class="hcsrc">✍️ вручную</span>`:""}</span></div><span class="hle">${moodNear(m.t)}</span><button class="x" data-mdel="${m.id}" aria-label="Удалить">×</button></div>`; }).join("")+`</div>`;
     h+=`<button class="btn ghost" data-hact="rep">📊 Отчёт за месяц ›</button>`;
     h+=`<div class="src" style="margin-top:10px;text-align:center">Цвет — справочная подсказка, а не диагноз. Приложение не является медицинским изделием; при плохом самочувствии обратитесь к врачу.</div>`;
   } else h+=`<div class="card hempty"><div style="font-size:40px">${type==="bp"?"🩺":"🩸"}</div><div>${type==="bp"?"Записывайте давление утром и вечером — приложение сопоставит его с погодой и самочувствием.":"Записывайте сахар натощак и после еды — увидите, как он меняется день ото дня."}</div></div>`;
   box.innerHTML=h;
-  let fab=$("hFab"); if(!fab){ fab=document.createElement("button"); fab.id="hFab"; fab.className="hfab"; document.body.appendChild(fab); fab.addEventListener("click",()=>openMeas(HSEG)); }
-  fab.textContent=type==="bp"?"＋ Записать давление":"＋ Записать сахар";
+  hFabSet(type);
 }
 $("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG); renderHealthPage(); });
 $("hBody").addEventListener("click",e=>{
@@ -3651,7 +3751,8 @@ function showWelcome(tries=0){
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
   if(busy){ if(tries<40) setTimeout(()=>showWelcome(tries+1), 1500); return; }
   $("welGo").href=yAuthUrl(false); thRender();
-  showSheet("welSheet");
+  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,pulse:true,glu:false,sleep:false,steps:false,weight:false,spo2:false});
+  renderTrack(); showSheet("welSheet");
 }
 $("welGo").addEventListener("click",()=>{ store.set("welcomeY","1"); setTimeout(()=>hideSheet(), 400); });
 $("welSheet").querySelector(".xbtn").addEventListener("click",()=>store.set("welcomeY","1"));
@@ -4482,11 +4583,65 @@ renderRemind();
 const ICO = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.IconSwitch||null) : null;
 const icoOn = () => store.get("iconWx")!=="0";
 let icoTimer=0;
+/* ---------- steps from the phone's sensor (build 76+) ---------- */
+var PSP = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.PhoneSteps||null) : null;
+async function phoneStepsRead(){
+  if(!PSP||!tr("steps")) return;
+  let r=null; try{ r=await PSP.read(); }catch(e){ return; }
+  const d=r?.days||{}; if(!Object.keys(d).length) return;
+  for(const [k,v] of Object.entries(d)) HCD.psteps[k]=Math.round(v);
+  saveHC(); if(TAB==="health") renderHealthPage();
+}
+async function phoneStepsStart(ask){
+  if(!PSP) return;
+  let st=null; try{ st=await PSP.status(); }catch(e){ return; }
+  if(!st.sensor) return;
+  if(!tr("steps")){ if(st.on) PSP.start({on:false}).catch(()=>{}); return; }
+  if(st.on&&st.granted){ phoneStepsRead(); return; }
+  // ask for "physical activity" once by itself; again only when the person switches steps on
+  if(!st.granted&&!ask&&store.get("stepsAsked")) return;
+  store.set("stepsAsked","1");
+  try{ const r=await PSP.start({on:true}); if(r&&r.granted===false) toast("Без разрешения «Физическая активность» шаги с телефона не посчитать."); else phoneStepsRead(); }catch(e){}
+}
+if(PSP){
+  setTimeout(()=>phoneStepsStart(false),6000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) phoneStepsRead(); });
+}
+
+/* ---------- what to track: settings and the welcome step ---------- */
+function trTile(k,e,l,d,lock){ return `<button class="tropt" data-tr="${k}" aria-pressed="${!!(lock||tr(k))}" ${lock?"disabled":""}><span class="e">${e}</span><span class="ck">✓</span><b>${l}</b><small>${lock?"всегда включено":d}</small></button>`; }
+function renderTrack(){
+  if($("trWel")) $("trWel").innerHTML=TR_ITEMS.map(x=>trTile(...x)).join("");
+  if($("trList")) $("trList").innerHTML=TR_ITEMS.map(([k,e,l,d,lock])=>`<label><span>${e} ${l}<small>${lock?"всегда включено — без него не с чем сравнивать погоду":d}</small></span><span class="rsw"><input type="checkbox" data-trk="${k}" ${lock||tr(k)?"checked":""} ${lock?"disabled":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
+}
+async function trackSet(k,on){
+  TRACK[k]=on; store.set("track",JSON.stringify(TRACK));
+  renderTrack(); renderHealth(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") renderRepSeg(); fcRender();
+  // Health Connect: ask for what was just switched on, then read it
+  if(on&&typeof HC!=="undefined"&&HC&&HC.on&&HCP&&["bp","pulse","glu","sleep","steps","weight","spo2"].includes(k)){
+    // the new data type needs its own permission: open Health Connect's page for this app
+    try{ const st=await HCP.status(); if(st.status==="ok"){ await HCP.manage(); HC_WAIT=Date.now(); toast("Включите новые данные в Health Connect и вернитесь."); } }catch(e){}
+    HC.last=0;
+  }
+  if(k==="steps") phoneStepsStart(true);
+  if(typeof renderHC==="function") renderHC();
+}
+$("trWel").addEventListener("click",e=>{ const b=e.target.closest("[data-tr]"); if(!b||b.disabled) return; trackSet(b.dataset.tr,!tr(b.dataset.tr)); });
+$("trList").addEventListener("change",e=>{ const c=e.target.closest("[data-trk]"); if(c) trackSet(c.dataset.trk,c.checked); });
+$("welSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-wnext]"); if(!n) return; const k=n.dataset.wnext;
+  $("welSheet").querySelectorAll("[data-ws]").forEach(x=>x.hidden=x.dataset.ws!==k);
+  $("ws2").classList.add("on"); if(k==="3"){ $("ws3").classList.add("on"); store.set("track",JSON.stringify(TRACK)); }
+  $("welSheet").querySelector(".sbody").scrollTop=0; });
+renderTrack();
+
 /* ---------- Health Connect (build 69+): pressure, pulse, sugar, sleep and steps from watches and meters ---------- */
 var HC_WAIT=0;
 var HCP = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.HealthConn||null) : null;
-var HC = Object.assign({on:false, bp:true, glu:true, sleep:true, steps:true, write:false, last:0, st:"", got:null}, loadJSON("hc",{})||{});
-var HCD = Object.assign({sleep:{}, steps:{}}, loadJSON("hcDaily",{})||{});
+var HC = Object.assign({on:false, write:false, last:0, got:null}, loadJSON("hc",{})||{});
+var HCD = Object.assign({sleep:{}, steps:{}, spo2:{}, psteps:{}}, loadJSON("hcDaily",{})||{});
+// steps of a day: from Health Connect (watch, band) when it has them, from the phone's sensor otherwise
+const stepsOf=d=>HCD?(HCD.steps[d]!=null&&HC&&HC.on?HCD.steps[d]:HCD.psteps[d]!=null?HCD.psteps[d]:null):null;
+const hcTypes=()=>["bp","pulse","glu","sleep","steps","weight","spo2"].filter(tr);
 const saveHC=()=>{ store.set("hc",JSON.stringify(HC)); store.set("hcDaily",JSON.stringify(HCD)); };
 const HC_SRC={"com.omronhealthcare.omronconnect":"Omron","jp.co.omron.healthcare.omron_connect":"Omron","com.mi.health":"Mi Fitness","com.xiaomi.wearable":"Mi Fitness",
   "com.xiaomi.hm.health":"Zepp Life","com.huami.watch.hmwatchmanager":"Zepp","com.sec.android.app.shealth":"Samsung Health","com.huawei.health":"Huawei Health",
@@ -4497,75 +4652,92 @@ const hcMin=m=>`${Math.floor(m/60)} ч ${String(m%60).padStart(2,"0")}`;
 async function hcSync(manual){
   if(!HCP||!HC.on) return;
   const since=HC.last?HC.last-2*DAY:Date.now()-90*DAY;
-  let r; try{ r=await HCP.read({since}); }catch(e){ HC.err=String(e?.message||e); saveHC(); if(manual) toast("Не удалось прочитать Health Connect: "+HC.err); return; }
+  let r; try{ r=await HCP.read({since, types:hcTypes()}); }catch(e){ HC.err=String(e?.message||e); saveHC(); if(manual) toast("Не удалось прочитать Health Connect: "+HC.err); return; }
   HC.err="";
   const have=new Set(HM.list.map(m=>m.id));
   const near=(type,t,test)=>HM.list.some(m=>m.type===type&&Math.abs(+new Date(m.t)-t)<3*60000&&test(m));
   let nb=0, ng=0;
-  if(HC.bp) for(const x of r.bp||[]){
+  if(tr("bp")) for(const x of r.bp||[]){
     const id="hc"+x.id; if(have.has(id)||HM.del[id]||!(x.sys>=60&&x.sys<=260&&x.dia>=30&&x.dia<=160)) continue;
     if(near("bp",x.t,m=>m.sys===x.sys&&m.dia===x.dia)) continue;      // the same reading typed by hand
-    const m={id,t:new Date(x.t).toISOString(),type:"bp",sys:x.sys,dia:x.dia,src:hcSrc(x.src),city:S.slug}; if(x.pulse>=30&&x.pulse<=220) m.pulse=x.pulse;
+    const m={id,t:new Date(x.t).toISOString(),type:"bp",sys:x.sys,dia:x.dia,src:hcSrc(x.src),city:S.slug}; if(tr("pulse")&&x.pulse>=30&&x.pulse<=220) m.pulse=x.pulse;
     HM.list.push(m); nb++;
   }
   const REL={2:"fast",3:"before",4:"after"};
-  if(HC.glu) for(const x of r.glu||[]){
+  if(tr("pulse")) for(const x of r.rhr||[]){       // resting pulse from watches
+    const id="hc"+x.id; if(have.has(id)||HM.del[id]||!(x.bpm>=30&&x.bpm<=220)) continue;
+    HM.list.push({id,t:new Date(x.t).toISOString(),type:"hr",v:x.bpm,note:"в покое",src:hcSrc(x.src),city:S.slug}); nb++;
+  }
+  if(tr("weight")) for(const x of r.wt||[]){
+    const id="hc"+x.id, v=Math.round(x.kg*10)/10; if(have.has(id)||HM.del[id]||!(v>=20&&v<=300)) continue;
+    if(near("wt",x.t,m=>Math.abs(m.v-v)<.2)) continue;
+    HM.list.push({id,t:new Date(x.t).toISOString(),type:"wt",v,src:hcSrc(x.src),city:S.slug}); nb++;
+  }
+  if(tr("spo2")){ const days={}; for(const x of r.spo2||[]){ const d=isoDay(new Date(x.t)); (days[d]=days[d]||[]).push(x.pct); }
+    for(const [d,a] of Object.entries(days)) HCD.spo2[d]=Math.round(a.reduce((p,q)=>p+q,0)/a.length); }
+  if(tr("glu")) for(const x of r.glu||[]){
     const id="hc"+x.id, v=Math.round(x.mmol*10)/10; if(have.has(id)||HM.del[id]||!(v>=1&&v<=35)) continue;
     if(near("glu",x.t,m=>m.v===v)) continue;
     HM.list.push({id,t:new Date(x.t).toISOString(),type:"glu",v,ctx:REL[x.rel]||"other",src:hcSrc(x.src),city:S.slug}); ng++;
   }
   // a night belongs to the day you woke up; naps do not replace the main sleep
-  if(HC.sleep) for(const x of r.sleep||[]){ const min=Math.round((x.end-x.start)/60000); if(min<60||min>16*60) continue;
+  if(tr("sleep")) for(const x of r.sleep||[]){ const min=Math.round((x.end-x.start)/60000); if(min<60||min>16*60) continue;
     const d=isoDay(new Date(x.end)); HCD.sleep[d]=Math.max(HCD.sleep[d]||0,min); }
-  if(HC.steps) for(const x of r.steps||[]) if(x.n>0) HCD.steps[x.day]=x.n;
+  if(tr("steps")) for(const x of r.steps||[]) if(x.n>0) HCD.steps[x.day]=x.n;
   HC.last=Date.now(); HC.got={bp:HM.list.filter(m=>m.type==="bp"&&m.src).length, glu:HM.list.filter(m=>m.type==="glu"&&m.src).length, sleep:Object.keys(HCD.sleep).length};
   saveHC(); if(nb||ng) saveHM();
   renderHC(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") drawReport();
-  if(manual) toast(nb||ng?`Добавлено из Health Connect: ${[nb?`давление ×${nb}`:"",ng?`сахар ×${ng}`:""].filter(Boolean).join(", ")}.`:"Новых измерений нет.");
+  if(manual) toast(nb||ng?`Добавлено из Health Connect: ${nb+ng} ${nb+ng===1?"запись":nb+ng<5?"записи":"записей"}.`:"Новых измерений нет.");
 }
 async function hcWrite(list){
   if(!HCP||!HC.on||!HC.write) return;
   try{ await HCP.writeBp({items:list.filter(m=>m.type==="bp"&&!m.src).map(m=>({id:m.id,t:+new Date(m.t),sys:m.sys,dia:m.dia}))}); }catch(e){}
 }
 function hcTiles(){
-  if(!HC||!HC.on) return "";          // HC is a var: undefined while the script is still loading
-  const today=isoDay(new Date()), yest=isoDay(new Date(Date.now()-DAY)), sl=HCD.sleep[today], st=HCD.steps[yest];
-  if(sl==null&&st==null) return "";
+  if(!HC||!HCD) return "";            // vars: undefined while the script is still loading
+  if(!HC.on&&!Object.keys(HCD.psteps).length) return "";
+  const today=isoDay(new Date()), yest=isoDay(new Date(Date.now()-DAY)), sl=tr("sleep")&&HC.on?HCD.sleep[today]:null, st=tr("steps")?stepsOf(yest):null, stToday=tr("steps")?stepsOf(today):null;
+  const o2d=tr("spo2")?[today,yest].find(d=>HCD.spo2&&HCD.spo2[d]!=null):null, o2=o2d?HCD.spo2[o2d]:null;
+  if(sl==null&&st==null&&stToday==null&&o2==null) return "";
   const past=Object.entries(HCD.sleep).filter(([d])=>d<today).sort().slice(-14).map(([,v])=>v).sort((a,b)=>a-b);
   const usual=past.length>=5?past[Math.floor(past.length/2)]:null, diff=usual!=null&&sl!=null?sl-usual:0;
-  const days=Array.from({length:7},(_,i)=>isoDay(new Date(Date.now()-(7-i)*DAY))), mx=Math.max(1,...days.map(d=>HCD.steps[d]||0));
+  const days=Array.from({length:7},(_,i)=>isoDay(new Date(Date.now()-(7-i)*DAY))), mx=Math.max(1,...days.map(d=>stepsOf(d)||0));
   return `<div class="card"><div class="label">Сегодня ночью и вчера</div><div class="hctiles">
-    <div class="hctile"><div class="k">😴 Сон</div>${sl!=null?`<div class="v">${hcMin(sl)} <small>мин</small></div>${Math.abs(diff)>=30?`<div class="s" style="color:${diff<0?"var(--kp-mid)":"var(--kp-ok)"}">${diff<0?"меньше":"больше"} обычного на ${Math.abs(diff)<60?Math.abs(diff):hcMin(Math.abs(diff))} мин</div>`:usual!=null?`<div class="s fhm">как обычно</div>`:""}`:`<div class="s fhm" style="margin-top:6px">нет данных за эту ночь</div>`}</div>
-    <div class="hctile"><div class="k">👣 Шаги вчера</div>${st!=null?`<div class="v">${st.toLocaleString("ru-RU")}</div>`:`<div class="s fhm" style="margin-top:6px">нет данных</div>`}<div class="hcbars">${days.map(d=>`<i style="height:${Math.round((HCD.steps[d]||0)/mx*100)}%"></i>`).join("")}</div></div>
+    ${tr("sleep")&&HC.on?`<div class="hctile"><div class="k">😴 Сон</div>${sl!=null?`<div class="v">${hcMin(sl)} <small>мин</small></div>${Math.abs(diff)>=30?`<div class="s" style="color:${diff<0?"var(--kp-mid)":"var(--kp-ok)"}">${diff<0?"меньше":"больше"} обычного на ${Math.abs(diff)<60?Math.abs(diff):hcMin(Math.abs(diff))} мин</div>`:usual!=null?`<div class="s fhm">как обычно</div>`:""}`:`<div class="s fhm" style="margin-top:6px">нет данных за эту ночь</div>`}</div>`:""}
+    ${tr("steps")?`<div class="hctile"><div class="k">👣 Шаги вчера</div>${st!=null?`<div class="v">${st.toLocaleString("ru-RU")}</div>`:`<div class="s fhm" style="margin-top:6px">нет данных</div>`}${stToday!=null?`<div class="s fhm">сегодня ${stToday.toLocaleString("ru-RU")}</div>`:""}<div class="hcbars">${days.map(d=>`<i style="height:${Math.round((stepsOf(d)||0)/mx*100)}%"></i>`).join("")}</div></div>`:""}
+    ${o2!=null?`<div class="hctile"><div class="k">🫁 Кислород</div><div class="v">${o2}<small> %</small></div><div class="s" style="color:${o2<94?"var(--kp-mid)":"var(--muted)"}">${o2<94?"ниже обычного для взрослых":o2d===today?"сегодня, в среднем":"вчера, в среднем"}</div></div>`:""}
   </div></div>`;
 }
 function hcSleepChart(){
   const c=$("repSleepC"); if(!c||!HCD) return;
+  if(!tr("sleep")){ c.hidden=true; return; }
   const days=Array.from({length:30},(_,i)=>isoDay(new Date(Date.now()-(29-i)*DAY))), v=days.map(d=>HCD.sleep[d]);
   const got=v.filter(x=>x!=null); if(got.length<3){ c.hidden=true; return; }
   c.hidden=false; const avg=Math.round(got.reduce((a,b)=>a+b,0)/got.length), short=got.filter(x=>x<360).length;
   $("repSleep").innerHTML=`<div class="hcbars" style="height:70px;margin-top:10px">${v.map(x=>`<i style="height:${x==null?0:Math.min(100,x/540*100)}%;${x!=null&&x<360?"background:var(--kp-mid)":""}"></i>`).join("")}</div>
     <div class="fhm" style="margin-top:6px">в среднем ${hcMin(avg)} мин · ночей короче 6 ч: ${short}</div>`;
 }
-const HC_ITEMS=[["bp","🩺 Давление и пульс"],["glu","🩸 Сахар в крови"],["sleep","😴 Сон"],["steps","👣 Шаги"],["write","↩️ Записывать моё давление в Health Connect"]];
+const HC_ITEMS=[["write","↩️ Записывать моё давление в Health Connect"]];
+const hcWhat=()=>TR_ITEMS.filter(([k])=>k!=="mood"&&tr(k)).map(([,e,l])=>`${e} ${l.toLowerCase()}`).join(", ")||"ничего — выберите в «Что отслеживать»";
 async function renderHC(){
   if(!HCP) return;
   $("hcT").hidden=false; $("hcBox").hidden=false;
   let st={status:"unsupported"}; try{ st=await HCP.status(); }catch(e){}
-  const box=$("hcBox"), chk=HC_ITEMS.map(([k,l])=>`<label class="rsw" style="justify-content:space-between"><span>${l}</span><input type="checkbox" data-hc="${k}" ${HC[k]?"checked":""}><span class="knob" aria-hidden="true"></span></label>`).join("");
+  const box=$("hcBox"), chk=`<div class="src">Будет браться: ${hcWhat()}</div>`+HC_ITEMS.filter(()=>tr("bp")).map(([k,l])=>`<label class="rsw" style="justify-content:space-between"><span>${l}</span><input type="checkbox" data-hc="${k}" ${HC[k]?"checked":""}><span class="knob" aria-hidden="true"></span></label>`).join("");
+  if(st.status==="noui"){ box.innerHTML=`<div class="src">На этом телефоне Health Connect недоступен: производитель убрал его из прошивки. Шаги считает датчик телефона, остальное можно вводить вручную.</div>`; return; }
   if(st.status==="unsupported"){ box.innerHTML=`<div class="src">Health Connect работает на Android 9 и новее.</div>`; return; }
   if(st.status==="install"){ box.innerHTML=`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами. Для этого нужно приложение Health Connect от Google.</div><button class="btn" data-hcact="install">Установить Health Connect</button>`; return; }
   const errT=HC.err?`<div class="src" style="color:var(--kp-hi)">Ошибка: ${esc(HC.err)}</div>`:"";
   if(!HC.on){ box.innerHTML=errT+`<div class="src">Данные с часов, браслетов и умных тонометров попадут в приложение сами — вручную вводить не нужно.</div>${chk}<button class="btn" data-hcact="connect">Подключить Health Connect</button>`; return; }
   const g=HC.got||{};
   box.innerHTML=`${errT}${chk}<div class="hcok"><i></i>Подключено${HC.last?` · обновлено ${whenTxt(new Date(HC.last).toISOString())}`:""}</div>
-    <div class="src">Из Health Connect: давление ×${g.bp||0}, сахар ×${g.glu||0}, ночей сна ${g.sleep||0}</div>
+    <div class="src">Уже получено: давление ×${g.bp||0}, сахар ×${g.glu||0}, ночей сна ${g.sleep||0}</div>
     <button class="btn ghost" data-hcact="sync">Обновить сейчас</button><button class="btn ghost" data-hcact="perm">Разрешения Health Connect</button><button class="btn ghost" data-hcact="off">Отключить</button>`;
 }
 if(HCP){
   $("hcBox").addEventListener("change",async e=>{ const c=e.target.closest("[data-hc]"); if(!c) return; HC[c.dataset.hc]=c.checked; saveHC();
     if(c.dataset.hc==="write"&&c.checked&&HC.on){ try{ const st=await HCP.status(); if(!(st.granted||[]).includes("WRITE_BLOOD_PRESSURE")){ await HCP.manage(); toast("Включите в Health Connect запись артериального давления и вернитесь."); } }catch(err){} }
-    if(HC.on&&c.checked&&c.dataset.hc!=="write"){ HC.last=0; hcSync(true); } });
+ });
   $("hcBox").addEventListener("click",async e=>{ const b=e.target.closest("[data-hcact]"); if(!b) return; const a=b.dataset.hcact;
     if(a==="install"){ HCP.install(); return; }
     if(a==="perm"){ HCP.manage().catch(()=>HCP.openSettings()); return; }
@@ -4574,7 +4746,7 @@ if(HCP){
     if(a==="connect"){ window.CLnote?.("connect pressed");
       // open Health Connect's page for this app; the person switches the data on there and comes back
       let op=null; try{ op=await HCP.manage(); }catch(err){ HC.err=String(err?.message||err); saveHC(); toast("Health Connect: "+HC.err); renderHC(); window.showTrail?.(); return; }
-      HC_WAIT=Date.now(); toast(op?.appPage?"Откройте «Разрешения» → Health Connect, включите нужные данные и вернитесь в приложение.":"Включите нужные данные в Health Connect и вернитесь в приложение."); } });
+      HC.err=""; saveHC(); HC_WAIT=Date.now(); toast(op?.appPage?"Откройте «Разрешения» → Health Connect, включите нужные данные и вернитесь в приложение.":"Включите нужные данные в Health Connect и вернитесь в приложение."); } });
   // back from Health Connect: see what was granted
   document.addEventListener("visibilitychange",async()=>{
     if(document.hidden||!HC_WAIT||Date.now()-HC_WAIT>15*60000) return;
@@ -4681,7 +4853,7 @@ function fcFor(date){
   else { const r=weatherRisk(+new Date(date+"T02:00:00")); lv=!r?"good":r.sc<=3?"good":r.sc<=6?"mid":"hard"; }
   const tips=lv==="hard"?["Можно запланировать поменьше дел","Пригодится тонометр под рукой — измерить давление утром","Важно не пропускать назначенные врачом лекарства"]
     :lv==="mid"?["Хорошо бы измерить давление утром","Прогулка без нагрузки, больше воды"]:[];
-  return {date, lv, personal, why:why.slice(0,3), tips, n:st.n};
+  return {date, lv, personal, why:why.slice(0,3), tips:tr("bp")?tips:tips.filter(t=>!/давлени|тонометр/.test(t)), n:st.n};
 }
 function fcRender(){
   if(!window.FC_READY) return;          // called by render() before this part of the script has run

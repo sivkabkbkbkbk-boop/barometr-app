@@ -926,6 +926,7 @@ jobs:
                   IconSwitch.schedule(c);
                   IconSwitch.apply(c, IconSwitch.levelNow(c));
                   FcNotify.schedule(c);
+                  PhoneSteps.schedule(c);
               }
           }
           JAVA
@@ -985,6 +986,7 @@ jobs:
                   registerPlugin(FcNotifyPlugin.class);
                   registerPlugin(HealthConnPlugin.class);
                   registerPlugin(CrashLogPlugin.class);
+                  registerPlugin(PhoneStepsPlugin.class);
                   super.onCreate(savedInstanceState);
               }
 
@@ -1224,6 +1226,9 @@ jobs:
           import androidx.health.connect.client.records.BloodGlucoseRecord
           import androidx.health.connect.client.records.BloodPressureRecord
           import androidx.health.connect.client.records.HeartRateRecord
+          import androidx.health.connect.client.records.OxygenSaturationRecord
+          import androidx.health.connect.client.records.RestingHeartRateRecord
+          import androidx.health.connect.client.records.WeightRecord
           import androidx.health.connect.client.records.Record
           import androidx.health.connect.client.records.SleepSessionRecord
           import androidx.health.connect.client.records.StepsRecord
@@ -1258,11 +1263,23 @@ jobs:
 
               private fun read(t: KClass<out Record>) = HealthPermission.getReadPermission(t)
 
-              private fun perms(write: Boolean): Set<String> {
-                  val s = mutableSetOf(read(BloodPressureRecord::class), read(HeartRateRecord::class), read(BloodGlucoseRecord::class),
-                      read(SleepSessionRecord::class), read(StepsRecord::class))
+              // types: what the person tracks — bp, pulse, glu, sleep, steps, weight, spo2
+              private fun perms(types: List<String>, write: Boolean): Set<String> {
+                  val s = mutableSetOf<String>()
+                  if ("bp" in types) s.add(read(BloodPressureRecord::class))
+                  if ("pulse" in types) { s.add(read(HeartRateRecord::class)); s.add(read(RestingHeartRateRecord::class)) }
+                  if ("glu" in types) s.add(read(BloodGlucoseRecord::class))
+                  if ("sleep" in types) s.add(read(SleepSessionRecord::class))
+                  if ("steps" in types) s.add(read(StepsRecord::class))
+                  if ("weight" in types) s.add(read(WeightRecord::class))
+                  if ("spo2" in types) s.add(read(OxygenSaturationRecord::class))
                   if (write) s.add(HealthPermission.getWritePermission(BloodPressureRecord::class))
                   return s
+              }
+
+              private fun types(call: PluginCall): List<String> {
+                  val a = call.getArray("types") ?: return listOf("bp", "pulse", "glu", "sleep", "steps")
+                  return (0 until a.length()).map { a.optString(it) }
               }
 
               private fun sdk(): Int = try {
@@ -1279,7 +1296,10 @@ jobs:
               fun status(call: PluginCall) {
                   val st = sdk()
                   val r = JSObject()
-                  r.put("status", if (st == HealthConnectClient.SDK_AVAILABLE) "ok" else if (Build.VERSION.SDK_INT >= 28) "install" else "unsupported")
+                  val ui = st != HealthConnectClient.SDK_AVAILABLE || Build.VERSION.SDK_INT < 34 ||
+                      listOf("android.health.connect.action.MANAGE_HEALTH_PERMISSIONS", "android.health.connect.action.HEALTH_HOME_SETTINGS")
+                          .any { Intent(it).resolveActivity(context.packageManager) != null }
+                  r.put("status", if (st == HealthConnectClient.SDK_AVAILABLE) (if (ui) "ok" else "noui") else if (Build.VERSION.SDK_INT >= 28) "install" else "unsupported")
                   if (st != HealthConnectClient.SDK_AVAILABLE) { r.put("granted", JSArray()); call.resolve(r); return }
                   scope.launch {
                       try {
@@ -1295,7 +1315,7 @@ jobs:
                   if (sdk() != HealthConnectClient.SDK_AVAILABLE) { call.reject("unavailable"); return }
                   try {
                       val intent = PermissionController.createRequestPermissionResultContract(provider)
-                          .createIntent(context, perms(call.getBoolean("write", false) == true))
+                          .createIntent(context, perms(types(call), call.getBoolean("write", false) == true))
                       CrashLogPlugin.note(context, "hc request: intent " + intent.action + " → " + (intent.`package` ?: "any") +
                           ", handled by " + (intent.resolveActivity(context.packageManager)?.flattenToShortString() ?: "nobody"))
                       startActivityForResult(call, intent, "onPermissions")
@@ -1333,6 +1353,7 @@ jobs:
               fun read(call: PluginCall) {
                   if (sdk() != HealthConnectClient.SDK_AVAILABLE) { call.reject("unavailable"); return }
                   val since = Instant.ofEpochMilli((call.getDouble("since") ?: 0.0).toLong())
+                  val want = types(call)
                   scope.launch {
                       try {
                           val c = HealthConnectClient.getOrCreate(context)
@@ -1342,10 +1363,10 @@ jobs:
                           val out = JSObject()
                           // pulse is a separate record: take the heart-rate sample closest to each pressure reading
                           val hr = mutableListOf<Pair<Long, Long>>()
-                          if (g.contains(read(HeartRateRecord::class)))
+                          if ("pulse" in want && g.contains(read(HeartRateRecord::class)))
                               for (r in all(c, HeartRateRecord::class, range)) for (s in r.samples) hr.add(Pair(s.time.toEpochMilli(), s.beatsPerMinute))
                           val bp = JSArray()
-                          if (g.contains(read(BloodPressureRecord::class)))
+                          if ("bp" in want && g.contains(read(BloodPressureRecord::class)))
                               for (r in all(c, BloodPressureRecord::class, range)) {
                                   if (r.metadata.dataOrigin.packageName == me) continue
                                   val t = r.time.toEpochMilli()
@@ -1358,7 +1379,7 @@ jobs:
                               }
                           out.put("bp", bp)
                           val glu = JSArray()
-                          if (g.contains(read(BloodGlucoseRecord::class)))
+                          if ("glu" in want && g.contains(read(BloodGlucoseRecord::class)))
                               for (r in all(c, BloodGlucoseRecord::class, range)) {
                                   if (r.metadata.dataOrigin.packageName == me) continue
                                   val o = JSObject()
@@ -1368,7 +1389,7 @@ jobs:
                               }
                           out.put("glu", glu)
                           val sleep = JSArray()
-                          if (g.contains(read(SleepSessionRecord::class)))
+                          if ("sleep" in want && g.contains(read(SleepSessionRecord::class)))
                               for (r in all(c, SleepSessionRecord::class, range)) {
                                   val o = JSObject()
                                   o.put("id", r.metadata.id); o.put("start", r.startTime.toEpochMilli()); o.put("end", r.endTime.toEpochMilli())
@@ -1377,7 +1398,7 @@ jobs:
                               }
                           out.put("sleep", sleep)
                           val steps = JSArray()
-                          if (g.contains(read(StepsRecord::class))) {
+                          if ("steps" in want && g.contains(read(StepsRecord::class))) {
                               val zone = ZoneId.systemDefault()
                               val from = LocalDateTime.ofInstant(since, zone).toLocalDate().atStartOfDay()
                               val res = c.aggregateGroupByPeriod(AggregateGroupByPeriodRequest(setOf(StepsRecord.COUNT_TOTAL),
@@ -1390,6 +1411,32 @@ jobs:
                               }
                           }
                           out.put("steps", steps)
+                          val rhr = JSArray()
+                          if ("pulse" in want && g.contains(read(RestingHeartRateRecord::class)))
+                              for (r in all(c, RestingHeartRateRecord::class, range)) {
+                                  if (r.metadata.dataOrigin.packageName == me) continue
+                                  val o = JSObject()
+                                  o.put("id", r.metadata.id); o.put("t", r.time.toEpochMilli()); o.put("bpm", r.beatsPerMinute); o.put("src", r.metadata.dataOrigin.packageName)
+                                  rhr.put(o)
+                              }
+                          out.put("rhr", rhr)
+                          val wt = JSArray()
+                          if ("weight" in want && g.contains(read(WeightRecord::class)))
+                              for (r in all(c, WeightRecord::class, range)) {
+                                  if (r.metadata.dataOrigin.packageName == me) continue
+                                  val o = JSObject()
+                                  o.put("id", r.metadata.id); o.put("t", r.time.toEpochMilli()); o.put("kg", r.weight.inKilograms); o.put("src", r.metadata.dataOrigin.packageName)
+                                  wt.put(o)
+                              }
+                          out.put("wt", wt)
+                          val o2 = JSArray()
+                          if ("spo2" in want && g.contains(read(OxygenSaturationRecord::class)))
+                              for (r in all(c, OxygenSaturationRecord::class, range)) {
+                                  val o = JSObject()
+                                  o.put("t", r.time.toEpochMilli()); o.put("pct", r.percentage.value)
+                                  o2.put(o)
+                              }
+                          out.put("spo2", o2)
                           call.resolve(out)
                       } catch (e: Throwable) { call.reject(why(e)) }
                   }
@@ -1496,7 +1543,7 @@ jobs:
           JAVA
           sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android"|<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"|' $M
           # the client library wants Android 8+; the app still installs on older phones and simply hides Health Connect there
-          sed -i 's|</manifest>|    <uses-sdk tools:overrideLibrary="androidx.health.connect.client,androidx.health.platform.client" />\n    <queries><package android:name="com.google.android.apps.healthdata" /></queries>\n    <uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.WRITE_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />\n    <uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE" />\n    <uses-permission android:name="android.permission.health.READ_SLEEP" />\n    <uses-permission android:name="android.permission.health.READ_STEPS" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-sdk tools:overrideLibrary="androidx.health.connect.client,androidx.health.platform.client" />\n    <queries><package android:name="com.google.android.apps.healthdata" /></queries>\n    <uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.WRITE_BLOOD_PRESSURE" />\n    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />\n    <uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE" />\n    <uses-permission android:name="android.permission.health.READ_SLEEP" />\n    <uses-permission android:name="android.permission.health.READ_STEPS" />\n    <uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />\n    <uses-permission android:name="android.permission.health.READ_WEIGHT" />\n    <uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION" />\n</manifest>|' $M
           sed -i 's|</application>|    <activity android:name=".HcRationaleActivity" android:exported="true" android:theme="@android:style/Theme.Translucent.NoTitleBar">\n            <intent-filter><action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" /></intent-filter>\n        </activity>\n        <activity-alias android:name="ViewPermissionUsageActivity" android:exported="true" android:targetActivity=".HcRationaleActivity" android:permission="android.permission.START_VIEW_PERMISSION_USAGE">\n            <intent-filter><action android:name="android.intent.action.VIEW_PERMISSION_USAGE" /><category android:name="android.intent.category.HEALTH_PERMISSIONS" /></intent-filter>\n        </activity-alias>\n    </application>|' $M
           grep -q 'tools:overrideLibrary' $M || { echo "manifest: tools namespace or uses-sdk missing"; exit 1; }
           # when the app closes on an error, keep the reason: Settings shows it so it can be copied and sent
@@ -1564,6 +1611,174 @@ jobs:
               }
           }
           JAVA
+          # steps from the phone's own step sensor, for phones without Health Connect (like VK does it)
+          cat > $J/PhoneSteps.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.AlarmManager;
+          import android.app.PendingIntent;
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.hardware.Sensor;
+          import android.hardware.SensorEvent;
+          import android.hardware.SensorEventListener;
+          import android.hardware.SensorManager;
+          import android.os.Handler;
+          import android.os.HandlerThread;
+          import java.text.SimpleDateFormat;
+          import java.util.Calendar;
+          import java.util.Date;
+          import java.util.Iterator;
+          import java.util.Locale;
+          import org.json.JSONObject;
+
+          // The sensor counts steps since the phone was switched on. Every hour, and when the app asks, we read it
+          // and add the difference to the day it happened in; a smaller number than last time means a reboot.
+          public class PhoneSteps extends BroadcastReceiver {
+              static final String PREFS = "phone_steps";
+              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+
+              static SharedPreferences prefs(Context c) { return c.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              static boolean hasSensor(Context c) {
+                  SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
+                  return sm != null && sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null;
+              }
+
+              static void schedule(Context c) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 50, new Intent(c, PhoneSteps.class), FLAGS);
+                  am.cancel(pi);
+                  if (!prefs(c).getBoolean("on", false)) return;
+                  am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + AlarmManager.INTERVAL_HOUR, AlarmManager.INTERVAL_HOUR, pi);
+              }
+
+              static String day(long t) { return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(t)); }
+
+              // one reading of the sensor; done runs on a background thread with the days map, or null
+              static void sample(final Context c, final Runnable done) {
+                  final SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
+                  final Sensor s = sm == null ? null : sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+                  if (s == null) { done.run(); return; }
+                  final HandlerThread th = new HandlerThread("steps");
+                  th.start();
+                  final Handler h = new Handler(th.getLooper());
+                  final boolean[] fin = {false};
+                  final SensorEventListener l = new SensorEventListener() {
+                      public void onSensorChanged(SensorEvent e) {
+                          synchronized (fin) { if (fin[0]) return; fin[0] = true; }
+                          sm.unregisterListener(this);
+                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable ignored) { }
+                          done.run(); th.quitSafely();
+                      }
+                      public void onAccuracyChanged(Sensor sensor, int a) { }
+                  };
+                  sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, h);
+                  // no event within 5 s (no steps since boot on some phones): give up for now
+                  h.postDelayed(new Runnable() { public void run() {
+                      synchronized (fin) { if (fin[0]) return; fin[0] = true; }
+                      sm.unregisterListener(l); done.run(); th.quitSafely();
+                  }}, 5000);
+              }
+
+              static synchronized void add(Context c, long count, long now) throws Exception {
+                  SharedPreferences p = prefs(c);
+                  JSONObject days = new JSONObject(p.getString("days", "{}"));
+                  long last = p.getLong("last", -1), lastT = p.getLong("lastT", 0);
+                  if (last >= 0) {
+                      long delta = count >= last ? count - last : count;      // smaller: the phone was restarted
+                      if (delta > 0 && delta < 100000) {
+                          String d0 = day(lastT), d1 = day(now);
+                          if (d0.equals(d1) || now - lastT > 36 * 3600 * 1000L) days.put(d1, days.optLong(d1) + delta);
+                          else {
+                              // the interval crosses midnight: split it by time
+                              Calendar mid = Calendar.getInstance(); mid.setTimeInMillis(now);
+                              mid.set(Calendar.HOUR_OF_DAY, 0); mid.set(Calendar.MINUTE, 0); mid.set(Calendar.SECOND, 0); mid.set(Calendar.MILLISECOND, 0);
+                              long before = Math.round(delta * (double) (mid.getTimeInMillis() - lastT) / (now - lastT));
+                              days.put(d0, days.optLong(d0) + before);
+                              days.put(d1, days.optLong(d1) + delta - before);
+                          }
+                      }
+                  }
+                  // keep about four months
+                  String old = day(now - 120L * 24 * 3600 * 1000);
+                  for (Iterator<String> it = days.keys(); it.hasNext(); ) if (it.next().compareTo(old) < 0) it.remove();
+                  p.edit().putLong("last", count).putLong("lastT", now).putString("days", days.toString()).apply();
+              }
+
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  final PendingResult res = goAsync();
+                  sample(c, new Runnable() { public void run() { res.finish(); } });
+              }
+          }
+          JAVA
+          cat > $J/PhoneStepsPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.Manifest;
+          import android.os.Build;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.PermissionState;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.getcapacitor.annotation.Permission;
+          import com.getcapacitor.annotation.PermissionCallback;
+          import org.json.JSONObject;
+
+          @CapacitorPlugin(name = "PhoneSteps", permissions = { @Permission(strings = { Manifest.permission.ACTIVITY_RECOGNITION }, alias = "activity") })
+          public class PhoneStepsPlugin extends Plugin {
+              private boolean granted() { return Build.VERSION.SDK_INT < 29 || getPermissionState("activity") == PermissionState.GRANTED; }
+
+              @PluginMethod
+              public void status(PluginCall call) {
+                  JSObject r = new JSObject();
+                  r.put("sensor", PhoneSteps.hasSensor(getContext()));
+                  r.put("granted", granted());
+                  r.put("on", PhoneSteps.prefs(getContext()).getBoolean("on", false));
+                  call.resolve(r);
+              }
+
+              // switch counting on (asks for "physical activity" first) or off
+              @PluginMethod
+              public void start(PluginCall call) {
+                  if (!call.getBoolean("on", true)) { PhoneSteps.prefs(getContext()).edit().putBoolean("on", false).apply(); PhoneSteps.schedule(getContext()); call.resolve(); return; }
+                  if (!granted()) { requestPermissionForAlias("activity", call, "onPermission"); return; }
+                  begin(call);
+              }
+
+              @PermissionCallback
+              private void onPermission(PluginCall call) {
+                  if (!granted()) { JSObject r = new JSObject(); r.put("granted", false); call.resolve(r); return; }
+                  begin(call);
+              }
+
+              private void begin(final PluginCall call) {
+                  PhoneSteps.prefs(getContext()).edit().putBoolean("on", true).apply();
+                  PhoneSteps.schedule(getContext());
+                  PhoneSteps.sample(getContext(), new Runnable() { public void run() {
+                      JSObject r = new JSObject(); r.put("granted", true); call.resolve(r);
+                  }});
+              }
+
+              // days: {"yyyy-mm-dd": steps}, after a fresh reading
+              @PluginMethod
+              public void read(final PluginCall call) {
+                  if (!granted() || !PhoneSteps.prefs(getContext()).getBoolean("on", false)) { JSObject r = new JSObject(); r.put("days", new JSObject()); call.resolve(r); return; }
+                  PhoneSteps.sample(getContext(), new Runnable() { public void run() {
+                      JSObject r = new JSObject();
+                      try { r.put("days", new JSObject(PhoneSteps.prefs(getContext()).getString("days", "{}"))); } catch (Exception e) { r.put("days", new JSObject()); }
+                      call.resolve(r);
+                  }});
+              }
+          }
+          JAVA
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />\n</manifest>|' $M
+          sed -i 's|</application>|    <receiver android:name=".PhoneSteps" android:exported="false" />\n    </application>|' $M
           # home-screen widget 2x1: weather, pressure and the Kp index
           cat > $J/WxWidget.java <<'JAVA'
           package ru.barometr.neba;
