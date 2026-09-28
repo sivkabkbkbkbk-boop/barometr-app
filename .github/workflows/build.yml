@@ -750,10 +750,11 @@ jobs:
               static void post(Context c) {
                   channel(c);
                   NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-                  try { nm.notify(NID, question(c, CH).build()); } catch (SecurityException e) { /* notifications not allowed */ }
-                  // phones like vivo fold all of an app's notifications under the quiet line: that line turns into the question too
                   prefs(c).edit().putLong("askPending", System.currentTimeMillis()).apply();
-                  MoodKeep.refresh(c);
+                  // reliable mode: the quiet line itself turns into the question, so there is one notification, not two
+                  if (MoodKeep.live != null) { try { nm.cancel(NID); } catch (Exception e) { } MoodKeep.refresh(c, true); }
+                  else try { nm.notify(NID, question(c, CH).build()); } catch (SecurityException e) { /* notifications not allowed */ }
+                  badge(c, 1);
               }
 
               static NotificationCompat.Builder question(Context c, String channel) {
@@ -784,8 +785,23 @@ jobs:
                       .setCustomBigContentView(big)
                       .setContentIntent(openApp(c))
                       .setAutoCancel(true)
+                      .setNumber(1)
+                      .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
                       .setPriority(NotificationCompat.PRIORITY_HIGH)
                       .setCategory(NotificationCompat.CATEGORY_REMINDER);
+              }
+
+              // a number on the app icon: Android shows a dot by itself; vivo's launcher takes the number by this broadcast
+              static void badge(Context c, int n) {
+                  try {
+                      Intent l = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+                      Intent i = new Intent("launcher.action.CHANGE_APPLICATION_NOTIFICATION_NUM");
+                      i.putExtra("packageName", c.getPackageName());
+                      i.putExtra("className", l != null && l.getComponent() != null ? l.getComponent().getClassName() : MainActivity.class.getName());
+                      i.putExtra("notificationNum", n);
+                      i.addFlags(0x01000000);   // FLAG_RECEIVER_INCLUDE_BACKGROUND
+                      c.sendBroadcast(i);
+                  } catch (Exception e) { }
               }
 
               static void confirm(Context c, String k) {
@@ -849,6 +865,10 @@ jobs:
               @PluginMethod
               public void noteMark(PluginCall call) {
                   MoodNotify.prefs(getContext()).edit().putLong("lastMark", System.currentTimeMillis()).apply();
+                  // answered in the app: the question in the shade and the number on the icon go away
+                  try { ((android.app.NotificationManager) getContext().getSystemService(android.content.Context.NOTIFICATION_SERVICE)).cancel(MoodNotify.NID); } catch (Exception e) { }
+                  MoodNotify.badge(getContext(), 0);
+                  MoodKeep.refresh(getContext());
                   call.resolve();
               }
 
@@ -1015,6 +1035,7 @@ jobs:
                   } catch (Exception e) { }
                   MoodNotify.confirm(c, k);
                   s.edit().remove("askPending").apply();
+                  MoodNotify.badge(c, 0);
                   MoodKeep.refresh(c);
                   MoodNotifyPlugin.emit();
               }
@@ -1048,9 +1069,16 @@ jobs:
               static final int NID = 7310;
               static MoodKeep live;
               final Handler h = new Handler(Looper.getMainLooper());
-              static void refresh(Context c) {
+              static void refresh(Context c) { refresh(c, false); }
+              static void refresh(Context c, boolean alert) {       // alert: ring once, the question has just come
                   MoodKeep k = live; if (k == null) return;
-                  try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NID, k.build()); } catch (Exception e) { }
+                  try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NID, k.build(alert)); } catch (Exception e) { }
+              }
+              static boolean asking(Context c) {      // a question waits for an answer: until a smiley is pressed or the next question is due
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  long ask = s.getLong("askPending", 0), now = System.currentTimeMillis();
+                  int every = Math.max(30, Math.min(180, s.getInt("every", 60)));
+                  return ask > 0 && ask > s.getLong("lastMark", 0) && now - ask < every * 60000L;
               }
               final Runnable tick = new Runnable() { public void run() { check(); } };
 
@@ -1066,7 +1094,8 @@ jobs:
                   } catch (Exception e) { MoodNotify.prefs(c).edit().putString("keepErr", e.toString()).apply(); }
               }
 
-              Notification build() {
+              Notification build() { return build(false); }
+              Notification build(boolean alert) {
                   NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                   if (Build.VERSION.SDK_INT >= 26) {
                       NotificationChannel ch = new NotificationChannel(CH, "Надёжные напоминания", NotificationManager.IMPORTANCE_MIN);
@@ -1075,9 +1104,10 @@ jobs:
                       nm.createNotificationChannel(ch);
                   }
                   SharedPreferences s = MoodNotify.prefs(this);
-                  long ask = s.getLong("askPending", 0);
-                  if (ask > 0 && System.currentTimeMillis() - ask < 50 * 60000L && ask > s.getLong("lastMark", 0))
-                      return MoodNotify.question(this, CH).setOngoing(true).setOnlyAlertOnce(true).setAutoCancel(false).build();
+                  if (asking(this)) {
+                      MoodNotify.channel(this);
+                      return MoodNotify.question(this, MoodNotify.CH).setOngoing(true).setOnlyAlertOnce(!alert).setAutoCancel(false).build();
+                  }
                   long next = MoodNotify.nextAt(this, System.currentTimeMillis());
                   String wx = s.getString("keepText", "");
                   String when = next > 0 ? "Следующий вопрос о самочувствии в " + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date(next)) : "Вопросы о самочувствии";
