@@ -1101,7 +1101,7 @@ header{position:relative}
 .istep .remrow{font-size:16px;margin:6px 0}
 .ihi{font-size:34px;font-weight:200;margin:4px 0 0}
 /* the live smiley at the top of the first-run windows */
-.imas{display:flex;justify-content:center;margin:4px 0 2px}
+.imas{display:flex;justify-content:center;margin:-10px 0 2px;padding-top:14px;overflow:hidden}   /* hidden: the smiley peeks up from below */
 .imas svg{width:72px;height:72px;overflow:visible;fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
 .imas .mb,.imas .mx,.imas .me{transform-box:fill-box;transform-origin:center}
 .imas .dot{fill:var(--ink);stroke:none}
@@ -4163,12 +4163,32 @@ const MAS_CALM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 function masFace(f){
   const box=$("iMas"); if(!box||f===MAS_CUR) return; const mb=box.querySelector(".mb"), mx=box.querySelector(".mx");
   const first=!MAS_CUR; MAS_CUR=f;
+  if(f==="hi"&&!MAS_CALM()){ masPeek(first?450:0); return; }
+  MAS_PK++; mb.getAnimations().forEach(a=>a.cancel());   // stop a peek that is still going
   if(first||MAS_CALM()){ mx.innerHTML=MAS[f]; masIdle(); return; }
   // a little jump; the face changes at the top of it
   mb.animate([{transform:"none"},{transform:"translateY(3px) scale(1.08,.9)",offset:.18},{transform:"translateY(-9px) scale(.95,1.06)",offset:.5},{transform:"translateY(1px) scale(1.05,.95)",offset:.82},{transform:"none"}],{duration:560,easing:"ease-in-out"});
   mx.animate([{transform:"none",opacity:1},{transform:"scale(.6)",opacity:0}],{duration:150,delay:130,easing:"ease-in"}).onfinish=()=>{
     mx.innerHTML=MAS[f]; mx.animate([{transform:"scale(.6)",opacity:0},{transform:"scale(1.12)",opacity:1,offset:.7},{transform:"none",opacity:1}],{duration:260,easing:"ease-out"}); };
   masIdle();
+}
+/* the greeting: peeks up from below, looks left and right, jumps out, laughs and winks */
+let MAS_PK=0;
+async function masPeek(wait){
+  const box=$("iMas"), mb=box.querySelector(".mb"), mx=box.querySelector(".mx"), id=++MAS_PK;
+  const eyes=dx=>`<g class="me"><circle class="dot" cx="${14.5+dx}" cy="16" r="1.5"/><circle class="dot" cx="${25.5+dx}" cy="16" r="1.5"/></g><path d="M16 25h8"/>`;
+  const live=()=>id===MAS_PK&&MAS_CUR==="hi", nap=ms=>new Promise(r=>setTimeout(r,ms));
+  mb.getAnimations().forEach(a=>a.cancel()); mx.innerHTML=eyes(0);
+  let a=mb.animate([{transform:"translateY(40px)"}],{duration:1,fill:"forwards"});
+  await nap(wait); if(!live()) return a.cancel();
+  a.cancel(); a=mb.animate([{transform:"translateY(40px)"},{transform:"translateY(19px)"}],{duration:500,easing:"ease-out",fill:"forwards"}); await nap(560);
+  for(const dx of [-2.5,2.5,-2.5,0]){ if(!live()) return a.cancel(); mx.innerHTML=eyes(dx); await nap(330); }
+  if(!live()) return a.cancel();
+  mx.innerHTML=MAS.wow; a.cancel();
+  a=mb.animate([{transform:"translateY(19px)"},{transform:"translateY(-8px) scale(.9,1.12)",offset:.55},{transform:"translateY(1px) scale(1.12,.9)",offset:.8},{transform:"none"}],{duration:520,easing:"ease-out"}); await nap(540);
+  if(!live()) return; mx.innerHTML=MAS.joy; await nap(1200);
+  if(!live()) return; mx.innerHTML='<g class="me"><circle class="dot" cx="14.5" cy="17" r="1.4"/><path d="M23 17.5q2.5-2.2 5 0"/></g><path d="M13 22.5q7 7.5 15-1"/>'; await nap(600);
+  if(!live()) return; mx.innerHTML=MAS.hi; masIdle();
 }
 function masIdle(){
   const box=$("iMas"); if(!box||MAS_CALM()) return;
