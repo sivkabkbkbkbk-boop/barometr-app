@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Weather backgrounds for the home-screen widget.
+"""The home-screen widget in thin lines: a plain background, light type and a small weather icon
+that moves with the weather (rays turn, a cloud drifts, rain and snow fall, lightning flashes).
 
-Draws every frame of every weather scene once and writes it either as Android vector
-drawables plus the widget layouts (the APK build calls this), or as one HTML page that
-plays the same frames (to look at them before a build):
+Draws every frame of every weather scene once and writes it either as Android vector drawables
+plus the widget layouts and colours (the APK build calls this), or as one HTML page that plays
+the same frames (to look at them before a build):
 
     python3 widget/frames.py android/app/src/main/res
     python3 widget/frames.py --preview preview.html
@@ -12,7 +13,7 @@ import math
 import os
 import sys
 
-W, H = 184, 76          # viewport of every frame, the shape of a 2x1 widget
+W, H = 48, 48           # viewport of every frame: the icon in the middle of the widget
 N = 20                  # frames in one loop
 FPS = 10                # the loop lasts N / FPS = 2 seconds
 KINDS = ["clear_d", "clear_n", "fair_d", "fair_n", "cloud", "rain", "snow", "thunder", "fog"]
@@ -20,82 +21,75 @@ NAMES = {"clear_d": "Ясно, день", "clear_n": "Ясно, ночь", "fair
          "fair_n": "Малооблачно, ночь", "cloud": "Пасмурно", "rain": "Дождь", "snow": "Снег",
          "thunder": "Гроза", "fog": "Туман"}
 
-CLOUD = "M10,30h34a10,10 0,0 0,0 -20a14,14 0,0 0,-26 -4a10,10 0,0 0,-8 24z"
-MOON = "M0,0a13,13 0,1 0,14 17a11,11 0,0 1,-14 -17z"
-BOLT = "M0,0l-10,20h9l-6,18l16,-24h-9l7,-14z"
+# colours by name: the widget follows the phone's light or dark theme
+THEMES = {"light": {"bg": "#E3F6EF", "ink": "#16322D", "mut": "#557D73", "acc": "#0F9D85"},
+          "dark": {"bg": "#15171B", "ink": "#ECEEF0", "mut": "#A3A7AE", "acc": "#FFB04A"}}
+
+CLOUD = "M14,38h22a8,8 0,0 0,0 -16a11,11 0,0 0,-21 -2a7,7 0,0 0,-1 18z"
+MOON = "M28,9a12,12 0,1 0,11 17a10,10 0,0 1,-11 -17z"
 
 
-# ---- scene: a list of shapes for one frame -------------------------------------------------
-def bg(c1, c2, x1=0, y1=0, x2=0, y2=H):
-    return ("bg", c1, c2, x1, y1, x2, y2)
+# ---- scene: a list of shapes for one frame -----------------------------------------------------
+def stroke(d, c="ink", a=1.0, fill=None, w=1.4):
+    return ("path", d, c, a, fill, w)
 
-def glow(cx, cy, r, c):
-    return ("glow", cx, cy, r, c)
+def at(d, x, y, s=1.0):
+    return ("group", d, x, y, s)
 
-def circle(cx, cy, r, c, a=1.0):
-    return ("circle", cx, cy, r, c, a)
+def sun(cx, cy, r, turn):
+    out = [stroke("M%s,%sa%s,%s 0,1 0,%s,0a%s,%s 0,1 0,-%s,0" % (n(cx - r), n(cy), n(r), n(r), n(2 * r), n(r), n(r), n(2 * r)))]
+    rays = ""
+    for i in range(8):
+        a = (i * 45 + turn) * math.pi / 180
+        rays += "M%s,%sL%s,%s" % (n(cx + math.cos(a) * (r + 3.5)), n(cy + math.sin(a) * (r + 3.5)),
+                                   n(cx + math.cos(a) * (r + 6.5)), n(cy + math.sin(a) * (r + 6.5)))
+    return out + [stroke(rays)]
 
-def shape(d, x, y, s, c, a=1.0):
-    return ("shape", d, x, y, s, c, a)
+def cloud(dx=0.0, dy=0.0, a=1.0):
+    return [("cloud", dx, dy, a)]
 
-def line(x1, y1, x2, y2, c, w, a):
-    return ("line", x1, y1, x2, y2, c, w, a)
-
-def veil(c, a):
-    return ("veil", c, a)
-
-
-def rain_lines(p, c, a, count=18, top=4, span=44, step=10.5, x0=8):
-    out = []
-    for i in range(count):
-        x = x0 + i * step
-        y = (i * 23 + p * span) % span + top
-        out.append(line(x, y, x - 4, y + 11, c, 1.6, a))
-    return out
+def flake(x, y, a):
+    return stroke("M%s,%sv6M%s,%sl5.2,3M%s,%sl5.2,-3" % (n(x), n(y - 3), n(x - 2.6), n(y - 1.5), n(x - 2.6), n(y + 1.5)), a=a)
 
 
 def scene(kind, f):
     p = f / N                       # phase 0..1, the loop is seamless at 1
     sn = math.sin(2 * math.pi * p)
     if kind == "clear_d":
-        return [bg("#3d8ee8", "#e9a23b", 0, 0, W, H), glow(102, 4, 70 * (1 + .08 * sn), "#fff6c8"),
-                circle(102, 4, 14 + sn, "#fff4c2")]
+        return sun(24, 24, 8, p * 45)
     if kind == "clear_n":
-        stars = [(20, 14), (48, 8), (96, 18), (120, 6), (70, 30), (140, 40), (30, 50), (108, 60), (160, 64), (8, 34)]
-        out = [bg("#0e1a3a", "#2a2f63", 0, 0, W, H)]
-        for i, (x, y) in enumerate(stars):
-            out.append(circle(x, y, 1.4 if i % 3 == 0 else .9, "#ffffff", .5 + .4 * math.sin(2 * math.pi * (p + i * .37))))
-        out.append(shape(MOON, 100, 6, 1, "#f3f0d8"))
+        out = [stroke(MOON)]
+        for i, (x, y) in enumerate([(38, 8), (42, 20), (33, 36)]):
+            out.append(stroke("M%s,%sh.01" % (n(x), n(y)), a=.35 + .6 * (.5 + .5 * math.sin(2 * math.pi * (p + i * .33))), w=2))
         return out
     if kind == "fair_d":
-        return [bg("#4b9be6", "#9fcbf0", 0, 0, W, H), glow(100, 10, 55, "#fff6c8"), circle(100, 10, 12, "#fff1b0"),
-                shape(CLOUD, 80 + 2 * sn, 24, 1.1, "#ffffff", .8)]
+        return sun(17, 16, 6, p * 45) + cloud(6 + 1.6 * sn, 6)
     if kind == "fair_n":
-        return [bg("#1a2547", "#3b4668", 0, 0, W, H), circle(30, 16, 1.2, "#ffffff", .7), circle(70, 10, .9, "#ffffff", .7),
-                shape(MOON, 98, 6, .92, "#f3f0d8"), shape(CLOUD, 78 + 2 * sn, 26, 1.1, "#c9d2e6", .45)]
+        return [at(MOON, -4, -4, .8)] + cloud(6 + 1.6 * sn, 6)
     if kind == "cloud":
-        return [bg("#5d6a7c", "#8793a2"), shape(CLOUD, 60 + 3 * sn, 2, 1.6, "#e3e8ee", .35),
-                shape(CLOUD, 90 - 3 * sn, 40, 1.3, "#e3e8ee", .22)]
+        return cloud(-3 + 1.5 * sn, -5) + cloud(2 - 1.5 * sn, 2)
     if kind == "rain":
-        return [bg("#3c4a63", "#617089"), shape(CLOUD, 64, -6, 1.6, "#8f9bb0", .45)] + rain_lines(p, "#bcd3ff", .55)
+        out = cloud(0, -7)
+        for i, x in enumerate((18, 26, 34)):
+            q = (p + i / 3) % 1
+            out.append(stroke("M%s,%sl-2,6" % (n(x - q * 2), n(33 + q * 8)), a=math.sin(math.pi * q)))
+        return out
     if kind == "snow":
-        out = [bg("#647b9c", "#9aacc6"), shape(CLOUD, 64, -6, 1.5, "#eef3fa", .3)]
-        for i in range(22):
-            x = (i * 37) % 180 + 4 + (1.5 * math.sin(2 * math.pi * (p + i * .21)) if i % 2 else 0)
-            y = (i * 29 + p * 70) % 70 + 3
-            out.append(circle(x, y, 2.2 if i % 3 == 0 else 1.4, "#ffffff", .85))
+        out = cloud(0, -7)
+        for i, x in enumerate((17, 26, 35)):
+            q = (p + i / 3) % 1
+            out.append(flake(x + math.sin(2 * math.pi * q) * .8, 36 + q * 8, math.sin(math.pi * q)))
         return out
     if kind == "thunder":
-        out = [bg("#2a2140", "#4a3b63"), shape(CLOUD, 58, -8, 1.7, "#6b5c86", .6)]
-        out += rain_lines(p, "#c9b6ff", .4, count=12, top=16, span=40, step=12, x0=10)
-        if f in (12, 13):           # the flash: two frames in each loop
-            out += [veil("#ffffff", .13 if f == 12 else .07), shape(BOLT, 104, 22, 1, "#ffd54a", 1 if f == 12 else .6)]
+        out = cloud(0, -7)
+        flash = 1.0 if f in (12, 13) else .5 if f == 14 else .25
+        out.append(stroke("M27,32l-5,7h5l-4,7", c="acc", a=flash, w=1.6))
         return out
     if kind == "fog":
-        out = [bg("#737d88", "#9aa2ab")]
-        for a, y, b, w, d in [(10, 20, 150, 6, 1), (40, 34, 170, 5, -1), (0, 48, 120, 7, 1), (60, 62, 176, 5, -1)]:
-            dx = 4 * sn * d
-            out.append(line(a + dx, y, b + dx, y, "#ffffff", w, .22))
+        out = cloud(0, -8)
+        for i, (x1, y, x2) in enumerate([(10, 38, 36), (14, 44, 40)]):
+            dx = 2.5 * sn * (1 if i % 2 == 0 else -1)
+            out.append(stroke("M%s,%sH%s" % (n(x1 + dx), n(y), n(x2 + dx)), a=.8))
         return out
     raise ValueError(kind)
 
@@ -104,140 +98,129 @@ def scene(kind, f):
 def n(v):
     return ("%.2f" % v).rstrip("0").rstrip(".")
 
-def argb(c, a=1.0):
-    return "#%02X%s" % (round(max(0, min(1, a)) * 255), c[1:].upper())
-
-def circle_d(cx, cy, r):
-    return "M%s,%sa%s,%s 0,1 0,%s,0a%s,%s 0,1 0,-%s,0z" % (n(cx - r), n(cy), n(r), n(r), n(2 * r), n(r), n(r), n(2 * r))
-
 def to_vector(shapes):
     o = ['<?xml version="1.0" encoding="utf-8"?>',
-         '<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"',
+         '<vector xmlns:android="http://schemas.android.com/apk/res/android"',
          '    android:width="%ddp" android:height="%ddp" android:viewportWidth="%d" android:viewportHeight="%d">' % (W, H, W, H)]
     for s in shapes:
         t = s[0]
-        if t == "bg":
-            _, c1, c2, x1, y1, x2, y2 = s
-            o.append('  <path android:pathData="M0,0h%dv%dh-%dz"><aapt:attr name="android:fillColor">'
-                     '<gradient android:type="linear" android:startX="%s" android:startY="%s" android:endX="%s" android:endY="%s">'
-                     '<item android:offset="0" android:color="%s"/><item android:offset="1" android:color="%s"/></gradient>'
-                     '</aapt:attr></path>' % (W, H, W, n(x1), n(y1), n(x2), n(y2), argb(c1), argb(c2)))
-        elif t == "glow":
-            _, cx, cy, r, c = s
-            o.append('  <path android:pathData="%s"><aapt:attr name="android:fillColor">'
-                     '<gradient android:type="radial" android:centerX="%s" android:centerY="%s" android:gradientRadius="%s">'
-                     '<item android:offset="0" android:color="%s"/><item android:offset="0.3" android:color="%s"/>'
-                     '<item android:offset="1" android:color="%s"/></gradient></aapt:attr></path>'
-                     % (circle_d(cx, cy, r), n(cx), n(cy), n(r), argb(c, .9), argb(c, .45), argb(c, 0)))
-        elif t == "circle":
-            _, cx, cy, r, c, a = s
-            o.append('  <path android:pathData="%s" android:fillColor="%s" android:fillAlpha="%s"/>' % (circle_d(cx, cy, r), c, n(a)))
-        elif t == "shape":
-            _, d, x, y, sc, c, a = s
+        if t == "path":
+            _, d, c, a, fill, w = s
+            o.append('  <path android:pathData="%s" android:strokeColor="@color/wx_%s" android:strokeAlpha="%s" android:strokeWidth="%s"'
+                     ' android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="%s"/>'
+                     % (d, c, n(a), n(w), "@color/wx_%s" % fill if fill else "#00000000"))
+        elif t == "group":
+            _, d, x, y, sc = s
             o.append('  <group android:translateX="%s" android:translateY="%s" android:scaleX="%s" android:scaleY="%s">'
-                     '<path android:pathData="%s" android:fillColor="%s" android:fillAlpha="%s"/></group>'
-                     % (n(x), n(y), n(sc), n(sc), d, c, n(a)))
-        elif t == "line":
-            _, x1, y1, x2, y2, c, w, a = s
-            o.append('  <path android:pathData="M%s,%sL%s,%s" android:strokeColor="%s" android:strokeWidth="%s" '
-                     'android:strokeAlpha="%s" android:strokeLineCap="round"/>' % (n(x1), n(y1), n(x2), n(y2), c, n(w), n(a)))
-        elif t == "veil":
-            _, c, a = s
-            o.append('  <path android:pathData="M0,0h%dv%dh-%dz" android:fillColor="%s" android:fillAlpha="%s"/>' % (W, H, W, c, n(a)))
+                     '<path android:pathData="%s" android:strokeColor="@color/wx_ink" android:strokeWidth="%s"'
+                     ' android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000"/></group>'
+                     % (n(x), n(y), n(sc), n(sc), d, n(1.4 / sc)))
+        elif t == "cloud":         # filled with the background, so a sun or moon behind it is hidden
+            _, dx, dy, a = s
+            o.append('  <group android:translateX="%s" android:translateY="%s"><path android:pathData="%s" android:fillColor="@color/wx_bg"'
+                     ' android:strokeColor="@color/wx_ink" android:strokeAlpha="%s" android:strokeWidth="1.4" android:strokeLineCap="round"'
+                     ' android:strokeLineJoin="round"/></group>' % (n(dx), n(dy), CLOUD, n(a)))
     o.append('</vector>')
     return "\n".join(o) + "\n"
 
 
 # ---- output: SVG for the preview page ------------------------------------------------------------
-def to_svg(shapes, uid):
-    o, defs = [], []
-    for i, s in enumerate(shapes):
-        t, gid = s[0], "%s_%d" % (uid, i)
-        if t == "bg":
-            _, c1, c2, x1, y1, x2, y2 = s
-            defs.append('<linearGradient id="%s" gradientUnits="userSpaceOnUse" x1="%s" y1="%s" x2="%s" y2="%s">'
-                        '<stop offset="0" stop-color="%s"/><stop offset="1" stop-color="%s"/></linearGradient>' % (gid, n(x1), n(y1), n(x2), n(y2), c1, c2))
-            o.append('<rect width="%d" height="%d" fill="url(#%s)"/>' % (W, H, gid))
-        elif t == "glow":
-            _, cx, cy, r, c = s
-            defs.append('<radialGradient id="%s" gradientUnits="userSpaceOnUse" cx="%s" cy="%s" r="%s">'
-                        '<stop offset="0" stop-color="%s" stop-opacity=".9"/><stop offset=".3" stop-color="%s" stop-opacity=".45"/>'
-                        '<stop offset="1" stop-color="%s" stop-opacity="0"/></radialGradient>' % (gid, n(cx), n(cy), n(r), c, c, c))
-            o.append('<circle cx="%s" cy="%s" r="%s" fill="url(#%s)"/>' % (n(cx), n(cy), n(r), gid))
-        elif t == "circle":
-            _, cx, cy, r, c, a = s
-            o.append('<circle cx="%s" cy="%s" r="%s" fill="%s" fill-opacity="%s"/>' % (n(cx), n(cy), n(r), c, n(a)))
-        elif t == "shape":
-            _, d, x, y, sc, c, a = s
-            o.append('<path transform="translate(%s %s) scale(%s)" d="%s" fill="%s" fill-opacity="%s"/>' % (n(x), n(y), n(sc), d, c, n(a)))
-        elif t == "line":
-            _, x1, y1, x2, y2, c, w, a = s
-            o.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="%s" stroke-width="%s" stroke-opacity="%s" stroke-linecap="round"/>'
-                     % (n(x1), n(y1), n(x2), n(y2), c, n(w), n(a)))
-        elif t == "veil":
-            _, c, a = s
-            o.append('<rect width="%d" height="%d" fill="%s" fill-opacity="%s"/>' % (W, H, c, n(a)))
-    return '<svg viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid slice"><defs>%s</defs>%s</svg>' % (W, H, "".join(defs), "".join(o))
+def to_svg(shapes, th):
+    c = THEMES[th]
+    o = []
+    for s in shapes:
+        t = s[0]
+        if t == "path":
+            _, d, col, a, fill, w = s
+            o.append('<path d="%s" stroke="%s" stroke-opacity="%s" stroke-width="%s" fill="%s"/>' % (d, c[col], n(a), n(w), c[fill] if fill else "none"))
+        elif t == "group":
+            _, d, x, y, sc = s
+            o.append('<path transform="translate(%s %s) scale(%s)" d="%s" stroke="%s" stroke-width="%s" fill="none"/>' % (n(x), n(y), n(sc), d, c["ink"], n(1.4 / sc)))
+        elif t == "cloud":
+            _, dx, dy, a = s
+            o.append('<path transform="translate(%s %s)" d="%s" fill="%s" stroke="%s" stroke-opacity="%s" stroke-width="1.4"/>' % (n(dx), n(dy), CLOUD, c["bg"], c["ink"], n(a)))
+    return ('<svg viewBox="0 0 %d %d" style="stroke-linecap:round;stroke-linejoin:round">%s</svg>' % (W, H, "".join(o)))
 
 
 # ---- widget layouts ---------------------------------------------------------------------------
-TEXT = '''    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
-        android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp" android:paddingTop="6dp" android:paddingBottom="6dp">
+IMG = '<ImageView android:id="@+id/wx_f%d" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" />'
+
+def body(icon):
+    return '''    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+        android:gravity="center_vertical" android:paddingLeft="14dp" android:paddingRight="14dp" android:paddingTop="6dp" android:paddingBottom="6dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
             <TextView android:id="@+id/wx_city" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                android:textSize="12sp" android:textColor="#E6FFFFFF" android:maxLines="1" android:ellipsize="end" %(sh)s />
+                android:textSize="12sp" android:textColor="@color/wx_mut" android:fontFamily="sans-serif-light" android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/wx_hilo" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="11sp" android:textColor="#E6FFFFFF" android:maxLines="1" android:paddingLeft="4dp" %(sh)s />
+                android:textSize="11sp" android:textColor="@color/wx_mut" android:fontFamily="sans-serif-light" android:maxLines="1" android:paddingLeft="4dp" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
             android:gravity="center_vertical">
             <TextView android:id="@+id/wx_temp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="30sp" android:textStyle="bold" android:textColor="#FFFFFFFF" android:maxLines="1" %(sh)s />
-            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:textSize="32sp" android:textColor="@color/wx_ink" android:fontFamily="sans-serif-thin" android:maxLines="1" />
+            <FrameLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp">
+%s
+            </FrameLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:orientation="vertical" android:gravity="end">
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
                     <TextView android:id="@+id/wx_press" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="11sp" android:textColor="#FFFFFFFF" android:maxLines="1" %(sh)s />
+                        android:textSize="11sp" android:textColor="@color/wx_ink" android:fontFamily="sans-serif-light" android:maxLines="1" />
                     <TextView android:id="@+id/wx_parr" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="11sp" android:textStyle="bold" android:maxLines="1" %(sh)s />
+                        android:textSize="11sp" android:maxLines="1" />
                 </LinearLayout>
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
                     <TextView android:id="@+id/wx_kpdot" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="9sp" android:text="●" android:paddingRight="3dp" />
+                        android:textSize="8sp" android:text="●" android:paddingRight="3dp" />
                     <TextView android:id="@+id/wx_kp" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="11sp" android:textColor="#FFFFFFFF" android:maxLines="1" %(sh)s />
+                        android:textSize="11sp" android:textColor="@color/wx_ink" android:fontFamily="sans-serif-light" android:maxLines="1" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-''' % {"sh": 'android:shadowColor="#55000000" android:shadowRadius="3" android:shadowDy="1"'}
+''' % icon
 
 HEAD = '''<?xml version="1.0" encoding="utf-8"?>
 <!-- generated by widget/frames.py; @android:id/background lets Android 12+ round the corners -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/background"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/wx_bg">
 '''
-IMG = '<ImageView android:id="@+id/wx_f%d" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" />'
-
 
 def layout_anim():
-    imgs = "\n".join("        " + IMG % i for i in range(N))
-    return (HEAD + '    <ViewFlipper android:id="@+id/wx_flip" android:layout_width="match_parent" android:layout_height="match_parent"\n'
-            '        android:autoStart="true" android:flipInterval="%d">\n%s\n    </ViewFlipper>\n' % (1000 // FPS, imgs)
-            + TEXT + '</FrameLayout>\n')
-
+    imgs = "\n".join("                    " + IMG % i for i in range(N))
+    icon = ('                <ViewFlipper android:id="@+id/wx_flip" android:layout_width="match_parent" android:layout_height="match_parent"\n'
+            '                    android:autoStart="true" android:flipInterval="%d">\n%s\n                </ViewFlipper>' % (1000 // FPS, imgs))
+    return HEAD + body(icon) + '</FrameLayout>\n'
 
 def layout_static():
-    return HEAD + "    " + IMG % 0 + "\n" + TEXT + '</FrameLayout>\n'
+    return HEAD + body("                " + IMG % 0) + '</FrameLayout>\n'
+
+BG = '''<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/wx_bg" /><corners android:radius="22dp" /><stroke android:width="1dp" android:color="@color/wx_line" />
+</shape>
+'''
+
+def colors(th):
+    c = THEMES[th]
+    line = "#26%s" % c["ink"][1:]
+    return ('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n' +
+            "".join('    <color name="wx_%s">%s</color>\n' % (k, v) for k, v in list(c.items()) + [("line", line)]) + "</resources>\n")
 
 
 def write_android(res):
-    os.makedirs(os.path.join(res, "drawable"), exist_ok=True)
-    os.makedirs(os.path.join(res, "layout"), exist_ok=True)
+    for d in ("drawable", "layout", "values", "values-night"):
+        os.makedirs(os.path.join(res, d), exist_ok=True)
     for k in KINDS:
         for f in range(N):
             with open(os.path.join(res, "drawable", "wxf_%s_%02d.xml" % (k, f)), "w", encoding="utf-8") as fh:
                 fh.write(to_vector(scene(k, f)))
+    with open(os.path.join(res, "drawable", "wx_bg.xml"), "w", encoding="utf-8") as fh:
+        fh.write(BG)
+    with open(os.path.join(res, "values", "wx_colors.xml"), "w", encoding="utf-8") as fh:
+        fh.write(colors("light"))
+    with open(os.path.join(res, "values-night", "wx_colors.xml"), "w", encoding="utf-8") as fh:
+        fh.write(colors("dark"))
     with open(os.path.join(res, "layout", "wx_widget_anim.xml"), "w", encoding="utf-8") as fh:
         fh.write(layout_anim())
     with open(os.path.join(res, "layout", "wx_widget.xml"), "w", encoding="utf-8") as fh:
@@ -251,33 +234,38 @@ def write_preview(path):
               "cloud": ("+12°", "+13° +8°", "738", "↓1", "g", 3), "rain": ("+11°", "+12° +7°", "731", "↓3", "r", 4),
               "snow": ("−3°", "−1° −6°", "748", "↑2", "r", 2), "thunder": ("+22°", "+27° +16°", "736", "↓3", "r", 5),
               "fog": ("+7°", "+11° +5°", "742", "→", "m", 2)}
-    col = {"g": "#b6ffb9", "r": "#ffb3a8", "m": "rgba(255,255,255,.75)"}
-    cards = []
-    for k in KINDS:
-        t, hl, pr, ar, c, kp = sample[k]
-        frames = "".join('<div class="fr">%s</div>' % to_svg(scene(k, f), "%s%d" % (k, f)) for f in range(N))
-        dot = "#ffb3a8" if kp >= 5 else "#ffe28a" if kp >= 4 else "#b6ffb9"
-        cards.append('<div class="item"><div class="w">%s<div class="in"><div class="top"><span>Великий Новгород</span><span>%s</span></div>'
-                     '<div class="main"><span class="t">%s</span><div class="rt"><div>%s <b style="color:%s">%s</b></div>'
-                     '<div><span style="font-size:9px;color:%s">●</span> Kp %d%s</div></div></div></div></div><small>%s</small></div>'
-                     % (frames, hl, t, pr, col[c], ar, dot, kp, " буря" if kp >= 5 else "", NAMES[k]))
+    col = {"light": {"g": "#1f9d55", "y": "#c98500", "r": "#d9463a", "m": "#557d73"},
+           "dark": {"g": "#8be38f", "y": "#f2c94c", "r": "#ff7a6b", "m": "#a3a7ae"}}
+    rows = []
+    for th in ("light", "dark"):
+        c, cc, cards = THEMES[th], col[th], []
+        for k in KINDS:
+            t, hl, pr, ar, a, kp = sample[k]
+            frames = "".join('<div class="fr">%s</div>' % to_svg(scene(k, f), th) for f in range(N))
+            dot = cc["r"] if kp >= 5 else cc["y"] if kp >= 4 else cc["g"]
+            cards.append('<div class="item"><div class="w" style="background:%s;color:%s;border-color:%s26"><div class="top" style="color:%s"><span>Великий Новгород</span><span>%s</span></div>'
+                         '<div class="main"><span class="t">%s</span><div class="ic">%s</div><div class="rt"><div>%s <span style="color:%s">%s</span></div>'
+                         '<div><span style="font-size:8px;color:%s">●</span> Kp %d%s</div></div></div></div><small>%s</small></div>'
+                         % (c["bg"], c["ink"], c["ink"], c["mut"], hl, t, frames, pr, cc[a], ar, dot, kp, " буря" if kp >= 5 else "", NAMES[k]))
+        rows.append('<h2>%s</h2><div class="grid">%s</div>' % ("Светлая тема телефона" if th == "light" else "Тёмная тема телефона", "".join(cards)))
     page = '''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Виджет: фон по погоде</title><style>
+<title>Виджет в линиях</title><style>
 *{box-sizing:border-box}body{margin:0;background:#0b0c0e;color:#eef0f3;font:15px/1.45 system-ui,sans-serif;padding:20px 16px 32px}
-h1{font-size:18px;margin:0 0 6px;text-align:center}.lead{color:#a3a7ae;margin:0 auto 18px;font-size:14px;text-align:center;max-width:540px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px 14px;max-width:680px;margin:0 auto}
+h1{font-size:18px;font-weight:400;margin:0 0 6px;text-align:center}h2{font-size:14px;font-weight:400;color:#a3a7ae;text-align:center;margin:22px 0 10px}
+.lead{color:#a3a7ae;margin:0 auto 10px;font-size:13px;text-align:center;max-width:560px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px 14px;max-width:740px;margin:0 auto}
 .item{display:flex;flex-direction:column;gap:6px;align-items:center}.item small{color:#a3a7ae;font-size:12.5px}
-.w{position:relative;width:196px;height:76px;border-radius:22px;overflow:hidden;color:#fff;text-shadow:0 1px 3px rgb(0 0 0 / .33)}
-.fr{position:absolute;inset:0;visibility:hidden}.fr svg{width:100%%;height:100%%;display:block}
-.in{position:absolute;inset:0;padding:6px 12px;display:flex;flex-direction:column;justify-content:center}
-.top{display:flex;justify-content:space-between;font-size:12px;opacity:.9}.top span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w{position:relative;width:216px;height:80px;border-radius:22px;border:1px solid;padding:6px 14px;display:flex;flex-direction:column;justify-content:center;font-weight:300}
+.top{display:flex;justify-content:space-between;font-size:12px}.top span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top span:last-child{font-size:11px;flex:none;padding-left:4px}.main{display:flex;align-items:center}
-.t{font-size:30px;font-weight:700;letter-spacing:-.5px;line-height:1.1}.rt{margin-left:auto;text-align:right;font-size:11px;line-height:1.35;white-space:nowrap}
-</style></head><body><h1>Фон виджета по погоде — %d кадров в секунду</h1>
-<p class="lead">Это те же кадры, что попадут в приложение: их рисует одна и та же программа. На телефонах, где оболочка блокирует анимацию, останется первый кадр.</p>
-<div class="grid">%s</div>
-<script>let f=0;const W=[...document.querySelectorAll(".w")];function show(){W.forEach(w=>{const fr=w.querySelectorAll(".fr");fr.forEach((x,i)=>x.style.visibility=i===f?"visible":"hidden");});f=(f+1)%%%d;}show();setInterval(show,%d);</script>
-</body></html>''' % (FPS, "".join(cards), N, 1000 // FPS)
+.t{font-size:32px;font-weight:100;letter-spacing:-.5px;line-height:1.1}.ic{position:relative;flex:1;height:40px}
+.fr{position:absolute;inset:0;visibility:hidden}.fr svg{width:100%%;height:100%%;display:block}
+.rt{text-align:right;font-size:11px;line-height:1.4;white-space:nowrap}
+</style></head><body><h1>Виджет в линиях — значок погоды двигается, %d кадров в секунду</h1>
+<p class="lead">Фон и цвет линий сами меняются вместе с темой телефона. Это те же кадры, что попадут в приложение.</p>
+%s
+<script>let f=0;const W=[...document.querySelectorAll(".ic")];function show(){W.forEach(w=>{w.querySelectorAll(".fr").forEach((x,i)=>x.style.visibility=i===f?"visible":"hidden");});f=(f+1)%%%d;}show();setInterval(show,%d);</script>
+</body></html>''' % (FPS, "".join(rows), N, 1000 // FPS)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(page)
 

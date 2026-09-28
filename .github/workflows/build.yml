@@ -775,11 +775,9 @@ jobs:
                       small.setOnClickPendingIntent(SMALL[i], markIntent(c, o.optString("k"), i));
                   }
                   RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
-                  // eight smileys: two rows of four (the fifth cell of each row is left out); ten: two rows of five
-                  int[] slot = a.length() <= 8 ? new int[]{0, 1, 2, 3, -1, 4, 5, 6, 7, -1} : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-                  for (int i = 0; i < CELL.length; i++) {
-                      JSONObject o = slot[i] < 0 ? null : a.optJSONObject(slot[i]);
-                      if (o == null) { big.setViewVisibility(CELL[i], slot[i] < 0 ? View.GONE : View.INVISIBLE); continue; }
+                  for (int i = 0; i < CELL.length; i++) {           // one row: the cells without a smiley are left out
+                      JSONObject o = a.optJSONObject(i);
+                      if (o == null) { big.setViewVisibility(CELL[i], View.GONE); continue; }
                       big.setImageViewResource(EMO[i], face(c, o.optString("k")));
                       big.setTextViewText(LAB[i], o.optString("l"));
                       big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
@@ -1280,83 +1278,81 @@ jobs:
                   <LinearLayout android:id="@+id/c0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e0" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e0" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l0" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e1" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e1" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l1" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e2" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e2" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l2" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e3" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e3" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l3" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e4" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e4" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l4" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
-              </LinearLayout>
-              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                   <LinearLayout android:id="@+id/c5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e5" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e5" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l5" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e6" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e6" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l6" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e7" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e7" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l7" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e8" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e8" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l8" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <ImageView android:id="@+id/e9" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
+                      <ImageView android:id="@+id/e9" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l9" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
               </LinearLayout>
@@ -1781,7 +1777,7 @@ jobs:
               static final String PREFS = "wx_widget";
               static final long HOUR = 3600 * 1000L;
               static final int FRAMES = 20;
-              static final int GREEN = 0xFFB6FFB9, YELLOW = 0xFFFFE28A, RED = 0xFFFFB3A8, DIM = 0xBFFFFFFF;
+              static int GREEN, YELLOW, RED, DIM;      // set for the phone's light or dark theme in build()
 
               static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
@@ -1831,6 +1827,10 @@ jobs:
                   SharedPreferences p = prefs(c);
                   boolean anim = p.getBoolean("anim", true);
                   RemoteViews v = new RemoteViews(c.getPackageName(), anim ? R.layout.wx_widget_anim : R.layout.wx_widget);
+                  boolean night = (c.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                      == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+                  GREEN = night ? 0xFF8BE38F : 0xFF1F9D55; YELLOW = night ? 0xFFF2C94C : 0xFFC98500;
+                  RED = night ? 0xFFFF7A6B : 0xFFD9463A; DIM = night ? 0xFFA3A7AE : 0xFF557D73;
                   Intent open = new Intent(c, MainActivity.class);
                   open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                   v.setOnClickPendingIntent(android.R.id.background, PendingIntent.getActivity(c, 30, open,
