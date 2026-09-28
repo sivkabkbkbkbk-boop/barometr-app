@@ -1075,6 +1075,24 @@ header{position:relative}
 .ysync .btn{color:var(--ink)}
 .remwarn{background:none}
 .witem{font-weight:200}.witem.on{font-weight:400}
+/* the first-run window and the way to the personal forecast */
+.ist{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--glass-line)}
+.ist:first-child{border-top:0}
+.isn{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid rgb(var(--inkc) / .4);display:grid;place-items:center;font:300 12px var(--f-mono);margin-top:2px}
+.isb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.isb .ctitle{margin-top:4px}
+.icity{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:17px}.icity b{font-weight:300}
+.icity .mlink{padding:0;font-weight:300}
+#kgIntro{gap:12px 4px}#kgIntro .kbtn{border:0;background:none;padding:2px 0}#kgIntro .kbtn .l{font-weight:300}
+#kgIntro .kbtn.pop{background:none}#kgIntro .kbtn.pop .kf{color:var(--press)}
+.ibtns{display:flex;gap:8px;flex-wrap:wrap}
+.fcprog{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12px;font-weight:300;color:var(--muted)}
+.fcprog b{color:var(--ink);font-weight:400}
+.fcprog i{display:block;height:1px;background:var(--glass-line);position:relative}
+.fcprog i b{position:absolute;left:0;top:-.5px;height:2px;background:var(--ink)}
+.fcprog[hidden]{display:none}
+.welc .wi:empty{display:none}
+#introSheet .note{font-size:11px;font-weight:300;color:var(--muted);line-height:1.4}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1145,6 +1163,7 @@ header{position:relative}
     <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
     <div class="kgrid" id="kgMain"></div>
     <div class="mtoday" id="mtMain"></div>
+    <div class="fcprog" id="fcProg" hidden></div>
   </section>
 
   <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
@@ -1357,27 +1376,31 @@ header{position:relative}
   <div class="sbody"><div class="chk" id="chkOut"></div><button class="btn ghost" id="chkCopy">📋 Скопировать результат</button></div>
 </section>
 
+<section class="sheet" id="introSheet" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="introTitle">«Не18мнеуже»</h2><div class="sc">подскажет, какая погода влияет именно на вас</div></div></div>
+  <div class="sbody">
+    <div class="ist"><span class="isn">1</span><div class="isb"><div class="ctitle">Ваш город</div>
+      <div class="icity"><b id="iCity">—</b><button class="mlink" id="iLocate">определить</button><button class="mlink" id="iPick">выбрать</button></div><div class="src" id="iHint" hidden></div></div></div>
+    <div class="ist"><span class="isn">2</span><div class="isb"><div class="ctitle">Как вы себя чувствуете сейчас?</div>
+      <div class="kgrid" id="kgIntro"></div><div class="src" id="iMarked">Нажмите на смайлик — это первая отметка в дневнике.</div></div></div>
+    <div class="ist"><span class="isn">3</span><div class="isb"><div class="ctitle">Отмечайтесь раз в день</div>
+      <div class="src" id="iWhy"></div>
+      <div class="remrow">Напоминать в <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
+      <div class="ibtns"><button class="btn" id="iRem">Напоминать мне</button><button class="btn ghost" id="iSkip">Не сейчас</button></div></div></div>
+    <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</div>
+  </div>
+</section>
+
 <section class="sheet" id="welSheet" role="dialog" aria-modal="true" aria-labelledby="welTitle" hidden>
   <div class="grab"></div>
-  <div class="shead"><div><h2 id="welTitle">Добро пожаловать в «Не18мнеуже»</h2><div class="sc">три коротких шага: оформление, что отслеживать и Яндекс Диск</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="shead"><div><h2 id="welTitle">Сохраните свои записи</h2><div class="sc">у вас уже несколько дней отметок — пусть они не потеряются</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
   <div class="sbody welc">
-    <div class="wsteps" aria-hidden="true"><i class="on"></i><i id="ws2"></i><i id="ws3"></i></div>
-    <div class="welc" data-ws="1">
-    <div class="ctitle">Выберите оформление</div>
-    <div id="thWel"></div>
-    <button class="btn" data-wnext="2">Далее</button>
-    </div>
-    <div class="welc" data-ws="2" hidden>
-    <div class="ctitle">Что вы хотите отслеживать?</div>
-    <div class="src" style="font-size:13px">Отметьте нужное — остальное не будет мешать. Потом можно изменить в ⚙ Настройках.</div>
-    <div class="trgrid" id="trWel"></div>
-    <button class="btn" data-wnext="3">Далее</button>
-    </div>
-    <div class="welc" data-ws="3" hidden>
+    <div class="welc" data-ws="3">
     <div class="ctitle" style="margin-top:4px">Яндекс Диск</div>
-    <div class="wl"><span class="wi">💾</span><span><b>Ничего не потеряется.</b> Отметки самочувствия, давление и сахар сохраняются копией на вашем Диске.</span></div>
-    <div class="wl"><span class="wi">📱</span><span><b>Новый телефон — те же данные.</b> Войдите тем же Яндекс ID, и всё вернётся.</span></div>
-    <div class="wl"><span class="wi">👥</span><span><b>Друзья и чат</b> работают только через Диск.</span></div>
+    <div class="wl"><span class="wi"></span><span><b>Ничего не потеряется.</b> Отметки самочувствия, давление и сахар сохраняются копией на вашем Диске.</span></div>
+    <div class="wl"><span class="wi"></span><span><b>Новый телефон — те же данные.</b> Войдите тем же Яндекс ID, и всё вернётся.</span></div>
+    <div class="wl"><span class="wi"></span><span><b>Друзья и чат</b> работают только через Диск.</span></div>
     <a class="btn" id="welGo" href="#" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Войти через Яндекс</a>
     <button class="btn ghost" id="welLater">Позже</button>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="color:inherit">политикой конфиденциальности</a>.</div>
@@ -2157,23 +2180,27 @@ $("clist").addEventListener("click",async e=>{
   if(b.dataset.add){ const id=addCity(b.dataset.add, +b.dataset.lat, +b.dataset.lon, b.dataset.reg); selectCity(id); hideSheet(); }
 });
 let LOCATING=false;
+const INTRO_BACK_PENDING=()=>{ try{ if(INTRO_BACK){ INTRO_BACK=false; return true; } }catch(e){} return false; };
 function locate(){
   if(!navigator.geolocation){ toast("Этот браузер не умеет определять местоположение."); return; }
-  toast("Определяю местоположение…"); LOCATING=true;
+  const inIntro=()=>openSheet&&openSheet.id==="introSheet";   // the first-run window says it in its city line
+  if(!inIntro()) toast("Определяю местоположение…"); LOCATING=true;
   navigator.geolocation.getCurrentPosition(async pos=>{
     const lat=+pos.coords.latitude.toFixed(3), lon=+pos.coords.longitude.toFixed(3);
     let name="Моё место", region="";
     try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
     catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
-    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet();   // only the city list closes; a welcome or other window stays
+    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity();   // only the city list closes; a welcome or other window stays
   }, err=>{
-    LOCATING=false;
+    LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — выберите город из списка."; } return; }
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
   }, {enableHighAccuracy:false, timeout:15000, maximumAge:30*60*1000});
 }
 function selectCity(id){
   S.slug=id; store.set("city",id);
+  if(typeof introCity==="function") setTimeout(introCity,0);
+  if(INTRO_BACK_PENDING()) setTimeout(showIntro,500);
   if(!S.feed[id]) S.feed[id]=loadJSON("feed:"+id,null)||undefined;
   stopPlay(); RAD.times=[]; RAD.lats=[]; radarFromCache(id);
   render(); drawRadar(); refreshNow(true);
@@ -2915,6 +2942,8 @@ function renderMood(){
   const list=rec?rec.marks:[];
   $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
   $("mtMain").innerHTML = $("mtoday").innerHTML;
+  { const need=window.FC_READY?FC_NEED:14, nd=Object.keys(S.mood).length, pg=$("fcProg");
+    if(pg){ pg.hidden=nd>=need; pg.innerHTML=`<span>Личный прогноз: <b>${nd}</b> из ${need} дней с отметками</span><i><b style="width:${Math.round(nd/need*100)}%"></b></i>`; } }
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
   const chip=$("moodChip"), last=list[list.length-1];
@@ -4012,13 +4041,32 @@ $("ysync").addEventListener("click",async e=>{
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Y.token) ySync(false); });
 /* first run: offer Yandex Disk sync once; waits until the mood popup and other windows are closed */
 function thRender(){ for(const id of ["thSet","thWel"]){ const el=$(id); if(el&&!el.firstChild) el.innerHTML=THPICK; } document.querySelectorAll(".thpick [data-th]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.th===themePref()))); }
+/* first run: one short window — the city, the first mark, a daily reminder */
+const introNeeded=()=>!store.get("introDone") && !S.marks.length && !Y.token && !store.get("welcomeY");
+let INTRO_BACK=false;
+function introCity(){ const e=$("iCity"); if(e) e.textContent=cityOf(S.slug).name+(LOCATING?" · определяю…":""); }
+function showIntro(){
+  if(!introNeeded()) return;
+  if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
+  const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
+  $("iWhy").textContent=`Через ${window.FC_READY?FC_NEED:14} дней с отметками появится ваш личный прогноз: какая погода на вас влияет и чего ждать завтра.`;
+  introCity(); showSheet("introSheet");
+  if(!store.get("gpsDone")&&!LOCATING){ locate(); introCity(); }
+}
+function introDone(){ store.set("introDone","1"); }
+$("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k) return;
+  k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); rebuildMood(); renderMood();
+  $("iMarked").textContent=`${KIND[k.dataset.k].l} — записано. Первая отметка есть!`; });
+$("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
+$("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });
+$("iRem").addEventListener("click",async()=>{ introDone(); const t=$("iTime").value||"20:00"; hideSheet(); await saveRemind({every:1440, from:t, to:"22:00"}); });
+$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках."); });
 function showWelcome(tries=0){
-  if(Y.token || store.get("welcomeY")) return;
+  if(Y.token || store.get("welcomeY") || Object.keys(S.mood).length<3) return;   // offered once there are three days of marks
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
   if(busy){ if(tries<40) setTimeout(()=>showWelcome(tries+1), 1500); return; }
   $("welGo").href=yAuthUrl(false); thRender();
-  if(!loadJSON("track",null)&&!HM.list.length) Object.assign(TRACK,{bp:true,glu:false,steps:true});
-  renderTrack(); showSheet("welSheet");
+  showSheet("welSheet");
 }
 $("welGo").addEventListener("click",()=>{ store.set("welcomeY","1"); setTimeout(()=>hideSheet(), 400); });
 $("welSheet").querySelector(".xbtn").addEventListener("click",()=>store.set("welcomeY","1"));
@@ -4927,7 +4975,7 @@ async function trackSet(k,on){
   renderTrack(); renderHealth(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") renderRepSeg(); fcRender();
   if(k==="steps") phoneStepsStart(true);
 }
-$("trWel").addEventListener("click",e=>{ const b=e.target.closest("[data-tr]"); if(!b||b.disabled) return; trackSet(b.dataset.tr,!tr(b.dataset.tr)); });
+$("trWel")?.addEventListener("click",e=>{ const b=e.target.closest("[data-tr]"); if(!b||b.disabled) return; trackSet(b.dataset.tr,!tr(b.dataset.tr)); });
 $("trList").addEventListener("change",e=>{ const c=e.target.closest("[data-trk]"); if(c) trackSet(c.dataset.trk,c.checked); });
 $("welSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-wnext]"); if(!n) return; const k=n.dataset.wnext;
   $("welSheet").querySelectorAll("[data-ws]").forEach(x=>x.hidden=x.dataset.ws!==k);
@@ -5403,7 +5451,8 @@ $("updCheck").addEventListener("click",()=>checkUpdate(true));
     if(S.marks.length) toast(`Восстановлено из резервной копии: ${S.marks.length} отметок`);
   }
   refreshNow(true);
-  if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); }
+  if(introNeeded()) setTimeout(showIntro, 900);             // a new install: the city is found from the window, where it is clear why
+  else { if(!store.get("introDone")) introDone(); if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); } }
   if(Y.token) setTimeout(()=>ySync(false), 1500);
   setTimeout(()=>clipInvite(), 1500);
   fsResume();
