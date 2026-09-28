@@ -99,7 +99,9 @@ html,body{overscroll-behavior-y:none}
 .temp{font-family:var(--f-disp);font-weight:300;font-size:92px;line-height:.9;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .temp sup{font-size:.36em;vertical-align:top;position:relative;top:.18em;margin-left:2px;color:var(--muted)}
 .cond{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right;padding-bottom:6px}
-.cond .icon{width:54px;height:54px}
+.cond .icon{width:108px;height:108px;margin:-16px 0 -8px 0}
+.cond .txt{max-width:130px;line-height:1.2}
+.tdate{font-size:14px;color:var(--muted);margin:0 0 4px 2px}
 .cond .txt{font-size:16px;font-weight:500}
 .facts{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px}
 .facts b{color:var(--ink);font-weight:500;font-family:var(--f-mono);font-size:12.5px}
@@ -860,6 +862,7 @@ header{position:relative}
 
   <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Температура: открыть историю">
     <div>
+      <div class="tdate" id="tdate"></div>
       <div class="temp" id="temp">—</div>
       <div class="facts" id="facts"></div>
     </div>
@@ -1473,6 +1476,7 @@ function render(){
   const ageMin=Math.round((now-new Date(f.fetched))/60000);
   const age = ageMin<2?"только что":ageMin<60?`${ageMin} мин назад`:ageMin<1440?`${Math.floor(ageMin/60)} ч назад`:`${Math.floor(ageMin/1440)} дн назад`;
   $("upd").textContent=age; $("upd").title="Данные обновлены "+age;
+  { const d=new Date(), wd=d.toLocaleDateString("ru-RU",{weekday:"long"}); $("tdate").textContent=`${wd[0].toUpperCase()+wd.slice(1)}, ${d.toLocaleDateString("ru-RU",{day:"numeric",month:"long"})}`; }
   $("upd").classList.toggle("stale",ageMin>360);
 
   $("temp").innerHTML=`${Math.round(cur.temp)}<sup>°C</sup>`;
