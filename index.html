@@ -1099,7 +1099,8 @@ header{position:relative}
 .inext{margin-top:auto;align-self:stretch;text-align:center;padding:11px}
 .istep .ibtns .btn{flex:1;text-align:center}
 .istep .remrow{font-size:16px;margin:6px 0}
-.ibig{display:flex;flex-direction:column;gap:12px;margin:40px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
+.ihi{font-size:34px;font-weight:200;margin:18px 0 0}.ihtxt{font-size:15px;line-height:1.45}
+.ibig{display:flex;flex-direction:column;gap:12px;margin:24px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
 #introSheet [data-is="1"]{min-height:220px}
 .iwheel{height:200px}
 #iOnce,#iSpan{display:flex;flex-direction:column;gap:6px}#iOnce[hidden],#iSpan[hidden]{display:none}
@@ -1399,11 +1400,16 @@ header{position:relative}
 
 <section class="sheet" id="introSheet" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
   <div class="grab"></div>
-  <div class="shead"><div><h2 id="introTitle">«Не18мнеуже»</h2><div class="sc">подскажет, какая погода влияет именно на вас</div></div></div>
   <div class="sbody">
-    <div class="idots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
-    <div class="istep" data-is="1">
-      <div class="ibig"><button class="btn" id="iLocate">Определить моё место по GPS</button><button class="btn ghost" id="iPick">Указать место</button></div>
+    <div class="istep" data-is="0">
+      <h2 class="ihi" id="introTitle">Привет!</h2>
+      <div class="iq">Это приложение для тех, кто чувствует погоду.</div>
+      <div class="src ihtxt">Отмечайте, как себя чувствуете, — а приложение найдёт, какая погода влияет именно на вас, и будет заранее предупреждать.</div>
+      <button class="btn inext" data-inext="1">Начать</button>
+    </div>
+    <div class="istep" data-is="1" hidden>
+      <div class="iq">Как будем определять ваше местоположение?</div>
+      <div class="ibig"><button class="btn" id="iLocate">По спутникам GPS</button><button class="btn ghost" id="iPick">Укажу сам</button></div>
       <div class="src" id="iHint" hidden></div>
     </div>
     <div class="istep" data-is="2" hidden>
@@ -2227,7 +2233,7 @@ function locate(){
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
     LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()) introStep(2);   // only the city list closes; a welcome or other window stays
   }, err=>{
-    LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — нажмите «Указать место»."; } return; }
+    LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — нажмите «Укажу сам»."; } return; }
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
   }, {enableHighAccuracy:false, timeout:15000, maximumAge:30*60*1000});
 }
@@ -4125,7 +4131,7 @@ function thRender(){ for(const id of ["thSet","thWel"]){ const el=$(id); if(el&&
 /* first run: one short window — the city, the first mark, a daily reminder */
 const introNeeded=()=>!store.get("introDone") && !S.marks.length && !Y.token && !store.get("welcomeY");
 let INTRO_BACK=false;
-function introCity(){ const b=$("iLocate"); if(b) b.textContent=LOCATING?"Определяю…":"Определить моё место по GPS"; }
+function introCity(){ const b=$("iLocate"); if(b) b.textContent=LOCATING?"Определяю…":"По спутникам GPS"; }
 let INTRO_FORCE=false;   // opened again from the developer menu
 function showIntro(force){
   if(!force&&!INTRO_FORCE&&!introNeeded()) return;
@@ -4134,7 +4140,7 @@ function showIntro(force){
   $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
   I_OPTS=I_OPTS||REM_OPTS.filter(([v])=>v>0);
   if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
-  introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
+  introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(0); showSheet("introSheet");
 }
 function introDone(){ store.set("introDone","1"); INTRO_FORCE=false; }
 function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
@@ -4194,7 +4200,7 @@ function dragTip(force,tries=0){
     if(n>=7){ box.hidden=false; store.set("devMenu","1"); toast("Меню разработчика открыто — оно внизу настроек"); } });
   $("devIntro").addEventListener("click",()=>{ hideSheet(true); store.set("introDone",""); store.set("dragTip","");
     const kg=$("kgIntro"); delete kg.dataset.done; $("iMarked").textContent="Нажмите на смайлик — это первая отметка в дневнике.";
-    INTRO_FORCE=true; introStep(1); setTimeout(()=>showIntro(true),350); });
+    INTRO_FORCE=true; introStep(0); setTimeout(()=>showIntro(true),350); });
   $("devDrag").addEventListener("click",()=>{ hideSheet(true); showTab("today"); setTimeout(()=>dragTip(true),500); });
   $("devHide").addEventListener("click",()=>{ box.hidden=true; store.set("devMenu",""); n=0; }); }
 function showWelcome(tries=0){
