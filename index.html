@@ -1099,6 +1099,7 @@ header{position:relative}
 .inext{margin-top:auto;align-self:stretch;text-align:center;padding:11px}
 .istep .ibtns .btn{flex:1;text-align:center}
 .istep .remrow{font-size:16px;margin:6px 0}
+.ibye{text-align:center;justify-content:center;min-height:200px}.ibye .iq{font-size:28px}
 .ihi{font-size:34px;font-weight:200;margin:4px 0 0}
 /* the live smiley at the top of the first-run windows */
 .imas{display:flex;justify-content:center;margin:-14px 0 -6px;padding:20px 0 8px;overflow:hidden}   /* hidden: the smiley peeks up from below */
@@ -1435,6 +1436,10 @@ header{position:relative}
         <div class="src">В эти часы приложение будет спрашивать, как вы себя чувствуете. В остальное время, например ночью, оно вас не побеспокоит.</div></div>
       <div class="inote" id="iWhy"></div>
       <div class="ibtns"><button class="btn" id="iRem">Напоминать</button><button class="btn ghost" id="iSkip">Не напоминать</button></div>
+    </div>
+    <div class="istep ibye" data-is="4" hidden>
+      <div class="iq">Приятного пользования!</div>
+      <div class="src ihtxt">Отмечайте самочувствие, когда захочется, — приложение всё запомнит и подскажет.</div>
     </div>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</div>
   </div>
@@ -4149,6 +4154,7 @@ function showIntro(force){
   I_OPTS=I_OPTS||REM_OPTS.filter(([v])=>v>0);
   if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
   introCity(); if(I_CUR===null) introStep(0); else masGo(I_CUR,true); showSheet("introSheet");
+  if(!MAS_CALM()&&I_CUR===0) $("introSheet").animate([{transform:"translateY(105%)"},{transform:"none"}],{duration:750,easing:"cubic-bezier(.2,.9,.25,1)"});   // the first window floats up from below
 }
 function introDone(){ store.set("introDone","1"); INTRO_FORCE=false; }
 /* the live smiley: its own little scene on every window — peeks out, shines like the sun, sneezes, dances */
@@ -4161,7 +4167,7 @@ const MAS={
   pre: '<path d="M12 15.5q2.5 2.5 5 1M23 16.5q2.5-1.5 5-1"/><ellipse cx="20" cy="26" rx="2.5" ry="3"/>',
   achoo:'<path d="M12 17l4.5 1.5-4.5 1.5M28 17l-4.5 1.5 4.5 1.5"/><path d="M15 25.5q5-3 10 0"/>'
 };
-const MAS_FIRST=["hi","joy","hi","joy"];   // the face a window starts with (and the only one when animations are off)
+const MAS_FIRST=["hi","joy","hi","joy","joy"];   // the face a window starts with (and the only one when animations are off)
 let MAS_N=-1, MAS_PK=0, MAS_IDLE=null, MAS_BLINK=0;
 const MAS_CALM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 const masNap=ms=>new Promise(r=>setTimeout(r,ms));
@@ -4172,7 +4178,7 @@ function masGo(n,force){
   mb.getAnimations().forEach(a=>a.cancel()); ex.getAnimations({subtree:true}).forEach(a=>a.cancel()); ex.innerHTML="";
   if(MAS_CALM()){ mx.innerHTML=MAS[MAS_FIRST[n]||"hi"]; return; }
   masIdle();
-  if(n===0){ masPeek(live, first?450:0); return; }
+  if(n===0){ masPeek(live, first?850:0); return; }
   const run=()=>[null,masSun,masSneeze,masDance][n]?.(live,box);
   if(first){ mx.innerHTML=MAS[MAS_FIRST[n]]; setTimeout(run,400); return; }
   // a little jump; the face changes at the top of it, then the window's own scene starts
@@ -4261,8 +4267,24 @@ $("iRem").addEventListener("click",async()=>{ introDone();
   const every=IW?I_OPTS[IW.idx][0]:1440;
   const r=every===1440?{every, from:$("iTime").value||"20:00", to:"22:00"}:{every, from:$("iFrom").value||"09:00", to:$("iTo").value||"22:00"};
   if(every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); store.set("introDone",""); return; }
-  hideSheet(); await saveRemind(r); dragTip(); });
-$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); setTimeout(dragTip,3500); });
+  await introBye(); await saveRemind(r); dragTip(); });
+$("iSkip").addEventListener("click",async()=>{ introDone(); await introBye(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); setTimeout(dragTip,3500); });
+/* the last window: "enjoy", the smiley nods and vanishes, then the window slides down */
+let I_BYE=false;
+async function introBye(){
+  if(I_BYE) return; I_BYE=true;
+  const sh=$("introSheet"), box=$("iMas"), mb=box.querySelector(".mb"), mx=box.querySelector(".mx");
+  introStep(4);
+  if(MAS_CALM()){ await masNap(1600); hideSheet(true); I_BYE=false; return; }
+  await masNap(750); mx.innerHTML=MAS.joy;
+  mb.animate([{transform:"none"},{transform:"translateY(4px) scale(1,.93)",offset:.25},{transform:"none",offset:.5},{transform:"translateY(4px) scale(1,.93)",offset:.75},{transform:"none"}],{duration:700,easing:"ease-in-out"});
+  await masNap(800); mx.innerHTML=MAS.wink; await masNap(550);
+  MAS_PK++; mb.animate([{transform:"none",opacity:1},{transform:"scale(1.15)",opacity:1,offset:.35},{transform:"scale(0)",opacity:0}],{duration:420,easing:"ease-in",fill:"forwards"});
+  await masNap(500);
+  const a=sh.animate([{transform:"none"},{transform:"translateY(105%)"}],{duration:650,easing:"cubic-bezier(.5,0,.75,0)",fill:"forwards"});
+  const b=$("scrim").animate([{opacity:1},{opacity:0}],{duration:650,fill:"forwards"});
+  await masNap(680); hideSheet(true); a.cancel(); b.cancel(); I_BYE=false;
+}
 /* right after the first run: show once that the blocks on the main screen can be moved by a long press */
 let DT=null;
 function dragTip(force,tries=0){
