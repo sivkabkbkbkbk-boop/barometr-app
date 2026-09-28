@@ -956,6 +956,48 @@ header{position:relative}
 .hfab{background:var(--sky-top);color:var(--ink);border:1px solid var(--ink);font-weight:400;box-shadow:none}
 #pgHealth .seg3 button>span:first-child{display:grid;place-items:center;height:22px}
 #pgHealth .hle .kf{width:22px;height:22px;color:var(--muted)}
+/* the reports screen */
+#pgRep .ptitle h1{font-weight:200;font-size:30px}
+#pgRep .sc{font-weight:300}
+#pgRep .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
+#pgRep .label{font-weight:400;letter-spacing:.16em}
+#pgRep .chip{background:none;font-weight:300;display:inline-flex;align-items:center;gap:5px}
+#pgRep .chip .li{width:15px;height:15px}
+#pgRep .chip[aria-pressed="true"]{background:none;border-color:var(--ink);color:var(--ink);font-weight:400}
+#pgRep .rsel[aria-pressed="true"]{border-color:var(--accent);color:var(--ink)}
+#pgRep .rsel[aria-pressed="true"]::before{content:"";width:10px;height:2px;border-radius:1px;background:var(--accent)}
+#pgRep .rsel[aria-pressed="false"]{opacity:1;color:var(--muted)}
+#pgRep .range input{background:none;font-weight:300}
+#pgRep .kpis{gap:0}
+#pgRep .kpi{background:none;border:0;border-left:1px solid var(--glass-line);border-radius:0;padding:2px 12px}
+#pgRep .kpi:first-child{border-left:0;padding-left:2px}
+#pgRep .kpi .kv{font-weight:200;font-size:24px}
+#pgRep .kpi .kl,#pgRep .kpi .ks{font-weight:300}
+#pgRep .wfind .e{display:grid;place-items:start center;width:24px;padding-top:2px}
+#pgRep .wfind .e .li{width:22px;height:22px}
+#pgRep .wfind .t{font-weight:400}
+#pgRep .wfind .s{font-weight:300}
+#pgRep .wfind .s b{font-weight:500}
+#pgRep .cdots i{width:6px;height:6px;background:none;border:1px solid rgb(var(--inkc) / .35)}
+#pgRep .wfind .cdots i.on{border-color:transparent}
+#pgRep .wbars{gap:4px}
+#pgRep .wbars i{background:none;border:1px solid rgb(var(--inkc) / .45);border-bottom:0;border-radius:3px 3px 0 0}
+#pgRep .wbars i.hot{background:none;border-color:var(--kp-hi)}
+#pgRep .wbars span,#pgRep .wbars em,#pgRep .wbx{font-weight:300}
+#pgRep .facs{gap:0}
+#pgRep .fac{background:none;border-radius:0;border-top:1px solid var(--glass-line);padding:12px 0}
+#pgRep .fac:first-child{border-top:0;padding-top:4px}
+#pgRep .fac.strong{outline:0}
+#pgRep .fac .nm{font-weight:400;display:inline-flex;align-items:center;gap:6px}
+#pgRep .fac .vs{display:inline-flex;align-items:center;gap:4px;font-weight:300}
+#pgRep .fac .vs b{font-weight:400}
+#pgRep .fac .vd{font-weight:300}
+#pgRep .rbar{height:1px;border-radius:0;margin:6px 0}
+#pgRep .rbar i{top:-1px;bottom:-1px;border-radius:0}
+#pgRep .src,#pgRep .fhm{font-weight:300}
+.mkf{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round}
+.mkf *{vector-effect:non-scaling-stroke;stroke-width:1.1px}
+#pgRep .rpan{background:none;border-top:1px solid var(--glass-line);border-radius:0;padding:14px 0 4px}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1084,7 +1126,7 @@ header{position:relative}
   <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
 </main>
 <main class="app page" id="pgRep" hidden>
-  <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare">📤 Врачу</button></div>
+  <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5M5 12v7h14v-7"/></svg> Врачу</button></div>
   <div id="repData" class="rsec">
   <div class="chips" id="repPer"></div>
   <div class="range" id="repRange" hidden><input type="date" id="rFrom" aria-label="С даты"><span>—</span><input type="date" id="rTo" aria-label="По дату"></div>
@@ -1958,9 +2000,9 @@ function markEmojis(X, x0, x1, top, ih, right){
     const worst=g.ms.reduce((a,o)=>KIND[o.m.k].s<KIND[a.m.k].s?o:a);
     const x=g.x;
     const tip=`<title>${g.ms.map(o=>`${fmtHM(new Date(o.t))} ${KIND[o.m.k].e} ${KIND[o.m.k].l}`).join("\n")}</title>`;
-    out+=`<text x="${x.toFixed(1)}" y="${top+15}" text-anchor="middle" font-size="14">${tip}${KIND[worst.m.k].e}</text>`;
+    out+=`<g class="mkf" transform="translate(${(x-8).toFixed(1)} ${top+2}) scale(.4)">${tip}<rect width="40" height="40" fill="transparent" stroke="none"/>${KFACE[worst.m.k]}</g>`;
     if(g.ms.length>1){ const t=`×${g.ms.length}`, w=5+t.length*4.2, bx=x+1.5, by=top+9.5;   // "×3" in a small filled pill at the bottom right of the smiley
-      out+=`<rect x="${bx.toFixed(1)}" y="${by}" width="${w.toFixed(1)}" height="9" rx="4.5" fill="var(--press)" stroke="var(--sheet-2)" stroke-width="1.2"/><text x="${(bx+w/2).toFixed(1)}" y="${by+6.8}" text-anchor="middle" font-size="7" font-weight="500" fill="var(--on-acc)" font-family="Onest,system-ui,sans-serif">${t}</text>`; }
+      out+=`<rect x="${bx.toFixed(1)}" y="${by}" width="${w.toFixed(1)}" height="9" rx="4.5" fill="var(--sky-top)" stroke="var(--ink)" stroke-width=".6"/><text x="${(bx+w/2).toFixed(1)}" y="${by+6.8}" text-anchor="middle" font-size="7" font-weight="300" fill="var(--ink)" font-family="Onest,system-ui,sans-serif">${t}</text>`; }
   }
   return out;
 }
@@ -2926,12 +2968,12 @@ function renderMoodSheet(){
     if(!o.enough) vd=`Мало данных: ${o.pts.length} из 7 дней с отметкой и погодой${o.pts.length&&new Set(o.pts.map(p=>p.v)).size<2?", и все отметки одинаковые":""}.`;
     else if(a<0.2) vd="Связи не видно.";
     else vd=`<b>${a>=0.4?"Заметная":"Слабая"} связь:</b> самочувствие лучше ${o.r>0?o.hiTxt:o.loTxt}.`;
-    return `<div class="fac${o.enough&&a>=0.4?" strong":""}"><div class="top"><span class="nm">${o.name}</span><span class="vs">😊 <b>${o.fmt(o.mg)}</b> · 😣 <b>${o.fmt(o.mb)}</b></span></div>${o.enough?`<div class="rbar"><i style="${o.r>=0?`left:50%`:`right:50%`};width:${w}%;background:${col}"></i></div><div class="legend2"><span>хуже при росте</span><span>r = ${o.r.toFixed(2).replace(".",",")}</span><span>лучше при росте</span></div>`:""}<div class="vd">${vd}</div></div>`;
+    return `<div class="fac${o.enough&&a>=0.4?" strong":""}"><div class="top"><span class="nm">${o.name}</span><span class="vs">${kf("good").replace('class="kf"','class="kf li"')} <b>${o.fmt(o.mg)}</b> · ${kf("bad").replace('class="kf"','class="kf li"')} <b>${o.fmt(o.mb)}</b></span></div>${o.enough?`<div class="rbar"><i style="${o.r>=0?`left:50%`:`right:50%`};width:${w}%;background:${col}"></i></div><div class="legend2"><span>хуже при росте</span><span>r = ${o.r.toFixed(2).replace(".",",")}</span><span>лучше при росте</span></div>`:""}<div class="vd">${vd}</div></div>`;
   }).join("");
   // symptoms: weather on days with the symptom vs. days without it
   const symHtml=KINDS.filter(x=>x.sym).map(x=>{
     const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
-    if(withS.length<3) return withS.length?`<div class="fac"><div class="top"><span class="nm">${x.e} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">Мало данных: нужно хотя бы 3 дня с этим симптомом.</div></div>`:"";
+    if(withS.length<3) return withS.length?`<div class="fac"><div class="top"><span class="nm">${kf(x.k).replace('class="kf"','class="kf li"')} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">Мало данных: нужно хотя бы 3 дня с этим симптомом.</div></div>`:"";
     const diffs=[];
     for(const [k,name,unit,dg] of FACTORS){
       const a=withS.map(r=>r.f[k]).filter(v=>v!=null), b=without.map(r=>r.f[k]).filter(v=>v!=null);
@@ -2945,7 +2987,7 @@ function renderMoodSheet(){
     const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?" "+d.unit:"");
     const txt=top.length ? top.map(d=>`${d.name.toLowerCase()} ${d.eff>0?"выше":"ниже"} обычного: <b>${f(d.ma,d)}</b> против ${f(d.mb,d)}`).join("; ")
                          : (diffs.length?"Заметной связи с погодой пока не видно.":"Подгружаю погоду за эти дни…");
-    return `<div class="fac${top.length&&Math.abs(top[0].eff)>=0.8?" strong":""}"><div class="top"><span class="nm">${x.e} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">В эти дни ${txt}.</div></div>`;
+    return `<div class="fac${top.length&&Math.abs(top[0].eff)>=0.8?" strong":""}"><div class="top"><span class="nm">${kf(x.k).replace('class="kf"','class="kf li"')} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">В эти дни ${txt}.</div></div>`;
   }).join("");
   $("msymp").innerHTML = symHtml || `<div class="fac"><div class="vd">Отмечайте симптомы — 🤕 😵‍💫 💓 🦴 🥴 😴 — и здесь появится, при какой погоде они случаются чаще.</div></div>`;
   moodLoadArchive(rows);
@@ -3102,7 +3144,7 @@ function drawReport(){
   $("repRange").hidden=REP.per!=="custom";
   if(REP.per==="custom"){ $("rFrom").value=isoDay(from); $("rTo").value=isoDay(to); }
   REP.sel=REP.sel.filter(repOn);
-  $("repSel").innerHTML=REP_SERIES.filter(([k])=>repOn(k)).map(([k,l,c])=>`<button class="chip rsel" data-rs="${k}" aria-pressed="${REP.sel.includes(k)}" style="--accent:${c}">${REP.sel.includes(k)?"✓ ":""}${l}</button>`).join("");
+  $("repSel").innerHTML=REP_SERIES.filter(([k])=>repOn(k)).map(([k,l,c])=>`<button class="chip rsel" data-rs="${k}" aria-pressed="${REP.sel.includes(k)}" style="--accent:${c}">${l}</button>`).join("");
   const loading=repEnsure(from,to);
   const W=360,L=36,R=10, iw=W-L-R, X=t=>L+(+new Date(t)-x0)/(x1-x0||1)*iw;
   const inR=t=>{const v=+new Date(t);return v>=x0&&v<=x1;};
@@ -3331,17 +3373,17 @@ function wxAnalysisHTML(res){
   const pct=x=>Math.round(x*100)+"%", dots=c=>`<span class="cdots">${[1,2,3].map(i=>`<i class="${i<=c?"on":""}"></i>`).join("")}</span>`;
   const cl=["","низкая — нужно больше отметок","средняя","высокая"];
   let h=res.found.map(o=>{
-    const who=o.top?`${o.top.e} ${o.top.l}`:"Плохое самочувствие", what=o.sym?o.top.l.toLowerCase():"плохо";
+    const who=o.top?o.top.l:"Плохое самочувствие", what=o.sym?o.top.l.toLowerCase():"плохо";
     const lag=o.L.h===0?"":`<div class="s"><b>Вы чувствуете ${o.L.h<0?"заранее":"с опозданием"}:</b> ${o.L.t}.</div>`;
     const mx=Math.max(...o.bins.map(b=>b.r||0),.01);
     const bars=o.F.k==="kp"||o.bins.filter(b=>b.n).length<3?"":`<div class="wbars">${o.bins.map(b=>`<div><span>${b.r==null?"":pct(b.r)}</span><i class="${b.hot&&b.r!=null?"hot":""}" style="height:${b.r==null?0:Math.max(4,b.r/mx*100)}%"></i><em>${b.lab}</em></div>`).join("")}</div><div class="wbx"><span>${o.sym?`как часто: ${o.top.l.toLowerCase()}`:"как часто было плохо"}</span><span>${o.F.ax}</span></div>`;
-    return `<div class="wfind c${o.conf}"><div class="f"><span class="e">${o.F.i}</span><div>
+    return `<div class="wfind c${o.conf}"><div class="f"><span class="e">${o.top?kf(o.top.k).replace('class="kf"','class="kf li"'):lic(o.F.i)}</span><div>
       <div class="t">${who} — ${o.F.t(o.v)}</div>
       <div class="s">Такое было ${o.n1} ${fcTimes(o.n1)}, ${o.sym?`«${what}» отмечали`:"плохо было"} в ${o.a} из них (${pct(o.a/o.n1)}). В остальное время — ${pct(o.c/o.n2)}.</div>${lag}
       ${o.with?`<div class="s">Обычно приходит вместе с этим: ${o.with.join(", ")} — что из них действует на вас, станет ясно со временем.</div>`:""}
       ${o.not?`<div class="s">Дело именно в этом: ${o.not.join(", ")} приходят вместе с ним, но сами по себе на вас не влияют.</div>`:""}
       <div class="wconf">уверенность ${dots(o.conf)} ${cl[o.conf]}</div></div></div>${o.conf>=2?bars:""}</div>`; }).join("");
-  if(res.calm.length) h+=`<div class="fhm wcalm">✅ <b>Не видно влияния:</b> ${res.calm.join(", ")} — в такую погоду вы чувствуете себя как обычно.</div>`;
+  if(res.calm.length) h+=`<div class="fhm wcalm">✓ <b>Не видно влияния:</b> ${res.calm.join(", ")} — в такую погоду вы чувствуете себя как обычно.</div>`;
   return h;
 }
 function repSummary(from,to){
@@ -3386,7 +3428,7 @@ function drawOverlay(from,to,loading){
   const lineSeries=(k,pts,fmt,opts={})=>{
     if(!pts.length){ legend.push({k,txt:`${lab(k)}: нет данных`,c:col(k),dim:1}); return; }
     const vs=pts.map(p=>p.v).concat(opts.extra||[]), [lo,hi]=opts.range||scaleOf(vs), Y=v=>lineTop+(1-(v-lo)/(hi-lo))*(lineBot-lineTop);
-    if(pts.length>1) g+=`<path d="${pts.map((p,i)=>`${i?"L":"M"}${X(p.t).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col(k)}" stroke-width="${opts.w||2}" stroke-linejoin="round" ${opts.dash?`stroke-dasharray="${opts.dash}"`:""} opacity="${opts.op||1}"/>`;
+    if(pts.length>1) g+=`<path d="${pts.map((p,i)=>`${i?"L":"M"}${X(p.t).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ")}" fill="none" stroke="${col(k)}" stroke-width="${(opts.w||2)*.65}" stroke-linejoin="round" ${opts.dash?`stroke-dasharray="${opts.dash}"`:""} opacity="${opts.op||1}"/>`;
     if(opts.dots) for(const p of pts) g+=`<circle cx="${X(p.t).toFixed(1)}" cy="${Y(p.v).toFixed(1)}" r="3" fill="${p.c||col(k)}" stroke="#172538" stroke-width="1.5"/>`;
     const lp=pts[pts.length-1]; if(!opts.noEnd) ends.push({y:Y(lp.v),k,txt:fmt(lp.v)});
     return Y;
