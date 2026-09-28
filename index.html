@@ -647,7 +647,6 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .kbtn .e{font-size:30px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .kbtn .l{font-size:10.5px;line-height:1.15;color:var(--muted);text-align:center;min-height:1.2em;display:flex;align-items:center;justify-content:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kbtn:active{transform:scale(.92)}
-.kbtn.pop .e{animation:pop .5s cubic-bezier(.3,1.8,.5,1)}
 .kbtn.pop{border-color:var(--press);background:rgba(127,214,200,.15)}
 .mtoday{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:0}
 .mtoday .tm{display:inline-flex;align-items:center;gap:4px;background:var(--sheet-2);border-radius:99px;padding:3px 4px 3px 9px;font-size:12px;color:var(--muted);font-family:var(--f-mono)}
@@ -894,7 +893,7 @@ header{position:relative}
 #pgToday .kgrid{gap:12px 4px}
 #pgToday .kbtn{border:0;background:none;padding:2px 0}
 #pgToday .kbtn .l{font-weight:300}
-#pgToday .kbtn.pop{background:none}#pgToday .kbtn.pop .kf{color:var(--press)}
+#pgToday .kbtn.pop{background:none}
 #pgToday .mtoday .tm{background:none;border:1px solid var(--glass-line);font-weight:300}
 #pgToday .htiles{gap:0}
 #pgToday .htile{background:none;border:0;border-radius:0;padding:2px 12px 2px 0}
@@ -935,7 +934,7 @@ header{position:relative}
 #pgHealth .kgrid{gap:12px 4px}
 #pgHealth .kbtn{border:0;background:none;padding:2px 0}
 #pgHealth .kbtn .l{font-weight:300}
-#pgHealth .kbtn.pop{background:none}#pgHealth .kbtn.pop .kf{color:var(--press)}
+#pgHealth .kbtn.pop{background:none}
 #pgHealth .mtoday .tm{background:none;border:1px solid var(--glass-line);font-weight:300}
 #pgHealth .d7{background:none;border:1px solid var(--glass-line)}
 #pgHealth .d7.today{background:none;border-color:var(--ink)}
@@ -1078,7 +1077,7 @@ header{position:relative}
 /* the first-run window and the way to the personal forecast */
 .icity b{font-weight:200}
 #kgIntro{gap:12px 4px}#kgIntro .kbtn{border:0;background:none;padding:2px 0}#kgIntro .kbtn .l{font-weight:300}
-#kgIntro .kbtn.pop{background:none}#kgIntro .kbtn.pop .kf{color:var(--press)}
+#kgIntro .kbtn.pop{background:none}
 .ibtns{display:flex;gap:8px;flex-wrap:wrap}
 .fcprog{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12px;font-weight:300;color:var(--muted)}
 .fcprog b{color:var(--ink);font-weight:400}
@@ -1103,6 +1102,7 @@ header{position:relative}
 .inote b{color:var(--ink);font-weight:400}
 #iSpan .remrow{flex-wrap:nowrap;white-space:nowrap;gap:6px}
 #iSpan .remrow input{flex:1;min-width:0;width:0;padding:6px 6px;font-size:15px}
+.kf{overflow:visible}.kf .kfx *{stroke-width:1.1px}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -2895,11 +2895,11 @@ const KFACE={great:'<circle cx="20" cy="20" r="14"/><path d="M13 17q2.5-2.5 5 0M
   meh:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11"/>',
   sleepy:'<circle cx="20" cy="20" r="14"/><path d="M13 17.5q2.5 1.8 5 0M22 17.5q2.5 1.8 5 0"/><circle cx="20" cy="25.5" r="1.6"/><path d="M29 5h4l-4 4h4"/>',
   weak:'<circle cx="20" cy="20" r="14"/><path d="M13 17h5M22 17h5M14.5 24h11M18 24v2.5a2 2 0 0 0 4 0V24"/>',
-  head:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11M4 11.5q7-5 12-2.5M24 9q7-2.5 12 2.5"/><path d="M8 7.5q2 1.5 1 3.5M32 7.5q-2 1.5-1 3.5"/>',
+  head:'<circle cx="20" cy="20" r="14"/><g class="eyes"><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/></g><g class="shut" opacity="0"><path d="M13 17.5q2 1.2 4 0M23 17.5q2 1.2 4 0"/></g><path d="M14.5 25h11"/><g class="pain"><path d="M4 11.5q7-5 12-2.5M24 9q7-2.5 12 2.5"/><path d="M8 7.5q2 1.5 1 3.5M32 7.5q-2 1.5-1 3.5"/></g>',
   dizzy:'<circle cx="20" cy="20" r="14"/><path d="M13 17a2 2 0 1 0 4 0M23 17a2 2 0 1 0 4 0M14 25.5q1.5-2 3 0t3 0t3 0t3 0M6 8a5 5 0 0 1 6-2M34 32a5 5 0 0 1-6 2"/>',
   heart:'<path d="M19 13.5A6 6 0 0 0 8 17c0 7.5 11 14 11 14M21.5 13A6 6 0 0 1 32 17c0 7.5-11 14-11 14M19 13.5l2 4-2.5 3.5 2.5 3.5-1.5 3"/>',
   joints:'<path d="M13 11a3 3 0 1 1 3.5 3.5L25.5 23.5A3 3 0 1 1 29 29a3 3 0 1 1-3.5-3.5L14.5 16.5A3 3 0 1 1 11 11"/>',
-  bad:'<circle cx="20" cy="20" r="14"/><path d="M13 15.5l3.5 3.5M16.5 15.5L13 19M23.5 15.5l3.5 3.5M27 15.5L23.5 19M14 27q6-5 12 0"/>'};
+  bad:'<circle cx="20" cy="20" r="14"/><g class="xl"><path d="M13 15.5l3.5 3.5M16.5 15.5L13 19"/></g><g class="xr"><path d="M23.5 15.5l3.5 3.5M27 15.5L23.5 19"/></g><path class="mouth" d="M14 27q6-5 12 0"/>'};
 /* line icons that stand in for the emoji on the screens (the emoji stay in notifications, toasts and texts) */
 const GLI={"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',"🧲":'<path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/>',
   "🌡":'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 11v6"/>',"💨":'<path d="M3 8.5h11a2.6 2.6 0 1 0-2.6-2.6M3 12.5h15a2.8 2.8 0 1 1-2.8 2.8M3 16.5h7"/>',
@@ -2914,7 +2914,52 @@ const FACE_E={"😊":"good","🙂":"good","😄":"great","😐":"meh","😣":"ba
 const lic=(e,c="li")=>FACE_E[e]?kf(FACE_E[e]).replace('class="kf"',`class="kf ${c}"`):GLI[e]?`<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${GLI[e]}</svg>`:e;
 const EK=Object.fromEntries(KINDS.map(x=>[x.e,x.k]));
 const ekf=e=>{ const k=EK[e]||FACE_E[e]; return k?kf(k):(e||""); };
-const kf=k=>`<svg class="kf" viewBox="0 0 40 40" aria-hidden="true">${KFACE[k]||""}</svg>`;
+const kf=k=>`<svg class="kf" viewBox="0 0 40 40" aria-hidden="true"><g class="kfa">${KFACE[k]||""}</g><g class="kfx"></g></svg>`;
+/* a one-second animation when a smiley is pressed: a ring spreads, and each mark has its own little scene */
+const KF_NS="http://www.w3.org/2000/svg", KF_D=1000, KF_E="cubic-bezier(.3,.7,.3,1)";
+function kfEl(p,tag,attrs){ const e=document.createElementNS(KF_NS,tag); for(const a in attrs) e.setAttribute(a,attrs[a]); p.appendChild(e); return e; }
+const kfOrg=(e,x,y)=>{ e.style.transformOrigin=`${x}px ${y}px`; e.style.transformBox="view-box"; };
+const KF_ANIM={
+ great(f,fx){ f.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(-6px) scale(1.06,.96)",offset:.3},{transform:"translateY(1px) scale(1.08,.9)",offset:.55},{transform:"translateY(0) scale(1)"}],{duration:KF_D,easing:KF_E});
+   for(let i=0;i<8;i++){ const a=i*Math.PI/4, x=20+Math.cos(a)*17, y=20+Math.sin(a)*17, l=kfEl(fx,"line",{x1:x,y1:y,x2:x+Math.cos(a)*4,y2:y+Math.sin(a)*4,stroke:"var(--press)"});
+     l.animate([{transform:"translate(0,0)",opacity:0},{opacity:1,offset:.25},{transform:`translate(${Math.cos(a)*6}px,${Math.sin(a)*6}px)`,opacity:0}],{duration:800,delay:150,easing:"ease-out",fill:"forwards"}); } },
+ good(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(-12deg)",offset:.25},{transform:"rotate(9deg)",offset:.55},{transform:"rotate(-3deg)",offset:.8},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   for(const [x,y,d] of [[5,10,100],[35,8,300],[34,31,500]]){ const p=kfEl(fx,"path",{d:`M${x-2} ${y}h4M${x} ${y-2}v4`,stroke:"var(--press)"}); kfOrg(p,x,y);
+     p.animate([{opacity:0,transform:"scale(.3)"},{opacity:1,transform:"scale(1.2)",offset:.4},{opacity:0,transform:"scale(1)"}],{duration:600,delay:d,fill:"forwards"}); } },
+ meh(f,fx){ f.animate([{transform:"translateX(0) rotate(0)"},{transform:"translateX(-2px) rotate(-6deg)",offset:.25},{transform:"translateX(2px) rotate(6deg)",offset:.55},{transform:"translateX(0) rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   [0,1,2].forEach(i=>{ const c=kfEl(fx,"circle",{cx:31+i*3.2,cy:6,r:.6,fill:"currentColor"}); c.animate([{opacity:0},{opacity:1,offset:.3},{opacity:1,offset:.8},{opacity:0}],{duration:800,delay:120+i*140,fill:"forwards"}); }); },
+ sleepy(f,fx){ f.animate([{transform:"rotate(0) translateY(0)"},{transform:"rotate(14deg) translateY(2px)",offset:.45},{transform:"rotate(10deg) translateY(1px)",offset:.7},{transform:"rotate(0) translateY(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   [0,1,2].forEach(i=>{ const s=3-i*.6, t=kfEl(fx,"path",{d:`M30 10h${s}l-${s} ${s}h${s}`}); t.animate([{transform:"translate(0,0)",opacity:0},{opacity:1,offset:.3},{transform:`translate(${4+i*2}px,${-8-i*3}px)`,opacity:0}],{duration:800,delay:i*180,fill:"forwards",easing:"ease-out"}); }); },
+ weak(f,fx){ kfOrg(f,20,34); f.animate([{transform:"scale(1,1)"},{transform:"scale(1.1,.82)",offset:.4},{transform:"scale(1.06,.88)",offset:.7},{transform:"scale(1,1)"}],{duration:KF_D,easing:"ease-in-out"});
+   const d=kfEl(fx,"path",{d:"M28 9c-1 1.6-1.6 2.4-1.6 3.2a1.6 1.6 0 0 0 3.2 0c0-.8-.6-1.6-1.6-3.2z",stroke:"var(--press)"}); d.animate([{transform:"translateY(0)",opacity:0},{opacity:1,offset:.2},{transform:"translateY(12px)",opacity:0}],{duration:900,delay:100,easing:"ease-in",fill:"forwards"}); },
+ head(f,fx){ const p=f.querySelector(".pain"); if(p) p.animate([{opacity:1},{opacity:0,offset:.1},{opacity:0,offset:.9},{opacity:1}],{duration:KF_D});
+   [0,1,2].forEach(i=>{ const a=kfEl(fx,"path",{d:"M12 7q8-6 16 0",stroke:i?"currentColor":"var(--kp-hi)"}); kfOrg(a,20,7);
+     a.animate([{opacity:0,transform:"translateY(0) scale(.6)"},{opacity:1,offset:.25},{opacity:0,transform:"translateY(-7px) scale(1.5)"}],{duration:650,delay:i*200,easing:"ease-out",fill:"forwards"}); });
+   f.animate([{transform:"rotate(0)"},{transform:"rotate(-5deg)",offset:.25},{transform:"rotate(5deg)",offset:.5},{transform:"rotate(-3deg)",offset:.75},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   const e=f.querySelector(".eyes"), s=f.querySelector(".shut");
+   if(e&&s){ e.animate([{opacity:1},{opacity:0,offset:.08},{opacity:0,offset:.8},{opacity:1}],{duration:KF_D}); s.animate([{opacity:0},{opacity:1,offset:.08},{opacity:1,offset:.8},{opacity:0}],{duration:KF_D}); } },
+ dizzy(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(360deg)"}],{duration:KF_D,easing:"cubic-bezier(.5,0,.3,1)"});
+   const g=kfEl(fx,"g",{}); kfOrg(g,20,20); [0,120,240].forEach(a=>{ const r=a*Math.PI/180; kfEl(g,"circle",{cx:20+Math.cos(r)*19,cy:20+Math.sin(r)*19,r:.9,fill:"currentColor"}); });
+   g.animate([{transform:"rotate(0)",opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.8},{transform:"rotate(-540deg)",opacity:0}],{duration:KF_D,fill:"forwards",easing:"ease-out"}); },
+ heart(f,fx){ f.animate([{transform:"scale(1)"},{transform:"scale(1.22)",offset:.12},{transform:"scale(1)",offset:.28},{transform:"scale(1.16)",offset:.42},{transform:"scale(1)",offset:.6},{transform:"scale(1)"}],{duration:KF_D,easing:"ease-out"});
+   const p=kfEl(fx,"path",{d:"M3 22h6l2-4 3 8 2-4h3",stroke:"var(--kp-hi)","stroke-dasharray":"30"}); p.animate([{strokeDashoffset:30,opacity:1},{strokeDashoffset:0,opacity:1,offset:.6},{strokeDashoffset:0,opacity:0}],{duration:900,fill:"forwards"}); },
+ joints(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(-18deg)",offset:.25},{transform:"rotate(14deg)",offset:.55},{transform:"rotate(-5deg)",offset:.8},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   for(const [x,y,a] of [[8,22,200],[32,18,-20],[20,34,90]]){ const r=a*Math.PI/180, l=kfEl(fx,"line",{x1:x,y1:y,x2:x+Math.cos(r)*3,y2:y+Math.sin(r)*3,stroke:"var(--kp-hi)"}); l.animate([{opacity:0},{opacity:1,offset:.3},{opacity:0,offset:.5},{opacity:1,offset:.7},{opacity:0}],{duration:900,fill:"forwards"}); } },
+ bad(f,fx){ const l=f.querySelector(".xl"), r=f.querySelector(".xr"), m=f.querySelector(".mouth"); if(!l||!r||!m) return; kfOrg(l,14.75,17.25); kfOrg(r,25.25,17.25); kfOrg(m,20,25.5);
+   for(const [e,dir] of [[l,1],[r,-1]]) e.animate([{transform:"rotate(0) scale(1)"},{transform:`rotate(${dir*90}deg) scale(1.35)`,offset:.3},{transform:`rotate(${dir*180}deg) scale(1)`,offset:.55},{transform:`rotate(${dir*225}deg) scale(1.2)`,offset:.75},{transform:`rotate(${dir*180}deg) scale(1)`}],{duration:KF_D,easing:"ease-in-out"});
+   m.animate([{transform:"scale(1,1)"},{transform:"scale(1.15,1.5)",offset:.3},{transform:"scale(.9,.8)",offset:.55},{transform:"scale(1.08,1.25)",offset:.75},{transform:"scale(1,1)"}],{duration:KF_D,easing:"ease-in-out"});
+   f.animate([{transform:"translateY(0)"},{transform:"translateY(1.5px)",offset:.3},{transform:"translateY(0)"}],{duration:KF_D}); }
+};
+function kfPlay(btn){
+  const svg=btn&&btn.querySelector("svg.kf"); if(!svg||!svg.animate||reduce) return;
+  const f=svg.querySelector(".kfa"), fx=svg.querySelector(".kfx"); if(!f||!fx) return;
+  fx.innerHTML=""; f.getAnimations().forEach(a=>a.cancel()); kfOrg(f,20,20);
+  const c=kfEl(fx,"circle",{cx:20,cy:20,r:15}); c.animate([{r:15,opacity:.7},{r:26,opacity:0}],{duration:700,easing:"ease-out",fill:"forwards"});
+  try{ KF_ANIM[btn.dataset.k]?.(f,fx); }catch(e){}
+  svg.animate([{color:"var(--press)"},{color:"var(--press)",offset:.7},{color:"var(--ink)"}],{duration:1200});
+  navigator.vibrate?.(12);
+}
+
 const OLDV={3:"good",2:"meh",1:"bad"};                     // marks from the first version (3 smileys)
 const MOOD={3:{e:"🙂",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
 S.marks=loadJSON("marks",null); S.marksDel=loadJSON("marksDel",{})||{};
@@ -2997,7 +3042,7 @@ function foldMoodPop(){
 }
 $("mbtns").addEventListener("click",e=>{
   const b=e.target.closest(".kbtn"); if(!b) return;
-  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); kfPlay(b);
   addMark(b.dataset.k);
   toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
   setTimeout(()=>{ b.classList.remove("pop"); foldMoodPop(); }, 420);
@@ -3006,7 +3051,7 @@ $("mtoday").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]");
 $("mtMain").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b) removeMark(b.dataset.rm); });
 $("kgMain").addEventListener("click",e=>{
   const b=e.target.closest(".kbtn"); if(!b) return;
-  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); kfPlay(b);
   addMark(b.dataset.k);
   toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
   setTimeout(()=>b.classList.remove("pop"), 600);
@@ -3760,7 +3805,7 @@ function renderHealthPage(){
 $("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG);
   try{ renderHealthPage(); }catch(err){ toast("Ошибка: "+(err&&err.message||err)+" · "+String(err&&err.stack||"").split("\n")[1]?.trim()); throw err; } });
 $("hBody").addEventListener("click",e=>{
-  const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(new Date())}`); setTimeout(()=>renderHealthPage(),500); return; }
+  const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); kfPlay(k); addMark(k.dataset.k); toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(new Date())}`); setTimeout(()=>renderHealthPage(),1100); return; }
   const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); renderHealthPage(); return; }
   const d=e.target.closest("[data-mdel]"); if(d){ HM.del[d.dataset.mdel]=new Date().toISOString(); saveHM(); renderHealthPage(); renderHealth(); return; }
   const a=e.target.closest("[data-hact]"); if(!a) return;
@@ -4084,9 +4129,9 @@ function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>
     const once=I_OPTS[IW.idx][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; }); }
 $("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
 $("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k||$("kgIntro").dataset.done) return; $("kgIntro").dataset.done="1";
-  k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); rebuildMood(); renderMood();
+  k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); kfPlay(k); addMark(k.dataset.k); rebuildMood(); renderMood();
   $("iMarked").textContent=`${KIND[k.dataset.k].l} — записано. Первая отметка есть!`;
-  setTimeout(()=>introStep(3), 1100); });      // a moment to see it recorded, then the next step
+  setTimeout(()=>introStep(3), 1300); });      // a moment to see it recorded, then the next step
 $("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
 $("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });   // the city list, then back to this step
 let I_OPTS=null;   // the same choices as in the settings, without "don't ask" (filled when the window opens: REM_OPTS comes later in the script)
