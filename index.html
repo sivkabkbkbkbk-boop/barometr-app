@@ -778,6 +778,21 @@ header{position:relative}
 .jlab{text-align:center;font:10.5px var(--f-mono);color:var(--muted);margin-top:-1px;pointer-events:none}
 .jnow{position:absolute;right:12px;bottom:14px;width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-line);background:rgb(var(--shc) / .92);color:var(--ink);font-size:19px;display:grid;place-items:center;cursor:pointer;padding:0}
 .jnow[hidden]{display:none}
+/* the map controls in the same thin-line style: no colour fills, light type */
+.jog{background:linear-gradient(rgb(var(--shc) / 0),rgb(var(--shc) / .7) 62%)}
+.jtr{top:14.5px;height:1px;border-radius:0;background:rgb(var(--inkc) / .3)}
+.jfl{top:14px;height:2px;border-radius:0;background:rgb(var(--inkc) / .75);opacity:1}
+.jmid{top:9px;width:1px;height:12px;margin-left:0;background:rgb(var(--inkc) / .5)}
+.jkn{top:6px;width:18px;height:18px;margin-left:-9px;background:rgb(var(--shc));border:1.5px solid var(--ink);box-shadow:none}
+.jbub{top:0;font:300 12px var(--f-mono);letter-spacing:.02em;background:none;color:var(--ink);padding:0}
+.jlab{font-weight:300;letter-spacing:.04em}
+.jnow{width:34px;height:34px;bottom:12px;border:1px solid rgb(var(--inkc) / .35);background:none;font-size:0}
+.jnow svg,.zbtns svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.mscale{font:300 10.5px/1 var(--f-mono,monospace);text-shadow:none;color:var(--ink)!important}
+.mscale .sb{height:4px;border-width:1px!important;border-color:var(--ink)!important;box-shadow:none!important}
+.rmap .rstat{font-weight:300;background:rgb(var(--shc) / .55)!important;color:var(--ink)!important;box-shadow:none!important}
+.mapx,.zbtns button{background:rgb(var(--shc) / .45);border:1px solid rgb(var(--inkc) / .3);font-weight:300;display:grid;place-items:center;padding:0}
+.rmap .attr{font-weight:300;color:rgb(var(--inkc) / .45)!important}
 .remstat{margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:13px}.remstat b{font-weight:600}
 .remwarn{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,122,107,.12);border:1px solid rgba(255,122,107,.3)}
 .wfind{padding:10px 0;border-top:1px solid var(--glass-line)}.wfind:first-child{border-top:0;padding-top:4px}
@@ -1000,7 +1015,7 @@ header{position:relative}
     <div class="rsum" id="rSum"></div>
     <div class="rat" style="margin:-2px 0 8px">на карте <b class="jat">сейчас</b></div>
     <div class="rmap big" id="rmapBig">
-      <div class="zbtns"><button data-z="0" aria-label="К городу">◎</button><button data-z="me" aria-label="Где я">📍</button></div>
+      <div class="zbtns"><button data-z="0" aria-label="К городу"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button><button data-z="me" aria-label="Где я"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg></button></div>
     </div>
   </div>
 </section>
@@ -2359,7 +2374,7 @@ function setupControls(){ jogUI(); }
    the further, the faster (up to 6 hours a second); let go — it stops there. ↺ goes back to "now",
    slowly at first and then faster, in about two seconds however far away. ---------- */
 const JOG={pos:0, drag:null, ret:null, raf:0, last:0, MAX:6*H};
-function jogHTML(){ return `<div class="jog"><div class="jbub"></div><button class="jnow" hidden aria-label="Вернуться к текущему времени">↺</button>
+function jogHTML(){ return `<div class="jog"><div class="jbub"></div><button class="jnow" hidden aria-label="Вернуться к текущему времени"><svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4v3.5H8"/></svg></button>
   <div class="jsl" role="slider" aria-label="Время на карте: тяните вправо — вперёд, влево — назад"><div class="jtr"></div><div class="jfl"></div><div class="jmid"></div><div class="jkn"></div></div><div class="jlab">сейчас</div></div>`; }
 function jogWhen(t){ const d=Math.round((new Date(isoDay(new Date(t))+"T12:00:00")-new Date(isoDay(new Date())+"T12:00:00"))/DAY);
   return (d===0?"":d===1?"завтра ":d===-1?"вчера ":d===2?"послезавтра ":"")+fmtHM(new Date(t)); }
