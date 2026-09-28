@@ -1099,7 +1099,13 @@ header{position:relative}
 .inext{margin-top:auto;align-self:stretch;text-align:center;padding:11px}
 .istep .ibtns .btn{flex:1;text-align:center}
 .istep .remrow{font-size:16px;margin:6px 0}
-.ihi{font-size:34px;font-weight:200;margin:18px 0 0}.ihtxt{font-size:15px;line-height:1.45}
+.ihi{font-size:34px;font-weight:200;margin:4px 0 0}
+/* the live smiley at the top of the first-run windows */
+.imas{display:flex;justify-content:center;margin:4px 0 2px}
+.imas svg{width:72px;height:72px;overflow:visible;fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.imas .mb,.imas .mx,.imas .me{transform-box:fill-box;transform-origin:center}
+.imas .dot{fill:var(--ink);stroke:none}
+.imas .ch{stroke:#e58c8a;opacity:.85}.ihtxt{font-size:15px;line-height:1.45}
 .ibig{display:flex;flex-direction:column;gap:12px;margin:24px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
 #introSheet [data-is="1"]{min-height:220px}
 .iwheel{height:200px}
@@ -1401,6 +1407,7 @@ header{position:relative}
 <section class="sheet" id="introSheet" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
   <div class="grab"></div>
   <div class="sbody">
+    <div class="imas" id="iMas" aria-hidden="true"><svg viewBox="0 0 40 40"><g class="mb"><circle cx="20" cy="20" r="15"/><g class="mx"></g></g></svg></div>
     <div class="istep" data-is="0">
       <h2 class="ihi" id="introTitle">Привет!</h2>
       <div class="iq">Это приложение для тех, кто чувствует погоду.</div>
@@ -4140,11 +4147,47 @@ function showIntro(force){
   $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
   I_OPTS=I_OPTS||REM_OPTS.filter(([v])=>v>0);
   if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
-  introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(0); showSheet("introSheet");
+  introCity(); if(I_CUR===null) introStep(0); else masFace(MAS_STEP[I_CUR]); showSheet("introSheet");
 }
 function introDone(){ store.set("introDone","1"); INTRO_FORCE=false; }
-function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
-  $("introSheet").querySelectorAll(".idots i").forEach((d,i)=>d.classList.toggle("on",i<n)); $("introSheet").querySelector(".sbody").scrollTop=0;
+/* the live smiley: a new face on every window, blinks and sways while it waits */
+const MAS={
+  hi:  '<g class="me"><circle class="dot" cx="14.5" cy="17" r="1.4"/><circle class="dot" cx="25.5" cy="17" r="1.4"/></g><path d="M13.5 23q6.5 6 13 0"/>',
+  wow: '<path d="M11.5 12.5q3-2.5 6 0M22.5 12.5q3-2.5 6 0"/><g class="me"><circle cx="14.5" cy="17.5" r="2.3"/><circle class="dot" cx="15.2" cy="16.8" r=".8"/><circle cx="25.5" cy="17.5" r="2.3"/><circle class="dot" cx="26.2" cy="16.8" r=".8"/></g><ellipse cx="20" cy="26" rx="3" ry="3.6"/>',
+  smile:'<g class="me"><circle class="dot" cx="14.5" cy="17" r="1.4"/><circle class="dot" cx="25.5" cy="17" r="1.4"/></g><path d="M12.5 22.5q7.5 7.5 15 0"/><path class="ch" d="M9.5 22.5h2.5M28 22.5h2.5"/>',
+  joy: '<g class="me"><path d="M12 17.5q2.5-3 5 0M23 17.5q2.5-3 5 0"/></g><path d="M12.5 22q7.5 9 15 0z"/><path class="ch" d="M9.5 21.5l2 1.2M9.5 23.5l2 .4M30.5 21.5l-2 1.2M30.5 23.5l-2 .4"/>'
+};
+const MAS_STEP=["hi","wow","smile","joy"];
+let MAS_CUR="", MAS_IDLE=null, MAS_BLINK=0;
+const MAS_CALM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function masFace(f){
+  const box=$("iMas"); if(!box||f===MAS_CUR) return; const mb=box.querySelector(".mb"), mx=box.querySelector(".mx");
+  const first=!MAS_CUR; MAS_CUR=f;
+  if(first||MAS_CALM()){ mx.innerHTML=MAS[f]; masIdle(); return; }
+  // a little jump; the face changes at the top of it
+  mb.animate([{transform:"none"},{transform:"translateY(3px) scale(1.08,.9)",offset:.18},{transform:"translateY(-9px) scale(.95,1.06)",offset:.5},{transform:"translateY(1px) scale(1.05,.95)",offset:.82},{transform:"none"}],{duration:560,easing:"ease-in-out"});
+  mx.animate([{transform:"none",opacity:1},{transform:"scale(.6)",opacity:0}],{duration:150,delay:130,easing:"ease-in"}).onfinish=()=>{
+    mx.innerHTML=MAS[f]; mx.animate([{transform:"scale(.6)",opacity:0},{transform:"scale(1.12)",opacity:1,offset:.7},{transform:"none",opacity:1}],{duration:260,easing:"ease-out"}); };
+  masIdle();
+}
+function masIdle(){
+  const box=$("iMas"); if(!box||MAS_CALM()) return;
+  if(!MAS_IDLE) MAS_IDLE=box.querySelector("svg").animate([{transform:"rotate(-3deg)"},{transform:"translateY(-2px) rotate(3deg)"}],{duration:1600,iterations:Infinity,direction:"alternate",easing:"ease-in-out"});
+  clearTimeout(MAS_BLINK);
+  const blink=()=>{ if($("introSheet").hidden) return; const e=box.querySelector(".mx .me"); if(e) e.animate([{transform:"none"},{transform:"scaleY(.1)",offset:.5},{transform:"none"}],{duration:220});
+    MAS_BLINK=setTimeout(blink,2400+Math.random()*2200); };
+  MAS_BLINK=setTimeout(blink,1600);
+}
+let I_CUR=null;
+function introStep(n){
+  const sh=$("introSheet"), next=sh.querySelector(`[data-is="${n}"]`), prev=I_CUR!==null&&I_CUR!==n?sh.querySelector(`[data-is="${I_CUR}"]`):null;
+  const back=I_CUR!==null&&n<I_CUR; I_CUR=n; masFace(MAS_STEP[n]||"smile");
+  const show=()=>{ sh.querySelectorAll("[data-is]").forEach(x=>x.hidden=x!==next); sh.querySelector(".sbody").scrollTop=0; introStepReady(n);
+    if(prev&&!MAS_CALM()) next.animate([{transform:`translateX(${back?-28:28}px)`,opacity:0},{transform:"none",opacity:1}],{duration:320,easing:"cubic-bezier(.2,.8,.2,1)"}); };
+  if(prev&&!prev.hidden&&!MAS_CALM()&&!sh.hidden) prev.animate([{transform:"none",opacity:1},{transform:`translateX(${back?28:-28}px)`,opacity:0}],{duration:180,easing:"ease-in"}).onfinish=show;
+  else show();
+}
+function introStepReady(n){
   if(n===3&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
     const once=I_OPTS[IW.idx][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; }); }
 $("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
