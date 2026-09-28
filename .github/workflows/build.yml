@@ -55,6 +55,8 @@ jobs:
           J=android/app/src/main/java/ru/barometr/neba
           L=android/app/src/main/res/layout
           mkdir -p $J $L
+          # the mood faces in thin lines for the notification, taken from the app (index.html)
+          python3 widget/faces.py android/app/src/main/res
           cat > $J/ApkUpdatePlugin.java <<'JAVA'
           package ru.barometr.neba;
 
@@ -757,20 +759,26 @@ jobs:
                   badge(c, 1);
               }
 
+              // the face of a mark in thin lines (kf_<kind>, written by widget/faces.py at build time)
+              static int face(Context c, String k) {
+                  int id = c.getResources().getIdentifier("kf_" + k, "drawable", c.getPackageName());
+                  return id != 0 ? id : c.getResources().getIdentifier("kf_good", "drawable", c.getPackageName());
+              }
+
               static NotificationCompat.Builder question(Context c, String channel) {
                   JSONArray a = kinds(c);
                   RemoteViews small = new RemoteViews(c.getPackageName(), R.layout.mood_small);
                   for (int i = 0; i < SMALL.length; i++) {
                       JSONObject o = a.optJSONObject(SMALL_PICK[i]);
                       if (o == null) { small.setViewVisibility(SMALL[i], View.GONE); continue; }
-                      small.setTextViewText(SMALL[i], o.optString("e"));
+                      small.setImageViewResource(SMALL[i], face(c, o.optString("k")));
                       small.setOnClickPendingIntent(SMALL[i], markIntent(c, o.optString("k"), i));
                   }
                   RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
                   for (int i = 0; i < CELL.length; i++) {
                       JSONObject o = a.optJSONObject(i);
                       if (o == null) { big.setViewVisibility(CELL[i], View.INVISIBLE); continue; }
-                      big.setTextViewText(EMO[i], o.optString("e"));
+                      big.setImageViewResource(EMO[i], face(c, o.optString("k")));
                       big.setTextViewText(LAB[i], o.optString("l"));
                       big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
                   }
@@ -806,7 +814,7 @@ jobs:
 
               static void confirm(Context c, String k) {
                   JSONObject o = kind(c, k);
-                  String title = (o != null ? o.optString("e") + " " + o.optString("l") : "Отметка") + " — записано";
+                  String title = (o != null ? o.optString("l") : "Отметка") + " — записано";
                   NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
                       .setSmallIcon(R.drawable.ic_stat_barometr)
                       .setColor(0xFFFFB04A)
@@ -1238,26 +1246,26 @@ jobs:
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent" android:layout_height="wrap_content"
               android:orientation="horizontal" android:gravity="center_vertical">
-              <TextView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
-                  android:gravity="center" android:textSize="20sp" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
           </LinearLayout>
           XML
           cat > $L/mood_big.xml <<'XML'
@@ -1270,7 +1278,7 @@ jobs:
                   <LinearLayout android:id="@+id/c0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e0" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e0" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l0" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1278,7 +1286,7 @@ jobs:
                   <LinearLayout android:id="@+id/c1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e1" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l1" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1286,7 +1294,7 @@ jobs:
                   <LinearLayout android:id="@+id/c2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e2" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l2" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1294,7 +1302,7 @@ jobs:
                   <LinearLayout android:id="@+id/c3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e3" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l3" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1302,7 +1310,7 @@ jobs:
                   <LinearLayout android:id="@+id/c4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e4" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l4" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1312,7 +1320,7 @@ jobs:
                   <LinearLayout android:id="@+id/c5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e5" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l5" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1320,7 +1328,7 @@ jobs:
                   <LinearLayout android:id="@+id/c6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e6" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l6" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1328,7 +1336,7 @@ jobs:
                   <LinearLayout android:id="@+id/c7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e7" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l7" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1336,7 +1344,7 @@ jobs:
                   <LinearLayout android:id="@+id/c8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e8" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l8" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
@@ -1344,7 +1352,7 @@ jobs:
                   <LinearLayout android:id="@+id/c9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e9" android:layout_width="30dp" android:layout_height="30dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l9" android:layout_width="wrap_content" android:layout_height="wrap_content"
                           android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
