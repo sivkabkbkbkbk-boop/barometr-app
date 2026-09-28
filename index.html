@@ -642,7 +642,7 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .fgrid th.nm small{display:block;font-weight:400;color:var(--muted);font-size:10px}
 .fgrid td{width:22px;height:22px;text-align:center;border-radius:6px;background:rgb(var(--inkc) / .05);font-size:15px;line-height:22px;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .fgrid td.today{outline:1px solid var(--glass-line)}
-.kgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
 .kbtn{min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 1px 7px;border-radius:14px;border:1px solid var(--glass-line);background:rgb(var(--inkc) / .05);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
 .kbtn .e{font-size:30px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .kbtn .l{font-size:10.5px;line-height:1.15;color:var(--muted);text-align:center;min-height:1.2em;display:flex;align-items:center;justify-content:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1103,6 +1103,7 @@ header{position:relative}
 #iSpan .remrow{flex-wrap:nowrap;white-space:nowrap;gap:6px}
 #iSpan .remrow input{flex:1;min-width:0;width:0;padding:6px 6px;font-size:15px}
 .kf{overflow:visible}.kf .kfx *{stroke-width:1.1px}
+.kbtn{overflow:visible}.kbtn .l{overflow:visible;text-overflow:clip}.kbtn .l.long{font-size:9.5px;letter-spacing:-.02em}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -2878,19 +2879,21 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ const f
 /* ---------- marks: any number per day, each with time and kind ---------- */
 const KINDS=[
   {k:"great",   e:"😄", l:"Отлично",          sl:"Отлично",  s:3},
-  {k:"good",    e:"🙂", l:"Нормально",        sl:"Норм",     s:3},
   {k:"meh",     e:"😐", l:"Так себе",         sl:"Так себе", s:2},
-  {k:"sleepy",  e:"😴", l:"Сонливость",       sl:"Сонный",   s:2,   sym:true},
+  {k:"bad",     e:"😣", l:"Плохо",            sl:"Плохо",    s:1},
   {k:"weak",    e:"🥴", l:"Слабость",         sl:"Слабость", s:1.5, sym:true},
-  {k:"head",    e:"🤕", l:"Болит голова",     sl:"Голова",   s:1,   sym:true},
-  {k:"dizzy",   e:"😵‍💫", l:"Головокружение",   sl:"Кружится", s:1,   sym:true},
+  {k:"head",    e:"🤕", l:"Мигрень",          sl:"Мигрень",  s:1,   sym:true},
+  {k:"dizzy",   e:"😵‍💫", l:"Головокружение",   sl:"Головокружение", s:1, sym:true},
   {k:"heart",   e:"💓", l:"Давление, сердце", sl:"Сердце",   s:1,   sym:true},
   {k:"joints",  e:"🦴", l:"Ломит суставы",    sl:"Суставы",  s:1.5, sym:true},
-  {k:"bad",     e:"😣", l:"Плохо",            sl:"Плохо",    s:1}
+  // no longer offered; kept so that earlier marks still show and count
+  {k:"good",    e:"🙂", l:"Нормально",        sl:"Норм",     s:3,   hide:true},
+  {k:"sleepy",  e:"😴", l:"Сонливость",       sl:"Сонный",   s:2,   sym:true, hide:true}
 ];
+const KPICK=KINDS.filter(x=>!x.hide);     // the smileys to choose from, everywhere
 const KIND=Object.fromEntries(KINDS.map(x=>[x.k,x]));
 /* the marks drawn in thin lines (the emoji stay for notifications and charts) */
-const KFACE={great:'<circle cx="20" cy="20" r="14"/><path d="M13 17q2.5-2.5 5 0M22 17q2.5-2.5 5 0M13.5 23q6.5 7 13 0z"/>',
+const KFACE={great:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14 23.5q6 5 12 0"/>',
   good:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14 23.5q6 5 12 0"/>',
   meh:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11"/>',
   sleepy:'<circle cx="20" cy="20" r="14"/><path d="M13 17.5q2.5 1.8 5 0M22 17.5q2.5 1.8 5 0"/><circle cx="20" cy="25.5" r="1.6"/><path d="M29 5h4l-4 4h4"/>',
@@ -3004,7 +3007,7 @@ function mergeMarks(a, b, da, db){
 function renderMood(){
   const today=isoDay(new Date()), rec=S.mood[today];
   const grid=$("mbtns");
-  if(!grid.children.length) grid.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
+  if(!grid.children.length) grid.innerHTML=KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("");
   const kg=$("kgMain"); if(!kg.children.length) kg.innerHTML=grid.innerHTML;
   window.KIND_READY=true;
   const list=rec?rec.marks:[];
@@ -3148,7 +3151,7 @@ function renderMoodSheet(){
     return `<div class="fac${o.enough&&a>=0.4?" strong":""}"><div class="top"><span class="nm">${o.name}</span><span class="vs">${kf("good").replace('class="kf"','class="kf li"')} <b>${o.fmt(o.mg)}</b> · ${kf("bad").replace('class="kf"','class="kf li"')} <b>${o.fmt(o.mb)}</b></span></div>${o.enough?`<div class="rbar"><i style="${o.r>=0?`left:50%`:`right:50%`};width:${w}%;background:${col}"></i></div><div class="legend2"><span>хуже при росте</span><span>r = ${o.r.toFixed(2).replace(".",",")}</span><span>лучше при росте</span></div>`:""}<div class="vd">${vd}</div></div>`;
   }).join("");
   // symptoms: weather on days with the symptom vs. days without it
-  const symHtml=KINDS.filter(x=>x.sym).map(x=>{
+  const symHtml=KPICK.filter(x=>x.sym).map(x=>{
     const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
     if(withS.length<3) return withS.length?`<div class="fac"><div class="top"><span class="nm">${kf(x.k).replace('class="kf"','class="kf li"')} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">Мало данных: нужно хотя бы 3 дня с этим симптомом.</div></div>`:"";
     const diffs=[];
@@ -3518,7 +3521,7 @@ function wxAnalysis(from,to){
   const gen=wxFind(B,b=>b.bad), all=[...gen.found];
   // each symptom on its own: joints may follow humidity while the head follows pressure; for each kind of weather the
   // surest of the findings stays (a symptom of its own is usually clearer than "bad" in general)
-  for(const K of KINDS.filter(x=>x.sym)){ if(B.filter(b=>b.all.includes(K.k)).length<4) continue;
+  for(const K of KPICK.filter(x=>x.sym)){ if(B.filter(b=>b.all.includes(K.k)).length<4) continue;
     for(const o of wxFind(B,b=>b.all.includes(K.k)).found) all.push({...o, top:K, sym:true}); }
   all.sort((a,b)=>b.conf-a.conf||a.pa-b.pa);
   const pick=[]; for(const o of all) if(!pick.some(q=>q.F.name===o.F.name||(q.with||[]).includes(o.F.name)||(q.not||[]).includes(o.F.name))) pick.push(o);
@@ -3782,7 +3785,7 @@ function renderHealthPage(){
   if(HSEG==="steps"){ box.innerHTML=hcTiles()||`<div class="card hempty"><div class="hei">${lic("👣")}</div><div>Телефон считает шаги сам, когда он с вами. Первая цифра появится после того, как вы походите с ним.</div></div>`; $("hFab")?.remove(); return; }
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
-    h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("")}</div>
+    h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("")}</div>
       <div class="mtoday" style="margin-top:8px">${(rec?.marks||[]).map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join("")}</div></div>`;
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
@@ -4116,7 +4119,7 @@ function introCity(){ const b=$("iLocate"); if(b) b.textContent=LOCATING?"Опр
 function showIntro(){
   if(!introNeeded()) return;
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
-  const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
+  const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("");
   $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
   I_OPTS=I_OPTS||REM_OPTS.filter(([v])=>v>0);
   if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
@@ -4892,7 +4895,7 @@ async function scheduleReminders(){
   const r=loadRemind();
   if(MN){
     try{ const pend=await LN?.getPending(); if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}   // old-style ones
-    try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KINDS.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
+    try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KPICK.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
     try{ if(MN.keep) await MN.keep({on:!!r.every&&store.get("remKeep")!=="0", text:window.KEEP_TXT||""}); }catch(e){}
     return;
   }

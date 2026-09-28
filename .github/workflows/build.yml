@@ -775,9 +775,11 @@ jobs:
                       small.setOnClickPendingIntent(SMALL[i], markIntent(c, o.optString("k"), i));
                   }
                   RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
+                  // eight smileys: two rows of four (the fifth cell of each row is left out); ten: two rows of five
+                  int[] slot = a.length() <= 8 ? new int[]{0, 1, 2, 3, -1, 4, 5, 6, 7, -1} : new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
                   for (int i = 0; i < CELL.length; i++) {
-                      JSONObject o = a.optJSONObject(i);
-                      if (o == null) { big.setViewVisibility(CELL[i], View.INVISIBLE); continue; }
+                      JSONObject o = slot[i] < 0 ? null : a.optJSONObject(slot[i]);
+                      if (o == null) { big.setViewVisibility(CELL[i], slot[i] < 0 ? View.GONE : View.INVISIBLE); continue; }
                       big.setImageViewResource(EMO[i], face(c, o.optString("k")));
                       big.setTextViewText(LAB[i], o.optString("l"));
                       big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
