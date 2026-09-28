@@ -125,7 +125,7 @@ html,body{overscroll-behavior-y:none}
 @keyframes grow{from{transform:scaleY(0)}}
 @keyframes pulse{50%{filter:brightness(1.5)}}
 .prhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-right:44px}
-.prnote{font-size:13.5px;font-weight:500;margin-top:4px}
+.prnote{font-size:13.5px;font-weight:300;margin-top:4px}
 .drops{position:absolute;inset:0;pointer-events:none}
 .drops span{position:absolute;top:-12px;width:1.5px;height:10px;background:linear-gradient(transparent,var(--rain));border-radius:2px;animation:fall linear infinite}
 @keyframes fall{to{transform:translateY(170px)}}
@@ -245,7 +245,7 @@ footer a{color:var(--muted)}
 #remTime{background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:10px;color:var(--ink);padding:6px 8px;font-family:var(--f-mono);font-size:13px}
 /* precipitation map */
 .rmap{position:relative;height:210px;margin-top:10px;border-radius:14px;overflow:hidden;background:#1b2330;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-.rmap.big{height:max(360px,calc(100vh - 190px - env(safe-area-inset-top,0px)));margin-top:0}
+.rmap.big{height:max(360px,calc(100vh - 222px - env(safe-area-inset-top,0px)));margin-top:0}
 .rmap .tiles,.rmap canvas{position:absolute;inset:0}
 .rmap .vmap{position:absolute!important;inset:0;pointer-events:none}
 .rmap.vec .tiles{display:none}
@@ -268,13 +268,13 @@ footer a{color:var(--muted)}
 .rmap .tiles img{width:258px!important;height:258px!important;margin:-1px 0 0 -1px}
 .rmap{background:#8cc496!important}
 .rmap canvas.fx{z-index:1}
-.rmap .demob{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:5;border:1px solid rgba(238,243,248,.25);background:rgba(13,23,38,.82);color:var(--ink);border-radius:99px;padding:7px 14px;font-size:12.5px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
-.rmap .demob.on{background:rgba(127,214,200,.9);color:#0d1726;font-weight:600;border-color:transparent}
+.rmap .demob{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:5;border:1px solid rgb(var(--inkc) / .3);background:rgb(var(--shc) / .75);color:var(--ink);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:300;white-space:nowrap;cursor:pointer}
+.rmap .demob.on{border-color:var(--ink);font-weight:400}
 .mscale{position:absolute;left:10px;bottom:82px;z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:2px;pointer-events:none;font:600 11px/1 var(--f-mono,monospace);color:#eef3f8;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .mscale .sb{height:6px;border:2px solid #eef3f8;border-top:0;box-shadow:0 1px 3px rgba(0,0,0,.6)}
 .mscale[hidden]{display:none}
-.medot{position:absolute;z-index:3;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#3b8cff;border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(59,140,255,.25),0 2px 6px rgba(0,0,0,.4);pointer-events:none}
-.rmap.detail > canvas:not(.fx){opacity:.58}
+.medot{position:absolute;z-index:3;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--ink);border:2px solid rgb(var(--shc));box-shadow:0 0 0 7px rgb(var(--inkc) / .12),0 0 0 8px rgb(var(--inkc) / .35);pointer-events:none}
+.rmap.detail > canvas:not(.fx){opacity:1}
 .rmap.detail > canvas.fx{opacity:.8}
 .rmap.detail .attr{color:rgba(238,243,248,.55)}
 .rmap .labs{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
@@ -298,10 +298,10 @@ footer a{color:var(--muted)}
 .rmap .pin{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#eef3f8;border:3px solid #0d1726;box-shadow:0 0 0 2px rgba(238,243,248,.5);pointer-events:none}
 .rmap .pin.home{width:0;height:0;margin:0;border:0;background:none;box-shadow:none;z-index:4}
 .rmap .pin.home::after{display:none}
-.pin.home .hpin{position:absolute;width:30px;height:39px;left:-15px;top:-38px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
-.pin.home .wb{position:absolute;left:-26px;top:-82px;display:flex;align-items:center;gap:4px;background:rgba(12,18,28,.92);color:#fff;border-radius:99px;padding:5px 10px 5px 12px;font-weight:700;font-size:15px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.pin.home .hpin{position:absolute;width:26px;height:34px;left:-13px;top:-33px;fill:rgb(var(--shc) / .9);stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round}
+.pin.home .wb{position:absolute;left:0;top:-58px;transform:translateX(-50%);background:rgb(var(--shc) / .75);color:var(--ink);border:1px solid rgb(var(--inkc) / .3);border-radius:99px;padding:1px 7px;font:300 12px var(--f-mono);white-space:nowrap}
 .pin.home .wi svg{width:24px;height:24px;display:block}
-#rmapSmall .pin.home .wb{font-size:13px;top:-74px;padding:3px 8px 3px 10px}
+#rmapSmall .pin.home .wb{font-size:11px;top:-54px}
 #rmapSmall .pin.home .wi svg{width:20px;height:20px}
 .rmap .pin::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1.5px solid rgba(238,243,248,.5);animation:ping 2s ease-out infinite}
 @keyframes ping{from{transform:scale(.3);opacity:1}to{transform:scale(1.4);opacity:0}}
@@ -436,6 +436,10 @@ footer{padding-bottom:64px}
 /* map summary + time strip */
 .rsum{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;min-height:22px}
 .rsum small{font-weight:400;color:var(--muted);font-size:12px;white-space:nowrap}
+.rsum{font-weight:300}.rsi svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+#mapSheet .shead h2{font-weight:300}
+#mapSheet .xbtn{background:none;border:1px solid rgb(var(--inkc) / .3);font-weight:300;color:var(--ink)}
+#mapSheet .xbtn:focus{outline:none}#mapSheet .xbtn:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
 .rsum{flex-wrap:nowrap;align-items:flex-start;line-height:1.3}
 .rsi{font-size:20px}
 /* rearranging cards */
@@ -767,7 +771,7 @@ header{position:relative}
 
 /* the answer above the map and the time "throttle" on the map */
 .rans{display:flex;gap:10px;align-items:center;margin:6px 0 0}.rans .rsi{font-size:22px;line-height:1}.rans .prnote{margin-top:0}
-.rat{font-size:12px;color:var(--muted);margin-top:2px}.rat b{color:var(--ink);font-family:var(--f-mono);font-weight:500}
+.rat{font-size:12px;color:var(--muted);margin-top:2px}.rat b{color:var(--ink);font-family:var(--f-mono);font-weight:300}
 .jog{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:30px 60px 12px 14px;background:linear-gradient(rgb(var(--shc) / 0),rgb(var(--shc) / .82) 58%)}
 .jsl{position:relative;height:30px;touch-action:none;cursor:pointer}
 .jtr{position:absolute;left:0;right:0;top:12px;height:6px;border-radius:6px;background:rgb(var(--inkc) / .16)}
@@ -778,6 +782,10 @@ header{position:relative}
 .jlab{text-align:center;font:10.5px var(--f-mono);color:var(--muted);margin-top:-1px;pointer-events:none}
 .jnow{position:absolute;right:12px;bottom:14px;width:38px;height:38px;border-radius:50%;border:1px solid var(--glass-line);background:rgb(var(--shc) / .92);color:var(--ink);font-size:19px;display:grid;place-items:center;cursor:pointer;padding:0}
 .jnow[hidden]{display:none}
+#rmapSmall .jog.atnow .jbub{visibility:hidden}   /* the small map is low: at "now" the label under the slider is enough */
+.rleg{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:10px;font-size:11px;font-weight:300;color:var(--muted)}
+.rleg span{display:inline-flex;align-items:center;gap:5px}.rleg .acc{color:var(--press)}
+.rleg svg{width:18px;height:14px;fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
 /* the map controls in the same thin-line style: no colour fills, light type */
 .jog{background:linear-gradient(rgb(var(--shc) / 0),rgb(var(--shc) / .7) 62%)}
 .jtr{top:14.5px;height:1px;border-radius:0;background:rgb(var(--inkc) / .3)}
@@ -931,7 +939,7 @@ header{position:relative}
   <section class="card fade" id="cardRain" style="animation-delay:.24s" aria-label="Осадки">
     <div class="drops" id="drops"></div>
     <div class="prhead"><div class="label">Осадки · карта</div><div class="upd" id="prsum"></div></div>
-    <div class="rans"><span class="rsi" id="prico">🌤</span><div><div class="prnote" id="prnote"></div><div class="rat">на карте <b class="jat">сейчас</b></div></div></div>
+    <div class="rans"><span class="rsi" id="prico"></span><div><div class="prnote" id="prnote"></div><div class="rat">на карте <b class="jat">сейчас</b></div></div></div>
     <div class="rmap" id="rmapSmall"><button class="mapx" id="mapExpand" aria-label="Открыть карту на весь экран">⤢</button></div>
   </section>
 
@@ -1017,6 +1025,7 @@ header{position:relative}
     <div class="rmap big" id="rmapBig">
       <div class="zbtns"><button data-z="0" aria-label="К городу"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button><button data-z="me" aria-label="Где я"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg></button></div>
     </div>
+    <div class="rleg"><span><svg viewBox="0 0 18 14"><path d="M4 12l2-8M9 12l2-8M14 12l2-8"/></svg>дождь</span><span><svg viewBox="0 0 18 14"><path d="M9 3v8M5.5 5l7 4M5.5 9l7-4"/></svg>снег</span><span class="acc"><svg viewBox="0 0 18 14"><path d="M11 1L6 7h5l-4 6"/></svg>гроза</span><span><svg viewBox="0 0 18 14"><path d="M2 12a7 7 0 0 1 14 0M5 12a4 4 0 0 1 8 0"/></svg>больше линий — сильнее</span></div>
   </div>
 </section>
 
@@ -1477,6 +1486,9 @@ async function loadHistRange(id, from, to){
 }
 
 /* ---------- main screen ---------- */
+/* line icons for the precipitation outlook (the map card and the map sheet) */
+const RSI={rain:'<path d="M7 14h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.3 3.3 0 0 0 7 14z"/><path d="M9 17l-1 3M13 17l-1 3M17 17l-1 3"/>',snow:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/>',dry:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>'};
+const rsiSVG=k=>`<svg viewBox="0 0 24 24">${RSI[k]}</svg>`;
 function render(){
   const now=new Date();
   const city=cityOf(S.slug);
@@ -1554,7 +1566,7 @@ function render(){
   if(!wet.length) note="Без осадков в ближайшие сутки";
   else if(wet[0]===pr[0]) note=`${cond(pr[0].sym).text} сейчас`;
   else { const f0=wet[0], last=wet[wet.length-1]; note=`${cond(f0.sym).kind==="snow"?"Снег":"Дождь"} ожидается с ${fmtHM(new Date(f0.t))}`+(last!==f0?`, до ~${fmtHM(new Date(+new Date(last.t)+H))}`:""); }
-  $("prnote").textContent=note; $("prico").textContent=!wet.length?"🌤":cond(wet[0].sym).kind==="snow"?"❄️":"🌧";
+  $("prnote").textContent=note; $("prico").innerHTML=rsiSVG(!wet.length?"dry":cond(wet[0].sym).kind==="snow"?"snow":"rain");
   const intensity = cur.pr>0 ? 26 : wet.length ? 10 : 0;
   $("drops").innerHTML = reduce?"":Array.from({length:intensity},()=>`<span style="left:${Math.random()*100}%;animation-duration:${(0.7+Math.random()*0.6).toFixed(2)}s;animation-delay:-${(Math.random()*1.3).toFixed(2)}s;opacity:${(.25+Math.random()*.5).toFixed(2)}"></span>`).join("");
 
@@ -1988,30 +2000,17 @@ function fieldAt(t){
 const LEVELS=[0.1,0.5,1.5,4,8];                 // mm/h: weak, moderate, heavy, very heavy, downpour
 // drawing: more steps than the named levels, so the rain looks like a hill on a contour map
 const BANDS=[0.1,0.3,0.7,1.5,3,6,10];
-const LAY={ light:{rain:[[185,225,255],[140,198,255],[100,165,255],[65,125,245],[45,90,230],[245,200,70],[255,105,95]],snow:[[235,228,255],[215,202,255],[192,175,250],[168,148,238],[150,128,230],[140,115,225],[130,100,220]],a:.55,line:"rgba(20,50,110,.16)"},
-            dark:{rain:[[105,170,235],[80,145,240],[62,120,240],[48,95,232],[40,72,215],[240,190,60],[250,95,85]],snow:[[200,190,240],[180,165,238],[160,142,232],[140,120,225],[128,105,220],[118,95,215],[108,85,210]],a:.6,line:"rgba(210,230,255,.2)"} };
-const bandOf=v=>{ let l=-1; for(let i=0;i<BANDS.length;i++) if(v>=BANDS[i]) l=i; return l; };
-const BCODE=Array.from({length:256},(_,c)=>bandOf((c/255)**2*16));   // encoded intensity → step
-/* the smooth field is scaled to the screen first and cut into steps there, so the edges of the steps are smooth */
-const BOFF=document.createElement("canvas");
-function bandsOn(ctx, X0, Y0, X1, Y1, w, h){
-  const W=Math.ceil(w), Hh=Math.ceil(h); if(!W||!Hh) return; if(BOFF.width!==W||BOFF.height!==Hh){ BOFF.width=W; BOFF.height=Hh; }
-  const o=BOFF.getContext("2d",{willReadFrequently:true}); o.clearRect(0,0,W,Hh); o.imageSmoothingEnabled=true; o.imageSmoothingQuality="high";
-  o.drawImage(FIELD,X0,Y0,X1-X0,Y1-Y0);
-  const img=o.getImageData(0,0,W,Hh), d=img.data, L=LIGHTMAP?LAY.light:LAY.dark, A=L.a;
-  for(let i=0;i<d.length;i+=4){ const b=d[i+3]<8?-1:BCODE[d[i]]; if(b<0){ d[i+3]=0; continue; }
-    const col=(d[i+1]>127?L.snow:L.rain)[b], a=A*d[i+2]*d[i+3]/255; d[i]=col[0]; d[i+1]=col[1]; d[i+2]=col[2]; d[i+3]=a; }
-  o.putImageData(img,0,0); ctx.drawImage(BOFF,0,0,W,Hh);
-}
+/* the precipitation is drawn in lines only: the ink of the theme, the heaviest steps in the accent colour */
+const MAPC=()=>LIGHTMAP?{ink:"22,50,45",acc:"15,157,133"}:{ink:"236,241,246",acc:"255,176,74"};
 const PTYPE=c=>c>=95?3:(c>=71&&c<=77)||c===85||c===86?2:1;      // 1 rain, 2 snow, 3 thunder
-const FM=120, FIELD=document.createElement("canvas"); FIELD.width=FIELD.height=FM;
+const FM=120;
 const FS=new Float32Array(FM*FM), FT=new Uint8Array(FM*FM), FE=new Float32Array(FM*FM), FC=new Float32Array(FM*FM);
 const CLOUD_LV=[30,70];            // % cloud cover: clear | partly cloudy | overcast
 const cloudClass=c=>c<CLOUD_LV[0]?0:c<CLOUD_LV[1]?1:2;
 function prLevel(v){ let l=-1; for(let i=0;i<LEVELS.length;i++) if(v>=LEVELS[i]) l=i; return l; }
 let LIGHTMAP=document.documentElement.dataset.theme==="light";   // kept up to date by the theme: on the light map clouds are drawn grey
 function paintField(fld){
-  const ctx=FIELD.getContext("2d"), img=ctx.createImageData(FM,FM), d=img.data, s=(RN-1)/(FM-1);
+  const s=(RN-1)/(FM-1);
   const tmp=new Float32Array(FM*FM), C=new Float32Array(FM*FM), SN=new Float32Array(FM*FM), TH=new Float32Array(FM*FM);
   const isS=fld.W?fld.W.map(c=>PTYPE(c)===2?1:0):null, isT=fld.W?fld.W.map(c=>PTYPE(c)===3?1:0):null;
   // smooth (bicubic-like) upsampling: bilinear, then two box-blur passes
@@ -2027,11 +2026,6 @@ function paintField(fld){
     for(let y=0;y<FM;y++) for(let x=0;x<FM;x++){ let a=0,n=0; for(let k=-R;k<=R;k++){ const yy=y+k; if(yy>=0&&yy<FM){ a+=tmp[yy*FM+x]; n++; } } A[y*FM+x]=a/n; } } };
   blur(FS,3,2); blur(C,4,2); FC.set(C); if(isS){ blur(SN,5,2); blur(TH,5,2); }
   for(let o=0;o<FM*FM;o++) FT[o]=SN[o]>=.5?2:TH[o]>=.5?3:1;
-  for(let o=0;o<FM*FM;o++){
-    // not colours yet: R = intensity (square-root scale), G = snow, B = fade at the edge; bandsOn() cuts the steps after scaling
-    const i=o*4; d[i]=Math.round(255*Math.sqrt(Math.min(FS[o],16)/16)); d[i+1]=FT[o]===2?255:0; d[i+2]=Math.round(255*FE[o]); d[i+3]=255;
-  }
-  ctx.putImageData(img,0,0);
 }
 /* contour lines around each intensity band (marching squares on the smoothed field) */
 function isoLines(ctx, A, lv, X0, Y0, sx, sy){
@@ -2046,16 +2040,17 @@ function isoLines(ctx, A, lv, X0, Y0, sx, sy){
     for(let k=0;k<seg.length;k+=2){ ctx.moveTo(X0+(seg[k][0]+.5)*sx, Y0+(seg[k][1]+.5)*sy); ctx.lineTo(X0+(seg[k+1][0]+.5)*sx, Y0+(seg[k+1][1]+.5)*sy); }
   }
 }
-function drawContours(ctx, X0, Y0, X1, Y1){   // thin see-through lines between the steps
-  const sx=(X1-X0)/FM, sy=(Y1-Y0)/FM;
-  ctx.save(); ctx.lineJoin="round"; ctx.lineCap="round"; ctx.lineWidth=.8; ctx.strokeStyle=(LIGHTMAP?LAY.light:LAY.dark).line;
-  for(const lv of BANDS){ isoLines(ctx,FS,lv,X0,Y0,sx,sy); ctx.stroke(); }
+function drawContours(ctx, X0, Y0, X1, Y1){   // layered like hills on a contour map: each step one more thin line
+  const sx=(X1-X0)/FM, sy=(Y1-Y0)/FM, C=MAPC();
+  ctx.save(); ctx.lineJoin="round"; ctx.lineCap="round";
+  BANDS.forEach((lv,n)=>{ const hot=n>=4; ctx.strokeStyle=`rgba(${hot?C.acc:C.ink},${hot?.6+(n-4)*.12:.18+n*.08})`; ctx.lineWidth=hot?1:.7; isoLines(ctx,FS,lv,X0,Y0,sx,sy); ctx.stroke(); });
   ctx.restore();
 }
+function zigzag(c, x, y, s){ c.beginPath(); c.moveTo(x+3*s,y-9*s); c.lineTo(x-3*s,y+1*s); c.lineTo(x+2*s,y+1*s); c.lineTo(x-3*s,y+10*s); c.stroke(); }
 function drawThunderMarks(ctx, X0, Y0, X1, Y1){
   let sx=0,sy=0,n=0; for(let o=0;o<FM*FM;o++) if(FT[o]===3&&FS[o]>=LEVELS[0]&&FE[o]>.5){ sx+=o%FM; sy+=Math.floor(o/FM); n++; }
   if(n<8) return; const x=X0+(sx/n+.5)/FM*(X1-X0), y=Y0+(sy/n+.5)/FM*(Y1-Y0);
-  ctx.font="18px 'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⚡",x,y-16);
+  ctx.save(); ctx.strokeStyle=`rgb(${MAPC().acc})`; ctx.lineWidth=1.4; ctx.lineJoin="round"; ctx.lineCap="round"; zigzag(ctx,x,y-14,1); ctx.restore();
 }
 /* what is falling at a point of the map canvas: {p, type} */
 function fieldSample(m, x, y){
@@ -2067,48 +2062,41 @@ function fieldSample(m, x, y){
 /* animated drops, snowflakes and lightning inside the precipitation zones */
 const FX={raf:0,last:0};
 function fxSeed(m, w, h){ const n=Math.round(w*h/900); m.parts=Array.from({length:n},()=>({x:Math.random()*w,y:Math.random()*h,s:.6+Math.random()*.8,ph:Math.random()*6.28})); m.drops=[]; m.flash=null; m.nextFlash=1+Math.random()*2; }
-/* rain: a few round drops that fall a little, plop and dissolve; snow: slow flakes; thunder: flashes */
+/* rain: short slanted strokes; snow: slow line snowflakes; thunder: a thin zigzag that flashes */
 function fxFrame(now){
-  FX.raf=0; const dt=Math.min(.05,(now-(FX.last||now))/1000); FX.last=now; let any=false;
+  FX.raf=0; const dt=Math.min(.05,(now-(FX.last||now))/1000); FX.last=now; let any=false; const C=MAPC();
   for(const m of RAD.maps){
     if(!m.vis||!m.fx||!m.fb||!RAD.cur) continue; any=true;
     const w=m.el.clientWidth, h=m.el.clientHeight, dpr=Math.min(2,devicePixelRatio||1);
     if(m.fx.width!==Math.round(w*dpr)||m.fx.height!==Math.round(h*dpr)){ m.fx.width=Math.round(w*dpr); m.fx.height=Math.round(h*dpr); fxSeed(m,w,h); }
     if(!m.parts) fxSeed(m,w,h);
-    const c=m.fx.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,w,h);
-    const k=dt*60, dropC=LIGHTMAP?"45,105,215":"150,200,255", ringC=LIGHTMAP?"45,105,215":"170,215,255";
-    // new drops: look at a few random places; where it rains, now and then a drop appears (more where it is heavier)
-    for(let n=0;n<Math.ceil(w*h/60000);n++){ const x=Math.random()*w, y=Math.random()*h, f=fieldSample(m,x,y);
+    const c=m.fx.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,w,h); c.lineCap="round"; c.lineJoin="round";
+    const k=dt*60;
+    // new strokes: look at a few random places; where it rains, now and then a stroke appears (more where it is heavier)
+    for(let n=0;n<Math.ceil(w*h/30000);n++){ const x=Math.random()*w, y=Math.random()*h, f=fieldSample(m,x,y);
       if(!f||f.p<LEVELS[0]||f.t===2) continue;
-      if(Math.random()<Math.min(.35,.02+f.p*.03)*k) m.drops.push({s:0,x,y,vy:.6+Math.random()*.4,t:0,life:22+Math.random()*14,r:2.2+Math.min(1.6,f.p*.35)+Math.random()*.8}); }
-    for(let i=m.drops.length-1;i>=0;i--){ const p=m.drops[i]; p.t+=k;
-      if(p.t>p.life){ if(p.s===0){ m.drops.push({s:2,x:p.x,y:p.y+p.r,t:0,life:26,r:p.r}); for(const d of [-1,1]) m.drops.push({s:3,x:p.x,y:p.y+p.r,vx:d*(.35+Math.random()*.3),vy:-(.9+Math.random()*.5),t:0,life:14,r:p.r*.35}); }
-        m.drops.splice(i,1); continue; }
-      if(p.s===0){ p.vy+=.07*k; p.y+=p.vy*k; const a=Math.min(1,p.t/6), r=p.r;          // a round drop with a small tip on top
-        c.fillStyle=`rgba(${dropC},${.8*a})`; c.beginPath(); c.moveTo(p.x,p.y-r*2.3);
-        c.bezierCurveTo(p.x+r*.35,p.y-r*1.3,p.x+r,p.y-r*.5,p.x+r,p.y); c.arc(p.x,p.y,r,0,Math.PI); c.bezierCurveTo(p.x-r,p.y-r*.5,p.x-r*.35,p.y-r*1.3,p.x,p.y-r*2.3); c.fill();
-        c.fillStyle=`rgba(255,255,255,${.85*a})`; c.beginPath(); c.arc(p.x-r*.35,p.y-r*.2,r*.28,0,6.283); c.fill(); }
-      else if(p.s===2){ const q=p.t/p.life, a=(1-q)*(1-q);                                 // plop: a ring spreads and dissolves
-        c.strokeStyle=`rgba(${ringC},${.7*a})`; c.lineWidth=1.3*(1-q)+.3; c.beginPath(); c.ellipse(p.x,p.y,p.r*(1+q*3.2),p.r*(.45+q*1.2),0,0,6.283); c.stroke();
-        c.fillStyle=`rgba(${ringC},${.25*a})`; c.beginPath(); c.ellipse(p.x,p.y,p.r*(1+q*1.6),p.r*(.4+q*.6),0,0,6.283); c.fill(); }
-      else { p.vy+=.12*k; p.x+=p.vx*k; p.y+=p.vy*k; c.fillStyle=`rgba(${dropC},${.8*(1-p.t/p.life)})`; c.beginPath(); c.arc(p.x,p.y,p.r,0,6.283); c.fill(); }
-    }
+      if(Math.random()<Math.min(.5,.04+f.p*.05)*k) m.drops.push({x,y,t:0,life:16+Math.random()*8,L:4+Math.min(6,f.p*1.3),wd:f.p>=LEVELS[2]?1.3:.9}); }
+    c.strokeStyle=`rgb(${C.ink})`;
+    for(let i=m.drops.length-1;i>=0;i--){ const p=m.drops[i]; p.t+=k; if(p.t>p.life){ m.drops.splice(i,1); continue; }
+      p.y+=2.2*k; p.x-=.5*k; c.globalAlpha=.75*Math.min(1,p.t/4,(p.life-p.t)/5); c.lineWidth=p.wd;
+      c.beginPath(); c.moveTo(p.x,p.y); c.lineTo(p.x+p.L*.25,p.y-p.L); c.stroke(); }
     if(m.drops.length>400) m.drops.splice(0,m.drops.length-400);
     // snow
+    c.lineWidth=.9;
     for(const q of m.parts){
       q.y+=(14+10*q.s)*dt; q.x+=Math.sin(now/900+q.ph)*8*dt;
       if(q.y>h+8){ q.y=-8; q.x=Math.random()*(w+30); } if(q.x<-10) q.x=w+5; if(q.x>w+10) q.x=-5;
       const f=fieldSample(m,q.x,q.y); if(!f||f.t!==2||f.p<LEVELS[0]) continue;
-      c.fillStyle="rgba(255,255,255,.95)"; c.beginPath(); c.arc(q.x,q.y,1.2+q.s*1.2,0,6.283); c.fill();
-      if(LIGHTMAP){ c.strokeStyle="rgba(120,100,190,.5)"; c.lineWidth=.8; c.stroke(); }
+      const r=1.8+q.s*1.2, a0=now/2500+q.ph; c.globalAlpha=.85; c.beginPath();
+      for(let n=0;n<3;n++){ const a=a0+n*Math.PI/3; c.moveTo(q.x-Math.cos(a)*r,q.y-Math.sin(a)*r); c.lineTo(q.x+Math.cos(a)*r,q.y+Math.sin(a)*r); } c.stroke();
     }
+    c.globalAlpha=1;
     // lightning in thunderstorm cells
-    m.nextFlash-=dt; const sc=1;
+    m.nextFlash-=dt;
     if(m.nextFlash<=0){ m.nextFlash=.8+Math.random()*2.2; const cand=[];
       for(let n=0;n<40;n++){ const x=Math.random()*w, y=Math.random()*h, f=fieldSample(m,x,y); if(f&&f.t===3&&f.p>=LEVELS[0]) cand.push([x,y]); }
-      if(cand.length){ const [x,y]=cand[Math.floor(Math.random()*cand.length)]; const pts=[[x,y-26*sc]]; let yy=y-26*sc,xx=x; while(yy<y+18*sc){ yy+=7*sc; xx+=(Math.random()-.5)*9*sc; pts.push([xx,yy]); } m.flash={x,y,a:1,pts}; } }
-    if(m.flash){ const F=m.flash; const g=c.createRadialGradient(F.x,F.y,0,F.x,F.y,46*sc); g.addColorStop(0,`rgba(255,248,210,${.55*F.a})`); g.addColorStop(1,"rgba(255,248,210,0)"); c.fillStyle=g; c.fillRect(F.x-50*sc,F.y-50*sc,100*sc,100*sc);
-      if(F.a>.45){ c.strokeStyle=`rgba(255,214,60,${F.a})`; c.lineWidth=2.2; c.shadowColor="#fff3a0"; c.shadowBlur=8; c.lineJoin="round"; c.beginPath(); F.pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); c.shadowBlur=0; }
+      if(cand.length){ const [x,y]=cand[Math.floor(Math.random()*cand.length)]; const pts=[[x,y-26]]; let yy=y-26,xx=x; while(yy<y+18){ yy+=7; xx+=(Math.random()-.5)*9; pts.push([xx,yy]); } m.flash={a:1,pts}; } }
+    if(m.flash){ const F=m.flash; c.strokeStyle=`rgba(${C.acc},${F.a})`; c.lineWidth=1.5; c.beginPath(); F.pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke();
       F.a-=dt*2.4; if(F.a<=0) m.flash=null; }
   }
   if(any&&!document.hidden) FX.raf=requestAnimationFrame(fxFrame);
@@ -2279,7 +2267,6 @@ function MiniMap(el, interactive){
     if(RAD.lats.length){
       const hl=(RAD.step||RSTEP)/2, hlo=(RAD.lons[1]-RAD.lons[0])/2;
       const X0=lon2x(RAD.lons[0]-hlo,z)-x0, X1=lon2x(RAD.lons[RN-1]+hlo,z)-x0, Y0=lat2y(RAD.lats[RN-1]+hl,z)-y0, Y1=lat2y(RAD.lats[0]-hl,z)-y0;
-      bandsOn(ctx,X0,Y0,X1,Y1,w,h);
       m.fb=[X0,Y0,X1,Y1]; drawContours(ctx,X0,Y0,X1,Y1); drawThunderMarks(ctx,X0,Y0,X1,Y1); fxStart();
     }
     // Russian labels (OpenStreetMap tiles already carry local names)
@@ -2339,8 +2326,8 @@ function MiniMap(el, interactive){
 
 function homePinHTML(){
   const f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours, RAD.t||Date.now())]; let b="";
-  if(h){ const t=Math.round(h.temp); b=`<span class="wb">${t>0?"+":""}${t}°<span class="wi">${icon(h.sym)}</span></span>`; }
-  return `${b}<svg class="hpin" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 43C17 43 2 27.5 2 17A15 15 0 0 1 32 17C32 27.5 17 43 17 43Z" fill="#ef4136" stroke="#fff" stroke-width="2.4"/><path d="M10.5 18.5 17 12.5l6.5 6v7h-4.2v-4.3h-4.6v4.3h-4.2z" fill="#fff"/></svg>`;
+  if(h){ const t=Math.round(h.temp); b=`<span class="wb">${t>0?"+":""}${t}°</span>`; }
+  return `${b}<svg class="hpin" viewBox="0 0 34 44" aria-hidden="true"><path d="M17 42C17 42 3 27.5 3 17A14 14 0 0 1 31 17C31 27.5 17 42 17 42Z"/><path d="M11 18.5 17 13l6 5.5v6.5H11z" stroke-width="1.3"/></svg>`;
 }
 function mapNote(t){ document.querySelectorAll(".rmap .rstat").forEach(e=>{ e.hidden=false; e.textContent=t; }); }
 const mapSmall=MiniMap($("rmapSmall"), false); mapSmall.z=9;   // regional scale (about 70 km across), like the big map: the rain steps are visible
@@ -2383,7 +2370,7 @@ function jogUI(){
   const txt=atNow?"сейчас "+fmtHM(new Date(now)):jogWhen(RAD.t)+(end?" · дальше прогноза нет":"");
   document.querySelectorAll(".jog").forEach(j=>{ const act=JOG.drag===j||(JOG.ret&&JOG.ret.el===j), p=act?JOG.pos:0, x=50+p*50;
     j.querySelector(".jkn").style.left=x+"%"; const f=j.querySelector(".jfl"); f.style.left=Math.min(x,50)+"%"; f.style.width=Math.abs(x-50)+"%";
-    j.querySelector(".jbub").textContent=txt; j.querySelector(".jnow").hidden=atNow; });
+    j.querySelector(".jbub").textContent=txt; j.querySelector(".jnow").hidden=atNow; j.classList.toggle("atnow",atNow); });
   document.querySelectorAll(".jat").forEach(b=>b.textContent=atNow?"сейчас":jogWhen(RAD.t));
 }
 function jogTick(ts){
@@ -3664,7 +3651,7 @@ function buildTimeline(fast){
   if(!fut.length) txt="";
   else if(wet(fut[0])){ const e=fut.findIndex(x=>!wet(x)); txt=`${hp.me?"У вас":"В городе"} сейчас ${kind(fut[0])}${e>0?`, закончится около ${jogWhen(fut[e].t)}`:" — до конца прогноза"}`; }
   else { const s1=fut.findIndex(wet); if(s1<0) txt=`${hp.me?"У вас":"В городе"} без осадков ближайшие ${Math.round((fut[fut.length-1].t-now)/H)} ч`; else { const e=fut.slice(s1).findIndex(x=>!wet(x)); txt=`${kind(fut[s1])[0].toUpperCase()+kind(fut[s1]).slice(1)} ${hp.me?"у вас":"в городе"} начнётся около ${jogWhen(fut[s1].t)}${e>0?`, закончится к ${jogWhen(fut[s1+e].t)}`:""}`; } }
-  $("rSum").innerHTML=txt?`<span class="rsi">${fut.some(wet)?(fut.find(wet).ty===2?"❄️":"🌧"):"🌤"}</span><span>${txt}${RAD.fineOn?` <small>· подробно ≈5 км</small>`:""}</span>`:"";
+  $("rSum").innerHTML=txt?`<span class="rsi">${rsiSVG(fut.some(wet)?(fut.find(wet).ty===2?"snow":"rain"):"dry")}</span><span>${txt}${RAD.fineOn?` <small>· подробно ≈5 км</small>`:""}</span>`:"";
 }
 $("mapInfo").addEventListener("click",()=>toast("Прогноз численной модели Open-Meteo, а не снимок радара: отдельный ливень может сместиться на несколько километров. Сетка ≈ 28 км, при приближении — ≈ 5 км."));
 
