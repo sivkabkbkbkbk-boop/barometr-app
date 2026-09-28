@@ -844,6 +844,83 @@ header{position:relative}
   .sheet{max-width:680px}
   .bnav{padding-inline:max(0px,calc((100% - 680px) / 2))}
 }
+/* ===== minimalist line style: thin lines, light type, no fills; colour only where it means something ===== */
+#sky{display:none}
+.wx{overflow:visible;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.wx *{vector-effect:non-scaling-stroke;stroke-width:var(--wxw,1.3px)}
+.wx .wc{fill:var(--wxbg,var(--sky-top))}
+.wx .wz{stroke:var(--press)}
+.sheet .wx{--wxbg:var(--sheet)}
+@keyframes wxSpin{to{transform:rotate(360deg)}}
+@keyframes wxDrift{50%{transform:translateX(1.6px)}}
+@keyframes wxFall{0%{transform:translate(1px,-3px);opacity:0}30%{opacity:1}100%{transform:translate(-1px,4px);opacity:0}}
+@keyframes wxFlake{0%{transform:translateY(-3px);opacity:0}30%{opacity:1}100%{transform:translateY(4px);opacity:0}}
+@keyframes wxFlash{0%,82%,100%{opacity:.35}86%,92%{opacity:1}}
+.wx .wr{animation:wxSpin 40s linear infinite}
+.wx .wc{animation:wxDrift 7s ease-in-out infinite}
+.wx .wd{animation:wxFall 1.3s linear infinite}.wx .wd:nth-child(2){animation-delay:.43s}.wx .wd:nth-child(3){animation-delay:.86s}
+.wx .wf{animation:wxFlake 2.6s linear infinite}.wx .wf:nth-of-type(2){animation-delay:.9s}.wx .wf:nth-of-type(3){animation-delay:1.7s}
+.wx .wz{animation:wxFlash 3.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.wx *{animation:none!important}}
+.cond .icon{--wxw:1.6px;color:var(--ink)}
+.cond .icon svg{width:100%;height:100%;display:block}
+.kf{width:30px;height:30px;display:block;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.kf *{vector-effect:non-scaling-stroke;stroke-width:1.3px}
+.kbtn .e{display:grid;place-items:center;color:var(--ink)}
+.mtoday .tm .e .kf{width:16px;height:16px}
+/* the main screen */
+#pgToday header .citybtn{background:none;border-color:transparent;padding-left:0;font-weight:300}
+#pgToday .gear,#pgToday .refresh{background:none;border:1px solid var(--glass-line)}
+#pgToday .gear svg *{stroke-width:1.4}
+#pgToday .temp{font-weight:200}
+#pgToday .cond .txt{font-weight:300}
+#pgToday .tdate{font-weight:300}
+#pgToday .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
+#pgToday .grid2{gap:0}
+#pgToday .grid2>.card+.card{border-left:1px solid var(--glass-line);padding-left:14px}
+#pgToday .grid2>.card:first-child{padding-right:12px}
+#pgToday .label{font-weight:400;letter-spacing:.16em}
+#pgToday .more{font-weight:300}
+#pgToday .big{font-weight:200}
+#pgToday .big small,#pgToday .sub{font-weight:300}
+#pgToday .pill{font-weight:400;padding:0;background:none!important}
+#pgToday .aurora,#pgToday .drops{display:none}
+#pgToday .kpbars{gap:0;justify-content:space-between}
+#pgToday .kpbars i{flex:0 0 2px;border-radius:0}
+#pgToday .kpbars i.now{box-shadow:none;animation:grow .9s cubic-bezier(.2,.9,.3,1) both;flex-basis:3px}
+#pgToday .kpaxis{font-weight:300}
+#pgToday .rpill{font-weight:400;background:none;padding:0}
+#pgToday .rwhy{font-weight:300}
+#pgToday .kgrid{gap:12px 4px}
+#pgToday .kbtn{border:0;background:none;padding:2px 0}
+#pgToday .kbtn .l{font-weight:300}
+#pgToday .kbtn.pop{background:none}#pgToday .kbtn.pop .kf{color:var(--press)}
+#pgToday .mtoday .tm{background:none;border:1px solid var(--glass-line);font-weight:300}
+#pgToday .htiles{gap:0}
+#pgToday .htile{background:none;border:0;border-radius:0;padding:2px 12px 2px 0}
+#pgToday .htile+.htile{border-left:1px solid var(--glass-line);padding-left:14px}
+#pgToday .htile .ht{font-weight:400}
+#pgToday .htile .hv{font-weight:300}
+#pgToday .htile .hp{background:none;padding:0;font-weight:400}
+#pgToday .d5 .dd{border:1px solid transparent;padding:6px 0}
+#pgToday .d5 .dd.today{background:none;border-color:var(--glass-line)}
+#pgToday .d5 .dn{font-weight:400}
+#pgToday .d5 .tx{font-weight:300}
+#pgToday .d5 svg{color:var(--ink)}
+#pgToday .d5hint,#pgToday footer{font-weight:300}
+#pgToday .prnote{font-weight:300}
+#pgToday .rwhy>span{display:flex;gap:6px;align-items:flex-start}
+#pgToday .rwhy b{font-weight:500}
+#pgToday .rbody .li{width:15px}
+.li{width:15px;height:15px;flex:none;margin-top:1px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+#pgToday .more{display:none}
+/* the bottom menu */
+.bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
+.bnav button{font-weight:300}
+.bnav button b{filter:none!important;display:grid;place-items:center;opacity:.45;transition:opacity .2s}
+.bnav button b svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.bnav button[aria-current] b{opacity:1}
+.bnav button[aria-current]::before{height:1px;border-radius:0;background:var(--ink);top:-5px;width:26px}
 </style>
 
 </head>
@@ -910,7 +987,7 @@ header{position:relative}
   </section>
 
   <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
-    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">📊 отчёт ›</button></div>
+    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">отчёт ›</button></div>
     <div class="htiles" id="hTiles"></div>
   </section>
 
@@ -985,11 +1062,11 @@ header{position:relative}
   <div class="friends" id="chats" hidden></div>
 </main>
 <nav class="bnav" id="bnav" aria-label="Разделы">
-  <button data-tab="today" aria-current="page"><b>🌤</b>Сегодня</button>
-  <button data-tab="health"><b>❤️</b>Здоровье</button>
-  <button data-tab="rep"><b>📊</b>Отчёты</button>
-  <button data-tab="friends"><b>👥</b>Друзья<i id="navN"></i></button>
-  <button data-act="settings" id="navSet"><b>⚙️</b>Настройки</button>
+  <button data-tab="today" aria-current="page"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.3M2.5 9h1.3M4.4 4.4l.9.9M13.6 4.4l-.9.9"/><path d="M8 20h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.4A2.8 2.8 0 0 0 8 20z"/></svg></b>Сегодня</button>
+  <button data-tab="health"><b><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></b>Здоровье</button>
+  <button data-tab="rep"><b><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></b>Отчёты</button>
+  <button data-tab="friends"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5.5M18 20a5 5 0 0 0-3-4.6"/></svg></b>Друзья<i id="navN"></i></button>
+  <button data-act="settings" id="navSet"><b><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></b>Настройки</button>
 </nav>
 
 <div class="frpop" id="frPop" hidden><div class="frcard" role="dialog" aria-modal="true" aria-labelledby="frT">
@@ -1268,20 +1345,23 @@ function cond(sym){
 }
 function icon(sym){
   const {kind,night}=cond(sym);
-  const sun = night
-    ? `<path d="M29 9a12 12 0 1 0 12 16A12.5 12.5 0 0 1 29 9z" fill="#dfe6f2"/>`
-    : `<circle cx="24" cy="20" r="8" fill="#ffd36b"/><g stroke="#ffd36b" stroke-width="2" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<line x1="${24+Math.cos(r)*12}" y1="${20+Math.sin(r)*12}" x2="${24+Math.cos(r)*15}" y2="${20+Math.sin(r)*15}"/>`}).join("")}</g>`;
-  const cloud = (dx=0,dy=0,c="#dbe4ee")=>`<path transform="translate(${dx} ${dy})" d="M14 38h22a8 8 0 0 0 0-16 11 11 0 0 0-21-2A7 7 0 0 0 14 38z" fill="${c}"/>`;
+  const rays=(cx,cy,r1,r2)=>[0,45,90,135,180,225,270,315].map(a=>{const q=a*Math.PI/180;return `<line x1="${(cx+Math.cos(q)*r1).toFixed(1)}" y1="${(cy+Math.sin(q)*r1).toFixed(1)}" x2="${(cx+Math.cos(q)*r2).toFixed(1)}" y2="${(cy+Math.sin(q)*r2).toFixed(1)}"/>`;}).join("");
+  const sun=(cx,cy,r)=>night?`<path class="wm" d="M${cx+4} ${cy-r-2}a${r+2} ${r+2} 0 1 0 ${r+4} ${r+6}A${r} ${r} 0 0 1 ${cx+4} ${cy-r-2}z"/>`
+    :`<circle cx="${cx}" cy="${cy}" r="${r}"/><g class="wr" style="transform-origin:${cx}px ${cy}px">${rays(cx,cy,r+3.5,r+6.5)}</g>`;
+  // the cloud is filled with the background, so a sun or moon behind it is hidden
+  const cloud=(dx=0,dy=0)=>`<g transform="translate(${dx} ${dy})"><path class="wc" d="M14 38h22a8 8 0 0 0 0-16 11 11 0 0 0-21-2A7 7 0 0 0 14 38z"/></g>`;
+  const drops=`<g class="wdg"><line class="wd" x1="18" y1="37" x2="16" y2="43"/><line class="wd" x1="26" y1="37" x2="24" y2="43"/><line class="wd" x1="34" y1="37" x2="32" y2="43"/></g>`;
+  const flake=(x,y)=>`<g class="wf"><path d="M${x} ${y-3}v6M${x-2.6} ${y-1.5}l5.2 3M${x-2.6} ${y+1.5}l5.2-3"/></g>`;
   let g="";
-  if(kind==="clear") g=sun;
-  else if(kind==="fair") g=sun+cloud(10,8);
-  else if(kind==="partly") g=sun+cloud(6,6);
-  else if(kind==="cloud") g=cloud(-2,-2,"#9fb1c5")+cloud(4,4);
-  else if(kind==="fog") g=cloud(0,-4,"#b8c4d2")+`<g stroke="#b8c4d2" stroke-width="2.4" stroke-linecap="round"><line x1="10" y1="40" x2="38" y2="40"/><line x1="14" y1="45" x2="42" y2="45"/></g>`;
-  else if(kind==="rain") g=cloud(0,-6)+`<g stroke="#78adff" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="37" x2="15" y2="44"/><line x1="26" y1="37" x2="23" y2="44"/><line x1="34" y1="37" x2="31" y2="44"/></g>`;
-  else if(kind==="snow") g=cloud(0,-6)+`<g fill="#fff"><circle cx="17" cy="40" r="2"/><circle cx="26" cy="43" r="2"/><circle cx="34" cy="39" r="2"/></g>`;
-  else if(kind==="thunder") g=cloud(0,-6,"#9fb1c5")+`<path d="M26 32l-6 9h5l-3 7 8-10h-5l3-6z" fill="#ffd36b"/>`;
-  return `<svg viewBox="0 0 48 48" aria-hidden="true">${g}</svg>`;
+  if(kind==="clear") g=sun(24,24,night?9:8);
+  else if(kind==="fair") g=sun(17,16,6)+cloud(8,8);
+  else if(kind==="partly") g=sun(17,15,6)+cloud(5,6);
+  else if(kind==="cloud") g=cloud(-3,-5)+cloud(2,2);
+  else if(kind==="fog") g=cloud(0,-6)+`<g class="wfg"><line x1="10" y1="39" x2="36" y2="39"/><line x1="15" y1="44" x2="41" y2="44"/></g>`;
+  else if(kind==="rain") g=cloud(0,-6)+drops;
+  else if(kind==="snow") g=cloud(0,-6)+flake(17,40)+flake(26,43)+flake(35,40);
+  else if(kind==="thunder") g=cloud(0,-6)+`<path class="wz" d="M27 33l-5 7h5l-4 7"/>`;
+  return `<svg class="wx" viewBox="0 0 48 48" aria-hidden="true">${g}</svg>`;
 }
 
 /* ---------- helpers ---------- */
@@ -1527,11 +1607,11 @@ function render(){
   else {
   const [ktext,kcol]=kpInfo(kc.kp);
   $("kpval").innerHTML=`${(+kc.kp).toFixed(kc.kp%1?1:0)}<small>Kp</small>`;
-  const pill=$("kppill"); pill.textContent=ktext; pill.style.color=kcol; pill.style.background="color-mix(in srgb, currentColor 16%, transparent)";
+  const pill=$("kppill"); pill.textContent=ktext; pill.style.color=kcol; pill.style.background="none";
   const win=kp.slice(Math.max(0,ki-8),ki+9);
   $("kpbars").innerHTML=win.map((x,n)=>{
     const cls=x===kc?"now":(new Date(x.t)>now?"fut":"");
-    return `<i class="${cls}" style="height:${Math.max(6,x.kp/9*100)}%;background:${kpColor(x.kp)};color:${kpColor(x.kp)};animation-delay:${n*35}ms"></i>`;
+    return `<i class="${cls}" style="height:${Math.max(6,x.kp/9*100)}%;background:${x.kp>=4?kpColor(x.kp):"var(--ink)"};color:${kpColor(x.kp)};animation-delay:${n*35}ms"></i>`;
   }).join("");
   const maxNext=Math.max(0,...kp.slice(ki+1,ki+9).map(x=>x.kp));
   const au=$("aurora");
@@ -1582,18 +1662,17 @@ function drawGauge(p){
   const lo=730, hi=770, cx=60, cy=62, r=42;
   const ang=v=>Math.PI + (Math.min(hi,Math.max(lo,v))-lo)/(hi-lo)*Math.PI;
   const pt=(a,rr)=>[cx+Math.cos(a)*rr, cy+Math.sin(a)*rr];
-  let s=`<defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#78adff"/><stop offset=".5" stop-color="#7fd6c8"/><stop offset="1" stop-color="#f2c94c"/></linearGradient></defs>`;
   const [ax,ay]=pt(Math.PI,r),[bx,by]=pt(2*Math.PI,r);
-  s+=`<path d="M${ax} ${ay} A${r} ${r} 0 0 1 ${bx} ${by}" fill="none" stroke="url(#gg)" stroke-width="5" stroke-linecap="round" opacity=".85"/>`;
+  let s=`<path d="M${ax} ${ay} A${r} ${r} 0 0 1 ${bx} ${by}" fill="none" stroke="var(--glass-line)" stroke-width="1" stroke-linecap="round"/>`;
   for(let v=lo; v<=hi; v+=5){
     const a=ang(v), major=v%10===0, [x1,y1]=pt(a,r-6), [x2,y2]=pt(a,r-(major?13:9));
-    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9fb1c5" stroke-width="${major?1.3:.8}"/>`;
-    if(major){const [tx,ty]=pt(a,r+9); s+=`<text x="${tx}" y="${ty+2.5}" font-size="6.5" text-anchor="middle" fill="#9fb1c5" font-family="JetBrains Mono, monospace">${v}</text>`;}
+    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="${major?.9:.6}"/>`;
+    if(major){const [tx,ty]=pt(a,r+9); s+=`<text x="${tx}" y="${ty+2.5}" font-size="6.5" font-weight="300" text-anchor="middle" fill="var(--muted)" font-family="JetBrains Mono, monospace">${v}</text>`;}
   }
   const deg=(ang(p)-Math.PI)*180/Math.PI;
   // a slim tapered pointer with a short counterweight and a small ring axle
   const tip=cx-r+9;
-  s+=`<g class="needle" id="needle" style="transform:rotate(0deg)"><path d="M${tip} ${cy} L${cx} ${cy-1.9} L${cx+8} ${cy-1.2} Q${cx+9.5} ${cy} ${cx+8} ${cy+1.2} L${cx} ${cy+1.9} Z" fill="#eef3f8"/></g><circle cx="${cx}" cy="${cy}" r="3.3" fill="#172538" stroke="#eef3f8" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="1" fill="#eef3f8"/>`;
+  s+=`<g class="needle" id="needle" style="transform:rotate(0deg)"><line x1="${tip}" y1="${cy}" x2="${cx+6}" y2="${cy}" stroke="var(--ink)" stroke-width="1.1" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="2.4" fill="var(--sky-top)" stroke="var(--ink)" stroke-width="1"/>`;
   $("gauge").innerHTML=s;
   const n=$("needle");
   requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transform=`rotate(${deg}deg)`;}));
@@ -1622,6 +1701,7 @@ const THPICK=`<div class="thpick" role="group" aria-label="Оформление"
 document.addEventListener("click",e=>{ const b=e.target.closest(".thpick [data-th]"); if(b) themeSet(b.dataset.th); });
 
 /* ---------- animated sky: sun, moon, clouds, rain, snow, lightning, fog ---------- */
+const SKY_ON=false;   // the line style has a plain background: the animated sky is kept but not drawn
 const sky=(()=>{
   const cv=$("sky"), ctx=cv.getContext("2d");
   let W=0,Hh=0,stars=[],clouds=[],drops=[],splash=[],flakes=[],fogs=[],mode={kind:"clear",night:false},cloudAmt=0,rainAmt=0,snowAmt=0,flash=0,nextBolt=4,bolt=null;
@@ -1658,7 +1738,7 @@ const sky=(()=>{
     mode=c; cloudAmt=Math.max((cur.cloud||0)/100, c.kind==="partly"?.5:c.kind==="fair"?.25:c.kind==="cloud"?.9:0);
     rainAmt=c.kind==="rain"||c.kind==="thunder"?Math.min(1,.4+(cur.pr||0)*.3):0;
     snowAmt=c.kind==="snow"?Math.min(1,.45+(cur.pr||0)*.4):0;
-    const [a]=palette(); document.querySelector('meta[name="theme-color"]').content=a; document.body.style.background=a;
+    let [a]=palette(); if(!SKY_ON) a=getComputedStyle(document.documentElement).getPropertyValue("--sky-top").trim(); document.querySelector('meta[name="theme-color"]').content=a; document.body.style.background=a;
     document.body.dataset.sky=(c.night?"night ":"day ")+c.kind;
   }
   function drawSun(t){
@@ -1731,12 +1811,12 @@ const sky=(()=>{
       for(let k=0;k<n;k++){const f=flakes[k]; f.y+=f.v*dt; f.x+=Math.cos(t*.8+f.ph)*f.sw*dt; f.rot+=dt*.6; if(f.y>Hh+8){f.y=-8;f.x=Math.random()*W;} flakeShape(f);}
     }
     if(mode.kind==="fog"){ for(const f of fogs){ f.x+=f.v*dt; if(f.x-f.w>W) f.x=-f.w*.5; const fg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.w*.5); fg.addColorStop(0,"rgba(235,240,245,.35)"); fg.addColorStop(1,"rgba(235,240,245,0)"); ctx.fillStyle=fg; ctx.beginPath(); ctx.ellipse(f.x,f.y,f.w*.5,60,0,0,6.28); ctx.fill(); } }
-    if(!reduce && !document.hidden) requestAnimationFrame(frame);
+    if(!reduce && !document.hidden && SKY_ON) requestAnimationFrame(frame);
   }
-  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&!reduce){ last=performance.now(); requestAnimationFrame(frame);} });
-  addEventListener("resize",size); size(); requestAnimationFrame(frame);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&!reduce&&SKY_ON){ last=performance.now(); requestAnimationFrame(frame);} });
+  addEventListener("resize",size); size(); if(SKY_ON) requestAnimationFrame(frame);
   if(force) set({kind:"clear",night:false},{});
-  function refresh(){ const [a]=palette(); document.querySelector('meta[name="theme-color"]').content=a; document.body.style.background=a; }
+  function refresh(){ let [a]=palette(); if(!SKY_ON) a=getComputedStyle(document.documentElement).getPropertyValue("--sky-top").trim(); document.querySelector('meta[name="theme-color"]').content=a; document.body.style.background=a; }
   return {set, refresh};
 })();
 
@@ -2597,6 +2677,18 @@ const KINDS=[
   {k:"bad",     e:"😣", l:"Плохо",            sl:"Плохо",    s:1}
 ];
 const KIND=Object.fromEntries(KINDS.map(x=>[x.k,x]));
+/* the marks drawn in thin lines (the emoji stay for notifications and charts) */
+const KFACE={great:'<circle cx="20" cy="20" r="14"/><path d="M13 17q2.5-2.5 5 0M22 17q2.5-2.5 5 0M13.5 23q6.5 7 13 0z"/>',
+  good:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14 23.5q6 5 12 0"/>',
+  meh:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11"/>',
+  sleepy:'<circle cx="20" cy="20" r="14"/><path d="M13 17.5q2.5 1.8 5 0M22 17.5q2.5 1.8 5 0"/><circle cx="20" cy="25.5" r="1.6"/><path d="M29 5h4l-4 4h4"/>',
+  weak:'<circle cx="20" cy="20" r="14"/><path d="M13 17h5M22 17h5M14.5 24h11M18 24v2.5a2 2 0 0 0 4 0V24"/>',
+  head:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11M4 11.5q7-5 12-2.5M24 9q7-2.5 12 2.5"/><path d="M8 7.5q2 1.5 1 3.5M32 7.5q-2 1.5-1 3.5"/>',
+  dizzy:'<circle cx="20" cy="20" r="14"/><path d="M13 17a2 2 0 1 0 4 0M23 17a2 2 0 1 0 4 0M14 25.5q1.5-2 3 0t3 0t3 0t3 0M6 8a5 5 0 0 1 6-2M34 32a5 5 0 0 1-6 2"/>',
+  heart:'<path d="M19 13.5A6 6 0 0 0 8 17c0 7.5 11 14 11 14M21.5 13A6 6 0 0 1 32 17c0 7.5-11 14-11 14M19 13.5l2 4-2.5 3.5 2.5 3.5-1.5 3"/>',
+  joints:'<path d="M13 11a3 3 0 1 1 3.5 3.5L25.5 23.5A3 3 0 1 1 29 29a3 3 0 1 1-3.5-3.5L14.5 16.5A3 3 0 1 1 11 11"/>',
+  bad:'<circle cx="20" cy="20" r="14"/><path d="M13 15.5l3.5 3.5M16.5 15.5L13 19M23.5 15.5l3.5 3.5M27 15.5L23.5 19M14 27q6-5 12 0"/>'};
+const kf=k=>`<svg class="kf" viewBox="0 0 40 40" aria-hidden="true">${KFACE[k]||""}</svg>`;
 const OLDV={3:"good",2:"meh",1:"bad"};                     // marks from the first version (3 smileys)
 const MOOD={3:{e:"🙂",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
 S.marks=loadJSON("marks",null); S.marksDel=loadJSON("marksDel",{})||{};
@@ -2641,11 +2733,11 @@ function mergeMarks(a, b, da, db){
 function renderMood(){
   const today=isoDay(new Date()), rec=S.mood[today];
   const grid=$("mbtns");
-  if(!grid.children.length) grid.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${x.e}</span><span class="l">${x.sl}</span></button>`).join("");
+  if(!grid.children.length) grid.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
   const kg=$("kgMain"); if(!kg.children.length) kg.innerHTML=grid.innerHTML;
   window.KIND_READY=true;
   const list=rec?rec.marks:[];
-  $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
+  $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
   $("mtMain").innerHTML = $("mtoday").innerHTML;
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
@@ -2756,7 +2848,7 @@ function renderMoodSheet(){
   if(pk){
   if(MS.sel){ const r=S.mood[MS.sel]; pk.hidden=false;
     pk.innerHTML=`<span class="pd">${fmtDMY(new Date(MS.sel+"T12:00:00"))}</span>`+
-      (r?r.marks.map(m=>`<span class="tm"><span class="e">${KIND[m.k].e}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join(""):"")+
+      (r?r.marks.map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join(""):"")+
       (r?"":`<span class="fhm">В этот день отметок нет</span>`);
   } else pk.hidden=true;
   }
@@ -3422,8 +3514,11 @@ function renderRisk(){
   $("riskPill").textContent=r.lvl.l;
   const a0=Math.PI, a1=Math.PI+Math.PI*r.sc/10, R=36, cx=48, cy=50, pt=a=>[cx+Math.cos(a)*R, cy+Math.sin(a)*R];
   const [x0,y0]=pt(a0),[x1,y1]=pt(a1),[x2,y2]=pt(2*Math.PI);
-  $("riskG").innerHTML=`<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x2} ${y2}" fill="none" stroke="rgba(238,243,248,.12)" stroke-width="9" stroke-linecap="round"/><path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${r.lvl.c}" stroke-width="9" stroke-linecap="round"/><text x="48" y="50" text-anchor="middle" font-size="22" font-weight="700" fill="#eef3f8" font-family="Onest,system-ui">${r.sc}</text><text x="48" y="22" text-anchor="middle" font-size="8" fill="#9fb1c5">из 10</text>`;
-  $("riskWhy").innerHTML=r.why.map(w=>`<span>${w}</span>`).join("");
+  $("riskG").innerHTML=`<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x2} ${y2}" fill="none" stroke="var(--glass-line)" stroke-width="1" stroke-linecap="round"/><path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${r.lvl.c}" stroke-width="2" stroke-linecap="round"/><text x="48" y="50" text-anchor="middle" font-size="22" font-weight="200" fill="var(--ink)" font-family="Onest,system-ui,sans-serif">${r.sc}</text><text x="48" y="24" text-anchor="middle" font-size="7.5" font-weight="300" fill="var(--muted)">из 10</text>`;
+  // the leading emoji of each reason becomes a line icon
+  const LI={"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',"🧲":'<path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/>',
+    "🌡":'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 11v6"/>',"💨":'<path d="M3 8.5h11a2.6 2.6 0 1 0-2.6-2.6M3 12.5h15a2.8 2.8 0 1 1-2.8 2.8M3 16.5h7"/>'};
+  $("riskWhy").innerHTML=r.why.map(w=>{ const e=Object.keys(LI).find(k=>w.startsWith(k)); return `<span>${e?`<svg class="li" viewBox="0 0 24 24" aria-hidden="true">${LI[e]}</svg><span>${w.slice(e.length).replace(/^\uFE0F?\s*/,"")}</span>`:w}</span>`; }).join("");
 }
 
 /* ---------- health tab ---------- */
