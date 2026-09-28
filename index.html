@@ -1101,6 +1101,8 @@ header{position:relative}
 #introSheet .remrow input{font-size:15px}
 .inote{font-size:13px;font-weight:300;line-height:1.45;color:var(--muted);border-left:1px solid var(--glass-line);padding-left:12px}
 .inote b{color:var(--ink);font-weight:400}
+#iSpan .remrow{flex-wrap:nowrap;white-space:nowrap;gap:6px}
+#iSpan .remrow input{flex:1;min-width:0;width:0;padding:6px 6px;font-size:15px}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1404,7 +1406,7 @@ header{position:relative}
       <div class="wheel iwheel"><div class="wsel" aria-hidden="true"></div><div class="wlist" id="iEvery" role="listbox" tabindex="0" aria-label="Как часто напоминать"></div></div>
       <div id="iOnce"><div class="remrow">Во сколько напомнить: <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
         <div class="src">Одно напоминание в день, в это время.</div></div>
-      <div id="iSpan" hidden><div class="remrow">Напоминать с <input type="time" id="iFrom" value="09:00" aria-label="С какого времени"> до <input type="time" id="iTo" value="22:00" aria-label="До какого времени"></div>
+      <div id="iSpan" hidden><div class="src" style="color:var(--ink)">В какие часы можно напоминать:</div><div class="remrow">с <input type="time" id="iFrom" value="09:00" aria-label="С какого времени"> до <input type="time" id="iTo" value="22:00" aria-label="До какого времени"></div>
         <div class="src">В эти часы приложение будет спрашивать, как вы себя чувствуете. В остальное время, например ночью, оно вас не побеспокоит.</div></div>
       <div class="inote" id="iWhy"></div>
       <div class="ibtns"><button class="btn" id="iRem">Напоминать</button><button class="btn ghost" id="iSkip">Не напоминать</button></div>
