@@ -1096,6 +1096,12 @@ header{position:relative}
 .istep .remrow{font-size:16px;margin:6px 0}
 .ibig{display:flex;flex-direction:column;gap:12px;margin:40px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
 #introSheet [data-is="1"]{min-height:220px}
+#introSheet .iev{flex-wrap:wrap;gap:8px}
+#introSheet .chip{background:none;font-weight:300}
+#introSheet .chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:none;font-weight:400}
+#introSheet .remrow input{font-size:15px}
+.inote{font-size:13px;font-weight:300;line-height:1.45;color:var(--muted);border-left:1px solid var(--glass-line);padding-left:12px}
+.inote b{color:var(--ink);font-weight:400}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1395,10 +1401,12 @@ header{position:relative}
       <button class="btn inext" data-inext="3" id="iNext2" hidden>Далее</button>
     </div>
     <div class="istep" data-is="3" hidden>
-      <div class="iq">Отмечайтесь раз в день</div>
-      <div class="src" id="iWhy"></div>
-      <div class="remrow">Напоминать в <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
-      <div class="ibtns"><button class="btn" id="iRem">Напоминать мне</button><button class="btn ghost" id="iSkip">Не сейчас</button></div>
+      <div class="iq">Как часто напоминать отметить самочувствие?</div>
+      <div class="chips iev" id="iEvery"></div>
+      <div class="remrow" id="iOnce">в <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
+      <div class="remrow" id="iSpan" hidden>с <input type="time" id="iFrom" value="09:00" aria-label="С какого времени"> до <input type="time" id="iTo" value="22:00" aria-label="До какого времени"></div>
+      <div class="inote" id="iWhy"></div>
+      <div class="ibtns"><button class="btn" id="iRem">Напоминать</button><button class="btn ghost" id="iSkip">Не напоминать</button></div>
     </div>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</div>
   </div>
@@ -4061,7 +4069,8 @@ function showIntro(){
   if(!introNeeded()) return;
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
   const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
-  $("iWhy").textContent=`Через ${window.FC_READY?FC_NEED:14} дней с отметками появится ваш личный прогноз: какая погода на вас влияет и чего ждать завтра.`;
+  $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
+  const ev=$("iEvery"); if(!ev.children.length){ ev.innerHTML=[[1440,"Раз в день"],[240,"Каждые 4 часа"],[180,"Каждые 3 часа"],[120,"Каждые 2 часа"],[60,"Каждый час"]].map(([v,l])=>`<button class="chip" data-iev="${v}" aria-pressed="${v===1440}">${l}</button>`).join(""); }
   introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
 }
 function introDone(){ store.set("introDone","1"); }
@@ -4074,8 +4083,14 @@ $("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if
   setTimeout(()=>introStep(3), 1100); });      // a moment to see it recorded, then the next step
 $("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
 $("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });   // the city list, then back to this step
-$("iRem").addEventListener("click",async()=>{ introDone(); const t=$("iTime").value||"20:00"; hideSheet(); await saveRemind({every:1440, from:t, to:"22:00"}); });
-$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках."); });
+$("iEvery").addEventListener("click",e=>{ const b=e.target.closest("[data-iev]"); if(!b) return;
+  $("iEvery").querySelectorAll("[data-iev]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  const once=b.dataset.iev==="1440"; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
+$("iRem").addEventListener("click",async()=>{ introDone();
+  const every=+($("iEvery").querySelector('[aria-pressed="true"]')?.dataset.iev||1440);
+  const r=every===1440?{every, from:$("iTime").value||"20:00", to:"22:00"}:{every, from:$("iFrom").value||"09:00", to:$("iTo").value||"22:00"};
+  hideSheet(); await saveRemind(r); });
+$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); });
 function showWelcome(tries=0){
   if(Y.token || store.get("welcomeY") || Object.keys(S.mood).length<3) return;   // offered once there are three days of marks
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
