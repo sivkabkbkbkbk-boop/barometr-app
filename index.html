@@ -1094,6 +1094,8 @@ header{position:relative}
 .inext{margin-top:auto;align-self:stretch;text-align:center;padding:11px}
 .istep .ibtns .btn{flex:1;text-align:center}
 .istep .remrow{font-size:16px;margin:6px 0}
+.ibig{display:flex;flex-direction:column;gap:12px;margin:40px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
+#introSheet [data-is="1"]{min-height:220px}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1383,12 +1385,8 @@ header{position:relative}
   <div class="sbody">
     <div class="idots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
     <div class="istep" data-is="1">
-      <div class="iq">Где вы живёте?</div>
-      <div class="src">Приложение будет следить за погодой и её перепадами в этом городе.</div>
-      <div class="icity"><b id="iCity">—</b></div>
+      <div class="ibig"><button class="btn" id="iLocate">Определить моё место по GPS</button><button class="btn ghost" id="iPick">Указать место</button></div>
       <div class="src" id="iHint" hidden></div>
-      <div class="ibtns"><button class="btn ghost" id="iLocate">Определить</button><button class="btn ghost" id="iPick">Выбрать из списка</button></div>
-      <button class="btn inext" data-inext="2">Далее</button>
     </div>
     <div class="istep" data-is="2" hidden>
       <div class="iq">Как вы себя чувствуете сейчас?</div>
@@ -2205,16 +2203,16 @@ function locate(){
     try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
     catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
-    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity();   // only the city list closes; a welcome or other window stays
+    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()) introStep(2);   // only the city list closes; a welcome or other window stays
   }, err=>{
-    LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — выберите город из списка."; } return; }
+    LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — нажмите «Указать место»."; } return; }
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
   }, {enableHighAccuracy:false, timeout:15000, maximumAge:30*60*1000});
 }
 function selectCity(id){
   S.slug=id; store.set("city",id);
   if(typeof introCity==="function") setTimeout(introCity,0);
-  if(INTRO_BACK_PENDING()) setTimeout(showIntro,500);
+  if(INTRO_BACK_PENDING()) setTimeout(()=>{ introStep(2); showIntro(); },500);
   if(!S.feed[id]) S.feed[id]=loadJSON("feed:"+id,null)||undefined;
   stopPlay(); RAD.times=[]; RAD.lats=[]; radarFromCache(id);
   render(); drawRadar(); refreshNow(true);
@@ -4058,14 +4056,13 @@ function thRender(){ for(const id of ["thSet","thWel"]){ const el=$(id); if(el&&
 /* first run: one short window — the city, the first mark, a daily reminder */
 const introNeeded=()=>!store.get("introDone") && !S.marks.length && !Y.token && !store.get("welcomeY");
 let INTRO_BACK=false;
-function introCity(){ const e=$("iCity"); if(e) e.textContent=LOCATING?"определяю…":cityOf(S.slug).name; }
+function introCity(){ const b=$("iLocate"); if(b) b.textContent=LOCATING?"Определяю…":"Определить моё место по GPS"; }
 function showIntro(){
   if(!introNeeded()) return;
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
   const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
   $("iWhy").textContent=`Через ${window.FC_READY?FC_NEED:14} дней с отметками появится ваш личный прогноз: какая погода на вас влияет и чего ждать завтра.`;
   introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
-  if(!store.get("gpsDone")&&!LOCATING){ locate(); introCity(); }
 }
 function introDone(){ store.set("introDone","1"); }
 function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
