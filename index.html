@@ -4734,7 +4734,7 @@ const MN = NATIVE ? (window.Capacitor.Plugins?.MoodNotify || null) : null;
 window.__MN = MN;
 /* anonymous usage count: "installed" once and "opened today" once a day, nothing else — no id, no city, no health data.
    The counter's address goes here; while it is empty nothing is sent and the switch in the settings is hidden. */
-const STAT_URL = "";          // e.g. "https://<name>.goatcounter.com/count"
+const STAT_URL = "https://slavefossil.goatcounter.com/count";
 const statOn = () => !!STAT_URL && NATIVE && store.get("stat") !== "off";
 function statPing(){
   if(!statOn()) return;
