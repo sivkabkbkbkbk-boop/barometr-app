@@ -998,6 +998,57 @@ header{position:relative}
 .mkf{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round}
 .mkf *{vector-effect:non-scaling-stroke;stroke-width:1.1px}
 #pgRep .rpan{background:none;border-top:1px solid var(--glass-line);border-radius:0;padding:14px 0 4px}
+/* the friends screen, the chats and the floating buttons */
+#pgFriends .ptitle h1{font-weight:200;font-size:30px}
+#pgFriends .chip{background:none;font-weight:300}
+#pgFriends .chip.on{border-color:var(--ink);color:var(--ink);background:none}
+#pgFriends .seg3{background:none;border-bottom:1px solid var(--glass-line);border-radius:0;padding:0;gap:0}
+#pgFriends .seg3 button{border-radius:0;padding:9px 2px;font-weight:300}
+#pgFriends .seg3 button[aria-pressed="true"]{background:none;color:var(--ink);font-weight:400;box-shadow:inset 0 -1px 0 var(--ink)}
+#pgFriends .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
+#pgFriends .label{font-weight:400;letter-spacing:.16em}
+#pgFriends .friends{gap:0}
+.av{background:none!important;border:1px solid var(--glass-line);color:var(--ink);font-weight:300}
+.av em{right:-6px;bottom:-6px;display:grid;background:var(--sky-top);border-radius:50%}
+.av em .kf{width:18px;height:18px}
+.av.grp .li{width:20px;height:20px}
+#pgFriends .fcard .fn b{font-weight:400}
+#pgFriends .fhm,#pgFriends .hint,#pgFriends .src{font-weight:300}
+.wxi{display:inline-block;width:16px;height:16px;vertical-align:-3px;color:var(--ink)}.wxi svg{width:100%;height:100%}
+.chatb{background:none;display:inline-grid;place-items:center}
+.chatb .li{width:18px;height:18px}.chatb.big .li{width:20px;height:20px}
+#pgFriends .ftiles{gap:0}
+#pgFriends .ftile{background:none;border:0;border-left:1px solid var(--glass-line);border-radius:0;padding:2px 10px}
+#pgFriends .ftile:first-child{border-left:0;padding-left:0}
+#pgFriends .ftile .fv{font-weight:300}
+#pgFriends .ftile .hp{background:none;padding:0;font-weight:400}
+.wk4{display:inline-flex;gap:2px;align-items:center;font-family:inherit;color:var(--muted)}.wk4 .kf{width:16px;height:16px;color:var(--ink)}
+#pgFriends .flast{background:none;border:1px solid var(--glass-line);font-weight:300}
+#pgFriends .fbox{background:none;border-top:1px solid var(--glass-line);border-radius:0;padding:14px 2px}
+#pgFriends .fbox input{background:none}
+#pgFriends .btn{background:none;color:var(--ink);border:1px solid var(--ink);font-weight:400}
+#pgFriends .btn.ghost{border-color:var(--glass-line);font-weight:300}
+#pgFriends .fgrid td{background:none;font-family:inherit;border:1px solid transparent}
+#pgFriends .fgrid td .kf{width:18px;height:18px;margin:auto}
+#pgFriends .fgrid td.today{outline:0;border-color:var(--glass-line)}
+#pgFriends .fgrid th.nm{font-weight:400}
+#pgFriends .rsw .knob,.rsw .knob{background:none;border:1px solid var(--glass-line)}
+.rsw .knob::after{top:1px;left:1px;width:16px;height:16px;background:none;border:1px solid var(--muted);box-sizing:border-box}
+.rsw input:checked+.knob{background:none;border-color:var(--ink)}
+.rsw input:checked+.knob::after{border-color:var(--ink);background:var(--ink)}
+.cl .t b{font-weight:400}
+.newg{background:none!important;font-weight:300}
+#pgFriends .hei .li{width:40px;height:40px;stroke-width:1.1;color:var(--ink)}
+/* chat bubbles: outlines, yours in the text colour */
+.msg{background:none;border:1px solid var(--glass-line);font-weight:300}
+.msg.me{background:none;border-color:rgb(var(--inkc) / .55);color:var(--ink)}
+.msg.me .tm{color:var(--muted)}
+.msg.me .stc{background:none}
+/* the floating mood and chat buttons */
+.mchip{background:var(--sky-top);box-shadow:none}
+.mchip .e{display:grid;place-items:center;color:var(--ink)}.mchip .e .kf{width:30px;height:30px}
+.cfab{background:var(--sky-top)!important;color:var(--ink)!important;border:1px solid rgb(var(--inkc) / .4)!important;box-shadow:none!important}
+.cfab svg{stroke-width:1.4}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1141,7 +1192,7 @@ header{position:relative}
 </main>
 <main class="app page" id="pgFriends" hidden>
   <div class="ptitle"><h1>Друзья</h1><button class="chip on" id="frInvite">＋ Пригласить</button></div>
-  <div class="seg3 two" id="fSeg"><button data-fs="friends">👥 Друзья</button><button data-fs="chats">💬 Чаты <i id="fSegN"></i></button></div>
+  <div class="seg3 two" id="fSeg"><button data-fs="friends">Друзья</button><button data-fs="chats">Чаты <i id="fSegN"></i></button></div>
   <div class="friends" id="friends"></div>
   <div class="friends" id="chats" hidden></div>
 </main>
@@ -2784,6 +2835,8 @@ const GLI={"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>'
 const FACE_E={"😊":"good","🙂":"good","😄":"great","😐":"meh","😣":"bad"};
 // the line icon for an emoji (faces become line faces); anything unknown stays as it is
 const lic=(e,c="li")=>FACE_E[e]?kf(FACE_E[e]).replace('class="kf"',`class="kf ${c}"`):GLI[e]?`<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${GLI[e]}</svg>`:e;
+const EK=Object.fromEntries(KINDS.map(x=>[x.e,x.k]));
+const ekf=e=>{ const k=EK[e]||FACE_E[e]; return k?kf(k):(e||""); };
 const kf=k=>`<svg class="kf" viewBox="0 0 40 40" aria-hidden="true">${KFACE[k]||""}</svg>`;
 const OLDV={3:"good",2:"meh",1:"bad"};                     // marks from the first version (3 smileys)
 const MOOD={3:{e:"🙂",l:"Хорошо",c:"#8be38f"},2:{e:"😐",l:"Так себе",c:"#f2c94c"},1:{e:"😣",l:"Плохо",c:"#ff7a6b"}};
@@ -2838,7 +2891,7 @@ function renderMood(){
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
   const chip=$("moodChip"), last=list[list.length-1];
-  $("moodChipE").textContent = last ? KIND[last.k].e : "🙂";
+  $("moodChipE").innerHTML = kf(last ? last.k : "good");
   chip.classList.toggle("ask", !rec);
   chip.setAttribute("aria-label", last ? `Последняя отметка: ${KIND[last.k].l}. Добавить отметку` : "Отметить самочувствие");
   if($("moodPop").hidden) chip.hidden=!!LAYOUT.cardMood;
@@ -4112,26 +4165,26 @@ function renderFriends(state){
   if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
   else if(!SH.on){ const lastF=Object.values(FR.list).sort((a,b)=>(b.added||"")<(a.added||"")?-1:1)[0];
     h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар — а вы их. Всё настраивается в одном окне за пару шагов.</div>
-      ${lastF?`<button class="btn" data-f="fsreply" data-n="${esc2(lastF.name||"Друг")}">📨 Отправить ответ: ${esc2(lastF.name||"Друг")}</button>`:""}
+      ${lastF?`<button class="btn" data-f="fsreply" data-n="${esc2(lastF.name||"Друг")}">Отправить ответ: ${esc2(lastF.name||"Друг")}</button>`:""}
       <button class="btn${lastF?" ghost":""}" data-f="fsinvite">＋ Пригласить друга</button></div>`; }
   const fl=Object.values(FR.list);
-  if(!fl.length&&SH.on) h+=`<div class="card hempty"><div style="font-size:38px">🤝</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">📨 Пригласить друга</button></div>`;
+  if(!fl.length&&SH.on) h+=`<div class="card hempty"><div class="hei">${lic("🤝")}</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">Пригласить друга</button></div>`;
   const today=isoDay(new Date());
   for(const f of fl){
     const d=f.data||{}, mood=d.mood||{}, tm=mood[today], hmv=d.hm||[];
     const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
-    const wk=[]; for(let i=3;i>=0;i--){ const r=mood[isoDay(new Date(Date.now()-i*DAY))]; wk.push(r?.e||"·"); }
-    const wx=d.wx&&Date.now()-+new Date(d.wx.at||0)<12*H?` · ${d.wx.t}° ${WXE[d.wx.k]||""}`:"";
+    const wk=[]; for(let i=3;i>=0;i--){ const r=mood[isoDay(new Date(Date.now()-i*DAY))]; wk.push(r?.e?ekf(r.e):"·"); }
+    const wx=d.wx&&Date.now()-+new Date(d.wx.at||0)<12*H?` · ${d.wx.t}° <span class="wxi">${icon(WXS[d.wx.k]||"cloudy")}</span>`:"";
     const L=threadLast(f.k), un=chatUnread(f);
     const tile=(lab,val,pill,sub)=>`<div class="ftile"><span class="kl">${lab}</span><span class="mono fv">${val}</span>${pill?`<span class="hp" style="--c:${pill.c}">${pill.l}</span>`:`<span class="kl">${sub||""}</span>`}</div>`;
     h+=`<div class="card fcard">
-      <div class="fr"><span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${tm.e}</em>`:""}</span>
+      <div class="fr"><span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${ekf(tm.e)}</em>`:""}</span>
         <span class="fn"><b>${esc2(f.name||"Друг")}</b><span class="fhm">${f.gone?"закрыл(а) доступ":esc2(d.city||"загружаю…")}${wx}</span></span>
-        <button class="chatb big" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}">💬${un?`<i>${un}</i>`:""}</button>
+        <button class="chatb big" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/></svg>${un?`<i>${un}</i>`:""}</button>
         <button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>
       ${f.data?`<div class="ftiles">${tile(lb?`А/Д · ${shortWhen(lb.t)}`:"А/Д",lb?`${lb.sys}/${lb.dia}`:"—",lb?bpCat(lb.sys,lb.dia):null,lb?"":"нет данных")}${tile(lg?`Сахар · ${shortWhen(lg.t)}`:"Сахар",lg?fmtNum(lg.v):"—",lg?gluCat(lg.v,lg.ctx):null,lg?"":"нет данных")}${tile("4 дня",`<span class="wk4">${wk.join("")}</span>`,null,tm?tm.l||"":"сегодня без отметки")}</div>`:""}
-      ${L?`<button class="flast" data-chat="${esc2(f.k)}"><b>${L.me?"Вы":esc2(f.name)}:</b> ${L.c?"📋 состояние":esc2(L.x)} <span class="fhm">· ${shortWhen(L.t)}</span></button>`:""}
-      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">⏳ У ${esc2(f.name)} вас пока нет в друзьях. <button class="mlink" data-f="send" style="padding:0">Отправить приглашение</button></div>`:""}
+      ${L?`<button class="flast" data-chat="${esc2(f.k)}"><b>${L.me?"Вы":esc2(f.name)}:</b> ${L.c?"состояние":esc2(L.x)} <span class="fhm">· ${shortWhen(L.t)}</span></button>`:""}
+      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">У ${esc2(f.name)} вас пока нет в друзьях. <button class="mlink" data-f="send" style="padding:0">Отправить приглашение</button></div>`:""}
       ${!f.s?`<div class="fhm">Для чата и давления нужно новое приглашение от ${esc2(f.name)}.</div>`:""}
     </div>`;
   }
@@ -4142,7 +4195,7 @@ function renderFriends(state){
       for(const [d,r] of Object.entries(S.mood)){ const fs=sc(fm[d]); if(d<since||fs==null) continue; both++; if(Math.abs(fs-r.v)<0.75) same++; if(fs<=1.5&&r.v<=1.5) bad.push(d); }
       if(both>=3) lines.push(`С <b>${esc2(f.name)}</b> самочувствие совпало ${same} из ${both} дней${bad.length?` — обоим было плохо ${bad.sort().slice(-3).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:""}.`); }
     const days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(Date.now()-i*DAY)));
-    const emo=v=>v==null?"":typeof v==="number"?(MOOD[v]?.e||""):(v.e||"");
+    const emo=v=>v==null?"":ekf(typeof v==="number"?(MOOD[v]?.e||""):(v.e||""));
     const rows=[[`Я`, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", d=>f.data?.mood?.[d]]));
     h+=`<div class="card"><div class="label">Совпадения самочувствия</div>${lines.length?`<div class="ins" style="gap:6px">${lines.map(l=>`<span>${l}</span>`).join("")}</div>`:`<div class="fhm" style="margin-top:6px">Появятся, когда у вас будет хотя бы 3 общих дня с отметками.</div>`}
       <div class="fgrid" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
@@ -4152,7 +4205,7 @@ function renderFriends(state){
     <label class="rsw hmsw"><input type="checkbox" data-f="rr" ${SH.rr!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Отчёты о прочтении</label>
     <div class="hint">Выключите, и друзья не увидят, что вы прочитали их сообщения, а вы не увидите, что прочитали они. «Получено» видно всегда.</div>
     <div class="hint">Вы делитесь как <b>${esc2(SH.name)}</b>. «＋ Пригласить» наверху откроет «Поделиться» — друг получит приглашение с вашим именем.</div><button class="btn ghost" data-f="stop">Перестать делиться</button></div>`;
-  h+=`<button class="btn ghost" data-f="check">🔧 Не получается добавить друга? Проверить связь</button>`;
+  h+=`<button class="btn ghost" data-f="check">Не получается добавить друга? Проверить связь</button>`;
   h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
   box.innerHTML=h;
   box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
@@ -4521,7 +4574,7 @@ $("chatList").addEventListener("click",e=>{ const gi=e.target.closest("[data-mid
 
 /* ---------- friends tab: people and chats ---------- */
 let FSEG="friends";
-const WXE={clear:"☀️",fair:"🌤",partly:"⛅",cloud:"☁️",rain:"🌧",snow:"🌨",thunder:"⛈",fog:"🌫"};
+const WXS={clear:"clearsky_day",fair:"fair_day",partly:"partlycloudy_day",cloud:"cloudy",rain:"rain",snow:"snow",thunder:"rainandthunder",fog:"fog"};   // a friend's weather kind as a symbol for the line icons
 function renderFriendsPage(){
   document.querySelectorAll("#fSeg [data-fs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.fs===FSEG));
   $("friends").hidden=FSEG!=="friends"; $("chats").hidden=FSEG!=="chats";
@@ -4536,12 +4589,12 @@ const shortWhen=t=>{ const d=new Date(t), dd=isoDay(d); return dd===isoDay(new D
 function renderChats(to="chats"){
   const rows=[];
   for(const G of Object.values(CHAT.groups)){ const L=threadLast("g:"+G.id); rows.push({key:"g:"+G.id,t:L?.t||G.created||"",html:(()=>{ const un=groupUnread(G.id);
-    const prev=L?`${L.me?"Вы":esc(memberName(L.from,G.id))}: ${L.c?"📋 состояние":esc(L.x)}`:`${G.members.length} участника · напишите первым`;
-    return `<button class="cl" data-open="g:${esc(G.id)}"><span class="av grp">👥</span><span class="t"><span><b>${esc(G.name)}</b> <small>· ${G.members.length} уч.</small></span><span class="pv">${prev}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:""}</span></button>`; })()}); }
+    const prev=L?`${L.me?"Вы":esc(memberName(L.from,G.id))}: ${L.c?"состояние":esc(L.x)}`:`${G.members.length} участника · напишите первым`;
+    return `<button class="cl" data-open="g:${esc(G.id)}"><span class="av grp">${lic("🤝")}</span><span class="t"><span><b>${esc(G.name)}</b> <small>· ${G.members.length} уч.</small></span><span class="pv">${prev}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:""}</span></button>`; })()}); }
   for(const f of Object.values(FR.list)){ const L=threadLast(f.k), un=chatUnread(f), today=f.data?.mood?.[isoDay(new Date())];
-    rows.push({key:f.k,t:L?.t||"",html:`<button class="cl" data-open="${esc(f.k)}"><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}${today?`<em>${today.e}</em>`:""}</span><span class="t"><b>${esc(f.name)}</b><span class="pv">${L?`${L.me?"Вы: ":""}${L.c?"📋 состояние":esc(L.x)}`:f.s?"Нет сообщений":"нужно новое приглашение для чата"}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:L&&L.me?(L.st==="ok"?"✓":""):""}</span></button>`}); }
+    rows.push({key:f.k,t:L?.t||"",html:`<button class="cl" data-open="${esc(f.k)}"><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}${today?`<em>${ekf(today.e)}</em>`:""}</span><span class="t"><b>${esc(f.name)}</b><span class="pv">${L?`${L.me?"Вы: ":""}${L.c?"состояние":esc(L.x)}`:f.s?"Нет сообщений":"нужно новое приглашение для чата"}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:L&&L.me?(L.st==="ok"?"✓":""):""}</span></button>`}); }
   rows.sort((a,b)=>(b.t||"").localeCompare(a.t||""));
-  let h=rows.length?`<div class="card" style="padding:2px 12px">${rows.map(r=>r.html).join("")}</div>`:`<div class="card hempty"><div style="font-size:38px">💬</div><div>Здесь будут переписки с друзьями. Пригласите друга кнопкой «＋ Пригласить».</div></div>`;
+  let h=rows.length?`<div class="card" style="padding:2px 12px">${rows.map(r=>r.html).join("")}</div>`:`<div class="card hempty"><div class="hei">${lic("💬")}</div><div>Здесь будут переписки с друзьями. Пригласите друга кнопкой «＋ Пригласить».</div></div>`;
   const ok=Object.values(FR.list).filter(f=>f.s).length;
   h+=`<button class="card newg" data-newg ${ok<2?"disabled":""}>＋ Создать общий чат<small>${ok<2?"нужно хотя бы двое друзей с новым приглашением":"например, со всей семьёй"}</small></button>`;
   $(to).innerHTML=h;
