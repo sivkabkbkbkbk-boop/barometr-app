@@ -715,18 +715,6 @@ jobs:
                   prefs(c).edit().putBoolean("exactUsed", exact).putString("schedErr", err).putLong("schedAt", System.currentTimeMillis()).apply();
               }
 
-              // a one-off question in `sec` seconds by the same alarm path, to see whether alarms reach the app at all
-              static void testIn(Context c, int sec) {
-                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
-                  PendingIntent pi = PendingIntent.getBroadcast(c, 3, new Intent(c, MoodAlarmReceiver.class).putExtra("test", true), FLAGS);
-                  long t = System.currentTimeMillis() + sec * 1000L;
-                  boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
-                  try {
-                      if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
-                      else am.set(AlarmManager.RTC_WAKEUP, t, pi);
-                  } catch (Exception e) { prefs(c).edit().putString("schedErr", e.toString()).apply(); }
-                  prefs(c).edit().putLong("testAt", t).apply();
-              }
 
               static void channel(Context c) {
                   if (Build.VERSION.SDK_INT >= 26) {
@@ -894,12 +882,10 @@ jobs:
                   r.put("lastFire", s.getLong("lastFire", 0));
                   r.put("lastPosted", s.getLong("lastPosted", 0));
                   r.put("maker", android.os.Build.MANUFACTURER);
-                  r.put("lastWhy", s.getString("lastWhy", ""));
                   r.put("schedErr", s.getString("schedErr", ""));
                   r.put("exactUsed", s.getBoolean("exactUsed", false));
                   r.put("every", s.getInt("every", 0));
                   r.put("pending", android.app.PendingIntent.getBroadcast(c, 1, new android.content.Intent(c, MoodAlarmReceiver.class), android.app.PendingIntent.FLAG_NO_CREATE | android.app.PendingIntent.FLAG_IMMUTABLE) != null);
-                  r.put("testAt", s.getLong("testAt", 0));
                   r.put("keep", s.getBoolean("keep", false));
                   r.put("keepErr", s.getString("keepErr", ""));
                   boolean running = false;
@@ -915,12 +901,6 @@ jobs:
                   if (call.hasOption("text")) e.putString("keepText", call.getString("text", ""));
                   e.apply();
                   MoodKeep.sync(getContext());
-                  call.resolve();
-              }
-
-              @PluginMethod
-              public void testIn(PluginCall call) {
-                  MoodNotify.testIn(getContext(), call.getInt("sec", 60));
                   call.resolve();
               }
 
@@ -996,11 +976,10 @@ jobs:
                   } else {
                       recent = now - last < every * 60000L / 2;
                   }
-                  boolean test = intent.getBooleanExtra("test", false);
-                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now).putString("lastWhy", test ? "test" : every <= 0 ? "off" : recent ? "recent" : "asked");
-                  if (test || (every > 0 && !recent)) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
+                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now);
+                  if (every > 0 && !recent) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
                   ed.apply();
-                  if (!test) MoodNotify.schedule(c);
+                  MoodNotify.schedule(c);
                   if (MoodKeep.wanted(c)) MoodKeep.sync(c);
               }
           }
@@ -1206,11 +1185,8 @@ jobs:
           public class MainActivity extends BridgeActivity {
               @Override
               public void onCreate(Bundle savedInstanceState) {
-                  CrashLogPlugin.install(getApplicationContext());
                   // lets an off-screen WebView draw the whole page, for the PDF report; must come before any WebView exists
                   android.webkit.WebView.enableSlowWholeDocumentDraw();
-                  CrashLogPlugin.note(this, "activity create" + (savedInstanceState != null ? " (restored after the system closed it)" : "")
-                      + " · Android " + Build.VERSION.RELEASE + " · " + Build.MANUFACTURER + " " + Build.MODEL);
                   registerPlugin(ApkUpdatePlugin.class);
                   registerPlugin(MoodNotifyPlugin.class);
                   registerPlugin(ChatWatchPlugin.class);
@@ -1218,17 +1194,10 @@ jobs:
                   registerPlugin(ThemeBarsPlugin.class);
                   registerPlugin(WxWidgetPlugin.class);
                   registerPlugin(FcNotifyPlugin.class);
-                  registerPlugin(CrashLogPlugin.class);
                   registerPlugin(PhoneStepsPlugin.class);
                   registerPlugin(PdfReportPlugin.class);
                   super.onCreate(savedInstanceState);
               }
-
-              // steps of the activity, for the diagnostics in Settings
-              @Override public void onPause() { CrashLogPlugin.note(this, "activity pause"); super.onPause(); }
-              @Override public void onResume() { super.onResume(); CrashLogPlugin.note(this, "activity resume"); }
-              @Override public void onStop() { CrashLogPlugin.note(this, "activity stop, finishing=" + isFinishing()); super.onStop(); }
-              @Override public void onDestroy() { CrashLogPlugin.note(this, "activity destroy, finishing=" + isFinishing()); super.onDestroy(); }
           }
           JAVA
           cat > $L/mood_small.xml <<'XML'
@@ -1449,70 +1418,6 @@ jobs:
           }
           JAVA
           # when the app closes on an error, keep the reason: Settings shows it so it can be copied and sent
-          cat > $J/CrashLogPlugin.java <<'JAVA'
-          package ru.barometr.neba;
-
-          import android.content.Context;
-          import com.getcapacitor.JSObject;
-          import com.getcapacitor.Plugin;
-          import com.getcapacitor.PluginCall;
-          import com.getcapacitor.PluginMethod;
-          import com.getcapacitor.annotation.CapacitorPlugin;
-          import java.io.PrintWriter;
-          import java.io.StringWriter;
-          import java.util.Date;
-
-          @CapacitorPlugin(name = "CrashLog")
-          public class CrashLogPlugin extends Plugin {
-              // the last 60 steps, oldest first
-              static synchronized void note(Context c, String what) {
-                  try {
-                      android.content.SharedPreferences p = c.getApplicationContext().getSharedPreferences("crash", Context.MODE_PRIVATE);
-                      String t = p.getString("trail", "") + new java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(new Date()) + " " + what + "\n";
-                      String[] lines = t.split("\n");
-                      if (lines.length > 60) t = android.text.TextUtils.join("\n", java.util.Arrays.copyOfRange(lines, lines.length - 60, lines.length)) + "\n";
-                      p.edit().putString("trail", t).commit();
-                  } catch (Throwable ignored) { }
-              }
-
-              @PluginMethod
-              public void note(PluginCall call) {
-                  note(getContext(), "js: " + call.getString("text", ""));
-                  call.resolve();
-              }
-
-              static void install(final Context app) {
-                  final Thread.UncaughtExceptionHandler prev = Thread.getDefaultUncaughtExceptionHandler();
-                  Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-                      try {
-                          StringWriter sw = new StringWriter();
-                          e.printStackTrace(new PrintWriter(sw));
-                          String s = sw.toString();
-                          if (s.length() > 6000) s = s.substring(0, 6000);
-                          String ver = "?";
-                          try { ver = app.getPackageManager().getPackageInfo(app.getPackageName(), 0).versionName; } catch (Throwable ignored) { }
-                          app.getSharedPreferences("crash", Context.MODE_PRIVATE).edit()
-                              .putString("last", new Date() + " · сборка " + ver + "\n" + s).commit();
-                      } catch (Throwable ignored) { }
-                      if (prev != null) prev.uncaughtException(t, e);
-                  });
-              }
-
-              @PluginMethod
-              public void get(PluginCall call) {
-                  JSObject r = new JSObject();
-                  r.put("text", getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).getString("last", ""));
-                  r.put("trail", getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).getString("trail", ""));
-                  call.resolve(r);
-              }
-
-              @PluginMethod
-              public void clear(PluginCall call) {
-                  getContext().getSharedPreferences("crash", Context.MODE_PRIVATE).edit().remove("last").remove("trail").apply();
-                  call.resolve();
-              }
-          }
-          JAVA
           # the doctor's report: the app gives the pages as HTML, we draw them into a PDF and share or save it
           cat > $J/PdfReportPlugin.java <<'JAVA'
           package ru.barometr.neba;
@@ -1682,7 +1587,7 @@ jobs:
               static void sample(final Context c, final Runnable done) {
                   final SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
                   final Sensor s = sm == null ? null : sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-                  if (s == null) { CrashLogPlugin.note(c, "steps: no step sensor"); done.run(); return; }
+                  if (s == null) { done.run(); return; }
                   final HandlerThread th = new HandlerThread("steps");
                   th.start();
                   final Handler h = new Handler(th.getLooper());
@@ -1691,18 +1596,15 @@ jobs:
                       public void onSensorChanged(SensorEvent e) {
                           synchronized (fin) { if (fin[0]) return; fin[0] = true; }
                           sm.unregisterListener(this);
-                          CrashLogPlugin.note(c, "steps: sensor says " + (long) e.values[0]);
-                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable x) { CrashLogPlugin.note(c, "steps: " + x); }
+                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable x) { }
                           done.run(); th.quitSafely();
                       }
                       public void onAccuracyChanged(Sensor sensor, int a) { }
                   };
-                  boolean ok = sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, 0, h);
-                  CrashLogPlugin.note(c, "steps: listening, registered=" + ok);
+                  sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, 0, h);
                   // no event within 10 s (some phones answer only after a step): give up for now
                   h.postDelayed(new Runnable() { public void run() {
                       synchronized (fin) { if (fin[0]) return; fin[0] = true; }
-                      CrashLogPlugin.note(c, "steps: sensor silent for 10 s");
                       sm.unregisterListener(l); done.run(); th.quitSafely();
                   }}, 10000);
               }
@@ -1715,10 +1617,7 @@ jobs:
                   JSONObject days = new JSONObject(p.getString("days", "{}"));
                   long last = p.getLong("last", -1), lastT = p.getLong("lastT", 0);
                   String today = day(now);
-                  if (last < 0) {
-                      // the very first reading is only the starting point: what the number includes differs by phone
-                      CrashLogPlugin.note(c, "steps: first reading " + count + ", counting from now on");
-                  } else {
+                  if (last >= 0) {                       // the very first reading is only the starting point: what it includes differs by phone
                       long delta = count >= last ? count - last : count;      // smaller: the phone was restarted
                       if (delta > 0 && delta < 100000) {
                           String d0 = day(lastT), d1 = day(now);
@@ -1780,14 +1679,12 @@ jobs:
               @PluginMethod
               public void start(PluginCall call) {
                   if (!call.getBoolean("on", true)) { PhoneSteps.prefs(getContext()).edit().putBoolean("on", false).apply(); PhoneSteps.schedule(getContext()); call.resolve(); return; }
-                  CrashLogPlugin.note(getContext(), "steps: start, sensor=" + PhoneSteps.hasSensor(getContext()) + " granted=" + granted());
                   if (!granted()) { requestPermissionForAlias("activity", call, "onPermission"); return; }
                   begin(call);
               }
 
               @PermissionCallback
               private void onPermission(PluginCall call) {
-                  CrashLogPlugin.note(getContext(), "steps: permission answer, granted=" + granted());
                   if (!granted()) { JSObject r = new JSObject(); r.put("granted", false); call.resolve(r); return; }
                   begin(call);
               }
