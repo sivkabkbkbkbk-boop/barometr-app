@@ -1076,13 +1076,7 @@ header{position:relative}
 .remwarn{background:none}
 .witem{font-weight:200}.witem.on{font-weight:400}
 /* the first-run window and the way to the personal forecast */
-.ist{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--glass-line)}
-.ist:first-child{border-top:0}
-.isn{flex:none;width:24px;height:24px;border-radius:50%;border:1px solid rgb(var(--inkc) / .4);display:grid;place-items:center;font:300 12px var(--f-mono);margin-top:2px}
-.isb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
-.isb .ctitle{margin-top:4px}
-.icity{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:17px}.icity b{font-weight:300}
-.icity .mlink{padding:0;font-weight:300}
+.icity b{font-weight:200}
 #kgIntro{gap:12px 4px}#kgIntro .kbtn{border:0;background:none;padding:2px 0}#kgIntro .kbtn .l{font-weight:300}
 #kgIntro .kbtn.pop{background:none}#kgIntro .kbtn.pop .kf{color:var(--press)}
 .ibtns{display:flex;gap:8px;flex-wrap:wrap}
@@ -1093,6 +1087,13 @@ header{position:relative}
 .fcprog[hidden]{display:none}
 .welc .wi:empty{display:none}
 #introSheet .note{font-size:11px;font-weight:300;color:var(--muted);line-height:1.4}
+.idots{display:flex;gap:6px;justify-content:center;margin:2px 0 6px}.idots i{width:18px;height:2px;background:var(--glass-line)}.idots i.on{background:var(--ink)}
+.istep{display:flex;flex-direction:column;gap:12px;min-height:300px}
+.iq{font-size:22px;font-weight:200;line-height:1.25}
+.istep .icity{font-size:26px;margin:10px 0 4px}
+.inext{margin-top:auto;align-self:stretch;text-align:center;padding:11px}
+.istep .ibtns .btn{flex:1;text-align:center}
+.istep .remrow{font-size:16px;margin:6px 0}
 /* the bottom menu */
 .bnav{background:var(--sky-top);-webkit-backdrop-filter:none;backdrop-filter:none}
 .bnav button{font-weight:300}
@@ -1380,14 +1381,27 @@ header{position:relative}
   <div class="grab"></div>
   <div class="shead"><div><h2 id="introTitle">«Не18мнеуже»</h2><div class="sc">подскажет, какая погода влияет именно на вас</div></div></div>
   <div class="sbody">
-    <div class="ist"><span class="isn">1</span><div class="isb"><div class="ctitle">Ваш город</div>
-      <div class="icity"><b id="iCity">—</b><button class="mlink" id="iLocate">определить</button><button class="mlink" id="iPick">выбрать</button></div><div class="src" id="iHint" hidden></div></div></div>
-    <div class="ist"><span class="isn">2</span><div class="isb"><div class="ctitle">Как вы себя чувствуете сейчас?</div>
-      <div class="kgrid" id="kgIntro"></div><div class="src" id="iMarked">Нажмите на смайлик — это первая отметка в дневнике.</div></div></div>
-    <div class="ist"><span class="isn">3</span><div class="isb"><div class="ctitle">Отмечайтесь раз в день</div>
+    <div class="idots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    <div class="istep" data-is="1">
+      <div class="iq">Где вы живёте?</div>
+      <div class="src">Приложение будет следить за погодой и её перепадами в этом городе.</div>
+      <div class="icity"><b id="iCity">—</b></div>
+      <div class="src" id="iHint" hidden></div>
+      <div class="ibtns"><button class="btn ghost" id="iLocate">Определить</button><button class="btn ghost" id="iPick">Выбрать из списка</button></div>
+      <button class="btn inext" data-inext="2">Далее</button>
+    </div>
+    <div class="istep" data-is="2" hidden>
+      <div class="iq">Как вы себя чувствуете сейчас?</div>
+      <div class="src" id="iMarked">Нажмите на смайлик — это первая отметка в дневнике.</div>
+      <div class="kgrid" id="kgIntro"></div>
+      <button class="btn inext" data-inext="3" id="iNext2" hidden>Далее</button>
+    </div>
+    <div class="istep" data-is="3" hidden>
+      <div class="iq">Отмечайтесь раз в день</div>
       <div class="src" id="iWhy"></div>
       <div class="remrow">Напоминать в <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
-      <div class="ibtns"><button class="btn" id="iRem">Напоминать мне</button><button class="btn ghost" id="iSkip">Не сейчас</button></div></div></div>
+      <div class="ibtns"><button class="btn" id="iRem">Напоминать мне</button><button class="btn ghost" id="iSkip">Не сейчас</button></div>
+    </div>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</div>
   </div>
 </section>
@@ -4044,21 +4058,25 @@ function thRender(){ for(const id of ["thSet","thWel"]){ const el=$(id); if(el&&
 /* first run: one short window — the city, the first mark, a daily reminder */
 const introNeeded=()=>!store.get("introDone") && !S.marks.length && !Y.token && !store.get("welcomeY");
 let INTRO_BACK=false;
-function introCity(){ const e=$("iCity"); if(e) e.textContent=cityOf(S.slug).name+(LOCATING?" · определяю…":""); }
+function introCity(){ const e=$("iCity"); if(e) e.textContent=LOCATING?"определяю…":cityOf(S.slug).name; }
 function showIntro(){
   if(!introNeeded()) return;
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
   const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
   $("iWhy").textContent=`Через ${window.FC_READY?FC_NEED:14} дней с отметками появится ваш личный прогноз: какая погода на вас влияет и чего ждать завтра.`;
-  introCity(); showSheet("introSheet");
+  introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
   if(!store.get("gpsDone")&&!LOCATING){ locate(); introCity(); }
 }
 function introDone(){ store.set("introDone","1"); }
-$("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k) return;
+function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
+  $("introSheet").querySelectorAll(".idots i").forEach((d,i)=>d.classList.toggle("on",i<n)); $("introSheet").querySelector(".sbody").scrollTop=0; }
+$("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
+$("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k||$("kgIntro").dataset.done) return; $("kgIntro").dataset.done="1";
   k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); rebuildMood(); renderMood();
-  $("iMarked").textContent=`${KIND[k.dataset.k].l} — записано. Первая отметка есть!`; });
+  $("iMarked").textContent=`${KIND[k.dataset.k].l} — записано. Первая отметка есть!`;
+  setTimeout(()=>introStep(3), 1100); });      // a moment to see it recorded, then the next step
 $("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
-$("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });
+$("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });   // the city list, then back to this step
 $("iRem").addEventListener("click",async()=>{ introDone(); const t=$("iTime").value||"20:00"; hideSheet(); await saveRemind({every:1440, from:t, to:"22:00"}); });
 $("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках."); });
 function showWelcome(tries=0){
