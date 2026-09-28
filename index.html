@@ -1096,9 +1096,8 @@ header{position:relative}
 .istep .remrow{font-size:16px;margin:6px 0}
 .ibig{display:flex;flex-direction:column;gap:12px;margin:40px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
 #introSheet [data-is="1"]{min-height:220px}
-#introSheet .iev{flex-wrap:wrap;gap:8px}
-#introSheet .chip{background:none;font-weight:300}
-#introSheet .chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:none;font-weight:400}
+.iwheel{height:200px}
+#iOnce,#iSpan{display:flex;flex-direction:column;gap:6px}#iOnce[hidden],#iSpan[hidden]{display:none}
 #introSheet .remrow input{font-size:15px}
 .inote{font-size:13px;font-weight:300;line-height:1.45;color:var(--muted);border-left:1px solid var(--glass-line);padding-left:12px}
 .inote b{color:var(--ink);font-weight:400}
@@ -1402,9 +1401,11 @@ header{position:relative}
     </div>
     <div class="istep" data-is="3" hidden>
       <div class="iq">Как часто напоминать отметить самочувствие?</div>
-      <div class="chips iev" id="iEvery"></div>
-      <div class="remrow" id="iOnce">в <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
-      <div class="remrow" id="iSpan" hidden>с <input type="time" id="iFrom" value="09:00" aria-label="С какого времени"> до <input type="time" id="iTo" value="22:00" aria-label="До какого времени"></div>
+      <div class="wheel iwheel"><div class="wsel" aria-hidden="true"></div><div class="wlist" id="iEvery" role="listbox" tabindex="0" aria-label="Как часто напоминать"></div></div>
+      <div id="iOnce"><div class="remrow">Во сколько напомнить: <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
+        <div class="src">Одно напоминание в день, в это время.</div></div>
+      <div id="iSpan" hidden><div class="remrow">Напоминать с <input type="time" id="iFrom" value="09:00" aria-label="С какого времени"> до <input type="time" id="iTo" value="22:00" aria-label="До какого времени"></div>
+        <div class="src">В эти часы приложение будет спрашивать, как вы себя чувствуете. В остальное время, например ночью, оно вас не побеспокоит.</div></div>
       <div class="inote" id="iWhy"></div>
       <div class="ibtns"><button class="btn" id="iRem">Напоминать</button><button class="btn ghost" id="iSkip">Не напоминать</button></div>
     </div>
@@ -4070,12 +4071,15 @@ function showIntro(){
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
   const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KINDS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l">${x.sl}</span></button>`).join("");
   $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
-  const ev=$("iEvery"); if(!ev.children.length){ ev.innerHTML=[[1440,"Раз в день"],[240,"Каждые 4 часа"],[180,"Каждые 3 часа"],[120,"Каждые 2 часа"],[60,"Каждый час"]].map(([v,l])=>`<button class="chip" data-iev="${v}" aria-pressed="${v===1440}">${l}</button>`).join(""); }
+  I_OPTS=I_OPTS||REM_OPTS.filter(([v])=>v>0);
+  if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
   introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
 }
 function introDone(){ store.set("introDone","1"); }
 function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
-  $("introSheet").querySelectorAll(".idots i").forEach((d,i)=>d.classList.toggle("on",i<n)); $("introSheet").querySelector(".sbody").scrollTop=0; }
+  $("introSheet").querySelectorAll(".idots i").forEach((d,i)=>d.classList.toggle("on",i<n)); $("introSheet").querySelector(".sbody").scrollTop=0;
+  if(n===3&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
+    const once=I_OPTS[IW.idx][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; }); }
 $("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
 $("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k||$("kgIntro").dataset.done) return; $("kgIntro").dataset.done="1";
   k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); addMark(k.dataset.k); rebuildMood(); renderMood();
@@ -4083,12 +4087,12 @@ $("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if
   setTimeout(()=>introStep(3), 1100); });      // a moment to see it recorded, then the next step
 $("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
 $("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });   // the city list, then back to this step
-$("iEvery").addEventListener("click",e=>{ const b=e.target.closest("[data-iev]"); if(!b) return;
-  $("iEvery").querySelectorAll("[data-iev]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
-  const once=b.dataset.iev==="1440"; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
+let I_OPTS=null;   // the same choices as in the settings, without "don't ask" (filled when the window opens: REM_OPTS comes later in the script)
+let IW=null;
 $("iRem").addEventListener("click",async()=>{ introDone();
-  const every=+($("iEvery").querySelector('[aria-pressed="true"]')?.dataset.iev||1440);
+  const every=IW?I_OPTS[IW.idx][0]:1440;
   const r=every===1440?{every, from:$("iTime").value||"20:00", to:"22:00"}:{every, from:$("iFrom").value||"09:00", to:$("iTo").value||"22:00"};
+  if(every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); store.set("introDone",""); return; }
   hideSheet(); await saveRemind(r); });
 $("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); });
 function showWelcome(tries=0){
@@ -4916,25 +4920,28 @@ async function saveRemind(r){
 }
 /* iPhone-style wheel: scroll, it snaps to a row, the row in the middle is chosen */
 const REM_OPTS=[[0,"Не спрашивать"],[30,"Каждые 30 минут"],[60,"Каждый час"],[120,"Каждые 2 часа"],[180,"Каждые 3 часа"],[240,"Каждые 4 часа"],[1440,"Раз в день"]];
-const WH={el:$("remEvery"), h:40, idx:0, t:0, quiet:false};
-WH.el.innerHTML=REM_OPTS.map(([v,l],i)=>`<div class="witem" role="option" data-i="${i}">${l}</div>`).join("");
-function wheelPaint(){
-  const top=WH.el.scrollTop, items=WH.el.children;
-  for(let i=0;i<items.length;i++){ const d=i-top/WH.h, a=Math.abs(d);
-    items[i].style.transform=`rotateX(${(-d*22).toFixed(1)}deg) scale(${(1-Math.min(a,3)*0.06).toFixed(3)})`;
-    items[i].style.opacity=String(Math.max(0.18,1-a*0.3).toFixed(2)); items[i].classList.toggle("on",a<0.5); items[i].setAttribute("aria-selected",String(a<0.5)); }
+function makeWheel(el, opts, onPick){        // opts: [[value,label],…]; onPick(index) when a row settles in the middle
+  const W={el, h:40, idx:0, t:0, quiet:false};
+  el.innerHTML=opts.map(([v,l],i)=>`<div class="witem" role="option" data-i="${i}">${l}</div>`).join("");
+  W.paint=()=>{ const top=el.scrollTop, items=el.children;
+    for(let i=0;i<items.length;i++){ const d=i-top/W.h, a=Math.abs(d);
+      items[i].style.transform=`rotateX(${(-d*22).toFixed(1)}deg) scale(${(1-Math.min(a,3)*0.06).toFixed(3)})`;
+      items[i].style.opacity=String(Math.max(0.18,1-a*0.3).toFixed(2)); items[i].classList.toggle("on",a<0.5); items[i].setAttribute("aria-selected",String(a<0.5)); } };
+  W.set=(i, smooth)=>{ W.idx=i; W.quiet=true; el.scrollTo({top:i*W.h, behavior:smooth?"smooth":"auto"}); W.paint(); setTimeout(()=>W.quiet=false, smooth?450:60); };
+  el.addEventListener("scroll",()=>{ requestAnimationFrame(W.paint); clearTimeout(W.t);
+    W.t=setTimeout(()=>{ const i=Math.max(0,Math.min(opts.length-1,Math.round(el.scrollTop/W.h))); if(i!==W.idx){ W.idx=i; if(!W.quiet){ navigator.vibrate?.(8); onPick(i); } } }, 160); },{passive:true});
+  el.addEventListener("click",e=>{ const it=e.target.closest(".witem"); if(!it) return; const i=+it.dataset.i; W.set(i,true); W.idx=i; onPick(i); });
+  el.addEventListener("keydown",e=>{ const d=e.key==="ArrowDown"?1:e.key==="ArrowUp"?-1:0; if(!d) return; e.preventDefault(); const i=Math.max(0,Math.min(opts.length-1,W.idx+d)); W.set(i,true); onPick(i); });
+  return W;
 }
-function wheelSet(i, smooth){ WH.idx=i; WH.quiet=true; WH.el.scrollTo({top:i*WH.h, behavior:smooth?"smooth":"auto"}); wheelPaint(); setTimeout(()=>WH.quiet=false, smooth?450:60); }
 function wheelPick(i){
   const v=REM_OPTS[i][0], r=loadRemind(); if(v===r.every) return;
   r.every=v;
   if(v>=1440 && hm2m(r.from)<hm2m("12:00")) r.from="20:00"; else if(v && v<1440 && hm2m(r.from)>=hm2m("18:00")) r.from="09:00";
   saveRemind(r);
 }
-WH.el.addEventListener("scroll",()=>{ requestAnimationFrame(wheelPaint); clearTimeout(WH.t);
-  WH.t=setTimeout(()=>{ const i=Math.max(0,Math.min(REM_OPTS.length-1,Math.round(WH.el.scrollTop/WH.h))); if(i!==WH.idx){ WH.idx=i; if(!WH.quiet){ navigator.vibrate?.(8); wheelPick(i); } } }, 160); },{passive:true});
-WH.el.addEventListener("click",e=>{ const it=e.target.closest(".witem"); if(!it) return; const i=+it.dataset.i; wheelSet(i,true); WH.idx=i; wheelPick(i); });
-WH.el.addEventListener("keydown",e=>{ const d=e.key==="ArrowDown"?1:e.key==="ArrowUp"?-1:0; if(!d) return; e.preventDefault(); const i=Math.max(0,Math.min(REM_OPTS.length-1,WH.idx+d)); wheelSet(i,true); wheelPick(i); });
+const WH=makeWheel($("remEvery"), REM_OPTS, wheelPick);
+const wheelPaint=()=>WH.paint(), wheelSet=(i,smooth)=>WH.set(i,smooth);
 for(const id of ["remFrom","remTo"]) $(id).addEventListener("change",()=>{ const r=loadRemind(); r.from=$("remFrom").value||r.from; r.to=$("remTo").value||r.to;
   if(r.every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); renderRemind(); return; } saveRemind(r); });
 $("remTest").addEventListener("click",async()=>{ if(MN){ try{ await MN.test(); toast("Опустите шторку — там пример вопроса"); }catch(e){} }
