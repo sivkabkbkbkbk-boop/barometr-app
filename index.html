@@ -450,6 +450,12 @@ footer{padding-bottom:64px}
 body.reordering{overflow-anchor:none}
 body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2:not(.lifted){animation:wig .35s ease-in-out infinite alternate}
 @keyframes wig{from{transform:rotate(-.35deg)}to{transform:rotate(.35deg)}}
+/* after the first run: a finger holds a card and moves it, with a short hint */
+.dtdot{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:1.5px solid var(--ink);background:rgb(var(--inkc) / .12);pointer-events:none;z-index:2;opacity:0}
+.dtip{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:45;background:var(--ink);color:var(--on-ink);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.35;display:flex;gap:12px;align-items:center;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s}
+.dtip.on{opacity:1;transform:none}
+.dtip b{font-weight:600}
+.dtip button{flex:none;background:none;border:1px solid currentColor;color:inherit;border-radius:10px;padding:7px 12px;font:inherit;font-size:13.5px}
 /* new friend popup */
 .frpop{position:fixed;inset:0;z-index:45;background:rgba(3,8,15,.6);display:flex;align-items:center;justify-content:center;padding:24px}
 .frcard{position:relative;width:100%;max-width:340px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:24px;padding:26px 20px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:frIn .45s cubic-bezier(.2,1.4,.4,1)}
@@ -1339,6 +1345,10 @@ header{position:relative}
     <label class="rsw" id="statW" hidden style="justify-content:space-between"><span>Анонимная статистика<br><span class="fhm">раз в день приложение отмечает «открыто сегодня», а при первом запуске — «установлено». Без имени, номера телефона, города и данных о здоровье. Так разработчик видит, сколько людей пользуются приложением</span></span><input type="checkbox" id="statOn"><span class="knob" aria-hidden="true"></span></label>
     <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Политика конфиденциальности</a>
     <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
+    <div id="devBox" hidden><div class="ctitle">Для разработчика</div>
+      <button class="btn ghost" id="devIntro">Показать первый запуск</button>
+      <button class="btn ghost" id="devDrag">Показать подсказку о перетаскивании</button>
+      <button class="btn ghost" id="devHide">Скрыть это меню</button></div>
     <button class="btn ghost" id="appShare">Поделиться приложением</button>
     <button class="btn ghost" id="updCheck" hidden>Проверить обновления</button>
     <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
@@ -4116,8 +4126,9 @@ function thRender(){ for(const id of ["thSet","thWel"]){ const el=$(id); if(el&&
 const introNeeded=()=>!store.get("introDone") && !S.marks.length && !Y.token && !store.get("welcomeY");
 let INTRO_BACK=false;
 function introCity(){ const b=$("iLocate"); if(b) b.textContent=LOCATING?"Определяю…":"Определить моё место по GPS"; }
-function showIntro(){
-  if(!introNeeded()) return;
+let INTRO_FORCE=false;   // opened again from the developer menu
+function showIntro(force){
+  if(!force&&!INTRO_FORCE&&!introNeeded()) return;
   if(openSheet&&openSheet.id!=="introSheet"){ setTimeout(showIntro,1200); return; }
   const kg=$("kgIntro"); if(!kg.children.length) kg.innerHTML=KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("");
   $("iWhy").innerHTML=`Отмечать самочувствие можно <b>в любой момент</b>, не дожидаясь напоминания: почувствовали, что стало хуже или лучше, — откройте приложение и нажмите смайлик. Приложение сопоставит ваши отметки с погодой, покажет статистику и найдёт, что именно на вас влияет. Через ${window.FC_READY?FC_NEED:14} дней с отметками появится личный прогноз на завтра.`;
@@ -4125,7 +4136,7 @@ function showIntro(){
   if(!IW) IW=makeWheel($("iEvery"), I_OPTS, i=>{ IW.touched=1; const once=I_OPTS[i][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; });
   introCity(); if(!$("introSheet").querySelector("[data-is]:not([hidden])")) introStep(1); showSheet("introSheet");
 }
-function introDone(){ store.set("introDone","1"); }
+function introDone(){ store.set("introDone","1"); INTRO_FORCE=false; }
 function introStep(n){ $("introSheet").querySelectorAll("[data-is]").forEach(x=>x.hidden=x.dataset.is!==String(n));
   $("introSheet").querySelectorAll(".idots i").forEach((d,i)=>d.classList.toggle("on",i<n)); $("introSheet").querySelector(".sbody").scrollTop=0;
   if(n===3&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
@@ -4143,8 +4154,49 @@ $("iRem").addEventListener("click",async()=>{ introDone();
   const every=IW?I_OPTS[IW.idx][0]:1440;
   const r=every===1440?{every, from:$("iTime").value||"20:00", to:"22:00"}:{every, from:$("iFrom").value||"09:00", to:$("iTo").value||"22:00"};
   if(every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); store.set("introDone",""); return; }
-  hideSheet(); await saveRemind(r); });
-$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); });
+  hideSheet(); await saveRemind(r); dragTip(); });
+$("iSkip").addEventListener("click",()=>{ introDone(); hideSheet(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); setTimeout(dragTip,3500); });
+/* right after the first run: show once that the blocks on the main screen can be moved by a long press */
+let DT=null;
+function dragTip(force,tries=0){
+  if(!force&&store.get("dragTip")) return;
+  if(openSheet||document.hidden||TAB!=="today"||DT){ if(tries<40) setTimeout(()=>dragTip(force,tries+1),1500); return; }
+  const card=orderGet(ZONES[0]).map(id=>$(id)).find(e=>e&&!e.hidden&&e.classList.contains("card")&&e.offsetHeight>40);
+  if(!card) return;
+  store.set("dragTip","1");
+  const dot=document.createElement("div"); dot.className="dtdot"; dot.style.left="50%"; dot.style.top=Math.min(card.offsetHeight/2,60)+"px"; card.appendChild(dot);
+  const tip=document.createElement("div"); tip.className="dtip"; tip.setAttribute("role","status");
+  tip.innerHTML='<span><b>Блоки можно менять местами.</b> Удерживайте блок полсекунды и перетащите выше или ниже.</span><button>Понятно</button>';
+  document.body.appendChild(tip);
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches, T={duration:2800,iterations:reduce?1:Infinity,easing:"ease-in-out"};
+  const lift="0 18px 40px rgba(0,0,0,.35)";
+  const a1=card.animate([
+    {transform:"none",boxShadow:"none",offset:0},{transform:"none",boxShadow:"none",offset:.22},
+    {transform:"scale(1.03)",boxShadow:lift,offset:.3},{transform:"translateY(46px) scale(1.03)",boxShadow:lift,offset:.55},
+    {transform:"translateY(46px) scale(1.03)",boxShadow:lift,offset:.62},{transform:"scale(1.03)",boxShadow:lift,offset:.82},
+    {transform:"none",boxShadow:"none",offset:.9},{transform:"none",boxShadow:"none",offset:1}],T);
+  const a2=dot.animate([
+    {opacity:0,transform:"scale(1.6)",offset:0},{opacity:1,transform:"scale(1)",offset:.1},
+    {opacity:1,transform:"scale(.85)",offset:.22},{opacity:1,transform:"scale(.85)",offset:.3},
+    {opacity:1,transform:"scale(.85)",offset:.82},{opacity:0,transform:"scale(1.3)",offset:.92},{opacity:0,transform:"scale(1.3)",offset:1}],T);
+  scrollTo({top:Math.max(0,card.getBoundingClientRect().top+scrollY-120),behavior:"smooth"});
+  requestAnimationFrame(()=>tip.classList.add("on"));
+  const end=()=>{ if(!DT) return; DT=null; a1.cancel(); a2.cancel(); dot.remove(); tip.classList.remove("on"); setTimeout(()=>tip.remove(),350); };
+  DT={end}; tip.querySelector("button").addEventListener("click",end);
+  setTimeout(end,20000);
+  addEventListener("touchstart",function f(e){ if(tip.contains(e.target)) return; removeEventListener("touchstart",f); setTimeout(end,600); },{passive:true});
+}
+/* hidden developer menu: tap the version line in the settings 7 times */
+{ let n=0, t=0; const box=$("devBox"); if(store.get("devMenu")) box.hidden=false;
+  $("appVer").addEventListener("click",()=>{ const now=Date.now(); n=now-t<1500?n+1:1; t=now;
+    if(!box.hidden) return;
+    if(n>=4&&n<7) toast(`Ещё ${7-n} — и откроется меню разработчика`);
+    if(n>=7){ box.hidden=false; store.set("devMenu","1"); toast("Меню разработчика открыто — оно внизу настроек"); } });
+  $("devIntro").addEventListener("click",()=>{ hideSheet(true); store.set("introDone",""); store.set("dragTip","");
+    const kg=$("kgIntro"); delete kg.dataset.done; $("iMarked").textContent="Нажмите на смайлик — это первая отметка в дневнике.";
+    INTRO_FORCE=true; introStep(1); setTimeout(()=>showIntro(true),350); });
+  $("devDrag").addEventListener("click",()=>{ hideSheet(true); showTab("today"); setTimeout(()=>dragTip(true),500); });
+  $("devHide").addEventListener("click",()=>{ box.hidden=true; store.set("devMenu",""); n=0; }); }
 function showWelcome(tries=0){
   if(Y.token || store.get("welcomeY") || Object.keys(S.mood).length<3) return;   // offered once there are three days of marks
   const busy=openSheet || !$("moodPop").hidden || LOCATING;   // wait for the location prompt and the mood window
