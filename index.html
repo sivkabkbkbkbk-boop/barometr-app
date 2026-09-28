@@ -247,6 +247,10 @@ footer a{color:var(--muted)}
 .rmap{position:relative;height:210px;margin-top:10px;border-radius:14px;overflow:hidden;background:#1b2330;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .rmap.big{height:max(360px,calc(100vh - 190px - env(safe-area-inset-top,0px)));margin-top:0}
 .rmap .tiles,.rmap canvas{position:absolute;inset:0}
+.rmap .vmap{position:absolute!important;inset:0;pointer-events:none}
+.rmap.vec .tiles{display:none}
+.rmap.vec{background:#16191e!important}
+:root[data-theme="light"] .rmap.vec{background:#eef7f3!important}
 .rmap .tiles img{position:absolute;width:256px;height:256px;pointer-events:none}
 .rmap .tiles:not(.labels) img{filter:brightness(1.9) contrast(1.05) saturate(1.2)}
 .rmap .labels img{opacity:.9}
@@ -1575,7 +1579,7 @@ function themeApply(){
   const t=themePref()==="auto"?(THEME_MQ.matches?"dark":"light"):themePref();
   const was=document.documentElement.dataset.theme; document.documentElement.dataset.theme=t;
   if(was===t) return;
-  try{ LIGHTMAP=t==="light"; if(typeof RAD!=="undefined"&&RAD.cur){ paintField(RAD.cur); RAD.maps.forEach(m=>m.draw()); } }catch(e){}
+  try{ LIGHTMAP=t==="light"; if(typeof RAD!=="undefined") RAD.maps.forEach(m=>m.vec&&m.vec.theme(LIGHTMAP)); if(typeof RAD!=="undefined"&&RAD.cur){ paintField(RAD.cur); RAD.maps.forEach(m=>m.draw()); } }catch(e){}
   try{ sky.refresh(); }catch(e){}
   // Android status and navigation bars (build 33+)
   try{ const TB=window.Capacitor?.Plugins?.ThemeBars; if(TB){ const c=t==="light"?"#e3f6ef":"#15171b"; TB.set({color:c, light:t==="light"}).catch(()=>{}); } }catch(e){}
@@ -2159,8 +2163,57 @@ function drawMapLabels(box, w, h, z, x0, y0, home, detail){
 const TILES={osm: store.get("tiles")==="osm", fails:0, ok:0, timer:null, dfails:0, osmDown:false};
 function tilesToOsm(){ if(TILES.osm) return; TILES.osm=true; store.set("tiles","osm"); RAD.maps.forEach(mm=>{ mm.pool.forEach(i=>i.remove()); mm.pool.clear(); mm.lpool.forEach(i=>i.remove()); mm.lpool.clear(); mm.el.querySelector(".attr").textContent="© OpenStreetMap"; mm.relabel(); mm.draw(); }); }
 const lon2x=(lo,z)=>(lo+180)/360*256*2**z, lat2y=(la,z)=>{const r=la*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*256*2**z;};
+/* vector base map: OpenStreetMap data from OpenFreeMap drawn by MapLibre in thin lines; the raster tiles stay as a fallback */
+const VEC={lib:null, off:false};
+function vecLib(){ if(!VEC.lib) VEC.lib=new Promise((ok,no)=>{ if(window.maplibregl) return ok(window.maplibregl);
+  const c=document.createElement("link"); c.rel="stylesheet"; c.href="maplibre-gl.css"; document.head.appendChild(c);
+  const s=document.createElement("script"); s.src="maplibre-gl.js"; s.onload=()=>window.maplibregl?ok(window.maplibregl):no(); s.onerror=no; document.head.appendChild(s); });
+  return VEC.lib; }
+function vecStyle(light){
+  const ink=light?"22,50,45":"236,241,246", wat=light?"20,120,150":"120,175,225", a=(c,x)=>`rgba(${c},${x})`;
+  const nm=["coalesce",["get","name:ru"],["get","name"]], R="Noto Sans Regular", B="Noto Sans Bold";
+  const halo=light?"rgba(238,247,243,.9)":"rgba(21,24,29,.9)", lw=(z1,w1,z2,w2)=>["interpolate",["linear"],["zoom"],z1,w1,z2,w2];
+  const road=(id,cls,min,w,al)=>({id,type:"line",source:"o","source-layer":"transportation",minzoom:min,filter:["in",["get","class"],["literal",cls]],layout:{"line-cap":"round","line-join":"round"},paint:{"line-color":a(ink,al),"line-width":w}});
+  const place=(id,cls,min,max,size,font,col)=>({id,type:"symbol",source:"o","source-layer":"place",minzoom:min,maxzoom:max,filter:["in",["get","class"],["literal",cls]],
+    layout:{"text-field":nm,"text-font":[font],"text-size":size,"text-max-width":8,"text-padding":4,"text-anchor":"top","text-offset":[0,.5]},paint:{"text-color":col,"text-halo-color":halo,"text-halo-width":1.4}});
+  return {version:8, glyphs:"https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+    sources:{o:{type:"vector",url:"https://tiles.openfreemap.org/planet"}},
+    layers:[
+      {id:"bg",type:"background",paint:{"background-color":light?"#eef7f3":"#16191e"}},
+      {id:"water",type:"fill",source:"o","source-layer":"water",paint:{"fill-color":a(wat,.08)}},
+      {id:"water-edge",type:"line",source:"o","source-layer":"water",paint:{"line-color":a(wat,.45),"line-width":.6}},
+      {id:"river",type:"line",source:"o","source-layer":"waterway",filter:["in",["get","class"],["literal",["river","canal"]]],paint:{"line-color":a(wat,.45),"line-width":lw(8,.5,14,1.4)}},
+      {id:"stream",type:"line",source:"o","source-layer":"waterway",minzoom:12,filter:["==",["get","class"],"stream"],paint:{"line-color":a(wat,.3),"line-width":.5}},
+      {id:"houses",type:"line",source:"o","source-layer":"building",minzoom:14,paint:{"line-color":a(ink,.1),"line-width":.5}},
+      {id:"districts",type:"line",source:"o","source-layer":"boundary",minzoom:8,filter:["all",[">=",["get","admin_level"],5],["<=",["get","admin_level"],8],["!=",["get","maritime"],1]],paint:{"line-color":a(ink,.22),"line-width":.6,"line-dasharray":[4,3]}},
+      {id:"regions",type:"line",source:"o","source-layer":"boundary",filter:["all",["<=",["get","admin_level"],4],["!=",["get","maritime"],1]],paint:{"line-color":a(ink,.35),"line-width":.8,"line-dasharray":[6,3]}},
+      {id:"rail",type:"line",source:"o","source-layer":"transportation",minzoom:9,filter:["==",["get","class"],"rail"],paint:{"line-color":a(ink,.18),"line-width":.6,"line-dasharray":[3,3]}},
+      road("streets",["minor","service"],12,lw(12,.4,16,1.2),.13),
+      road("roads",["secondary","tertiary"],9,lw(9,.4,15,1.3),.22),
+      road("highways",["motorway","trunk","primary"],5,lw(5,.5,15,1.8),.34),
+      {id:"street-names",type:"symbol",source:"o","source-layer":"transportation_name",minzoom:14,layout:{"symbol-placement":"line","text-field":nm,"text-font":[R],"text-size":10},paint:{"text-color":a(ink,.55),"text-halo-color":halo,"text-halo-width":1.2}},
+      place("quarters",["suburb","quarter","neighbourhood"],10,16,lw(10,10,14,12),R,a(ink,.6)),
+      place("villages",["village","hamlet"],10,16,10.5,R,a(ink,.65)),
+      place("towns",["town"],7,16,lw(7,10.5,12,13),R,a(ink,.85)),
+      place("cities",["city"],4,14,lw(5,11,12,15),B,a(ink,.95)),
+    ]};
+}
+function vecMount(m, box){
+  if(VEC.off) return;
+  vecLib().then(ML=>{
+    let map, ok=false;
+    try{ map=new ML.Map({container:box, style:vecStyle(LIGHTMAP), interactive:false, attributionControl:false, fadeDuration:0,
+      center:[m.center[1],m.center[0]], zoom:m.z-1}); }catch(e){ VEC.off=true; return; }   // no WebGL
+    const give=()=>{ if(ok) return; try{ map.remove(); }catch(e){} m.vec=null; };
+    const tmo=setTimeout(give, 12000);    // the vector server did not answer: keep the picture tiles
+    map.on("data",e=>{ if(ok||e.dataType!=="source"||!e.tile) return; ok=true; clearTimeout(tmo); m.el.classList.add("vec"); m.el.querySelector(".attr").textContent="© OpenFreeMap, © участники OpenStreetMap"; m.relabel(); m.draw(); });
+    map.on("error",()=>{});
+    m.vec={map, theme:light=>map.setStyle(vecStyle(light))};
+  }).catch(()=>{ VEC.off=true; });
+}
 function MiniMap(el, interactive){
-  const tiles=document.createElement("div"); tiles.className="tiles"; el.prepend(tiles);
+  const vbox=document.createElement("div"); vbox.className="vmap"; el.prepend(vbox);
+  const tiles=document.createElement("div"); tiles.className="tiles"; vbox.after(tiles);
   const cv=document.createElement("canvas"); el.appendChild(cv);
   const pin=document.createElement("div"); pin.className="pin"; el.appendChild(pin);
   const st=document.createElement("div"); st.className="rstat"; el.appendChild(st);
@@ -2180,11 +2233,13 @@ function MiniMap(el, interactive){
     if(!m.center) return;
     const w=el.clientWidth,h=el.clientHeight; if(!w||!h) return;
     const z=m.z, detail=!TILES.osmDown, zi=Math.max(1,Math.min(15,Math.round(z))), sc=2**(z-zi), T=256*sc;
-    const prov=detail?"osmd":"esri";
+    const prov=detail?"osmd":"esri", vec=el.classList.contains("vec");
+    if(!m.vecTried){ m.vecTried=1; vecMount(m, vbox); }
+    if(m.vec){ const mp=m.vec.map; if(mp._w!==w||mp._h!==h){ mp._w=w; mp._h=h; mp.resize(); } mp.jumpTo({center:[m.center[1],m.center[0]], zoom:m.z-1}); }
     if(m.prov!==prov){ m.pool.forEach(i=>i.remove()); m.pool.clear(); m.prov=prov; at.textContent=prov==="esri"?"© Esri, © OpenStreetMap":"© участники OpenStreetMap"; el.classList.toggle("detail",detail); }
     const cx=lon2x(m.center[1],z), cy=lat2y(m.center[0],z), x0=cx-w/2, y0=cy-h/2, n=2**zi;
     const want=new Set();
-    for(let tx=Math.floor(x0/T);tx<=Math.floor((x0+w)/T);tx++) for(let ty=Math.floor(y0/T);ty<=Math.floor((y0+h)/T);ty++){
+    if(!vec) for(let tx=Math.floor(x0/T);tx<=Math.floor((x0+w)/T);tx++) for(let ty=Math.floor(y0/T);ty<=Math.floor((y0+h)/T);ty++){
       if(ty<0||ty>=n) continue; const wx=((tx%n)+n)%n, key=`${zi}/${wx}/${ty}`; want.add(key+"@"+tx);
       const tf=`translate(${(tx*T-x0).toFixed(1)}px,${(ty*T-y0).toFixed(1)}px) scale(${sc.toFixed(4)})`;
       for(const [pool,box,layer] of [[m.pool,tiles,"World_Dark_Gray_Base"],[m.lpool,labels,"World_Dark_Gray_Reference"]]){
@@ -2213,8 +2268,8 @@ function MiniMap(el, interactive){
       m.fb=[X0,Y0,X1,Y1]; drawContours(ctx,X0,Y0,X1,Y1); drawThunderMarks(ctx,X0,Y0,X1,Y1); fxStart();
     }
     // Russian labels (OpenStreetMap tiles already carry local names)
-    const lk=[w,h,z.toFixed(3),Math.round(x0),Math.round(y0),Object.keys(S.cities||{}).length,detail].join(",");
-    if(lk!==labKey){ labKey=lk; if(detail) lab.innerHTML=""; else drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null,detail); }
+    const lk=[w,h,z.toFixed(3),Math.round(x0),Math.round(y0),Object.keys(S.cities||{}).length,detail,vec].join(",");
+    if(lk!==labKey){ labKey=lk; if(detail||vec) lab.innerHTML=""; else drawMapLabels(lab,w,h,z,x0,y0,m.home?{...cityOf(S.slug),lat:m.home[0],lon:m.home[1]}:null,detail); }
     pin.innerHTML=homePinHTML(); pin.classList.add("home");
     if(m.me){ meDot.hidden=false; meDot.style.left=(lon2x(m.me[1],z)-x0)+"px"; meDot.style.top=(lat2y(m.me[0],z)-y0)+"px"; } else meDot.hidden=true;
     {   // scale bar: a round distance that is about 60–110 pixels long

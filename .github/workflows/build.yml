@@ -33,6 +33,9 @@ jobs:
         run: |
           npm init -y > /dev/null
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6 @capacitor/preferences@6 @capacitor/share@6 @capacitor/clipboard@6
+          # the vector base map of the precipitation map
+          npm install maplibre-gl@4
+          cp node_modules/maplibre-gl/dist/maplibre-gl.js node_modules/maplibre-gl/dist/maplibre-gl.css www/
           npx cap init "Не18мнеуже" ru.barometr.neba --web-dir=www
           npx cap add android
           # the build number becomes the Android version: a new APK installs over the old one as an update
