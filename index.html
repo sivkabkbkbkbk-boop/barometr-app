@@ -2281,7 +2281,7 @@ function locate(){
     try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
     catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
-    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()) introStep(2);   // only the city list closes; a welcome or other window stays
+    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()&&(I_CUR===null||I_CUR<=1)) introStep(2);   // only from the location step: a late GPS answer must not pull the window back; only the city list closes; a welcome or other window stays
   }, err=>{
     LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — нажмите «Укажу сам»."; } return; }
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
@@ -2290,7 +2290,7 @@ function locate(){
 function selectCity(id){
   S.slug=id; store.set("city",id);
   if(typeof introCity==="function") setTimeout(introCity,0);
-  if(INTRO_BACK_PENDING()) setTimeout(()=>{ introStep(2); showIntro(); },500);
+  if(INTRO_BACK_PENDING()) setTimeout(()=>{ if(I_CUR===null||I_CUR<=1) introStep(2); showIntro(); },500);
   if(!S.feed[id]) S.feed[id]=loadJSON("feed:"+id,null)||undefined;
   stopPlay(); RAD.times=[]; RAD.lats=[]; radarFromCache(id);
   render(); drawRadar(); refreshNow(true);
@@ -4295,6 +4295,7 @@ function introStep(n){
   else show();
 }
 function introStepReady(n){
+  if(n===2) $("iNext2").hidden=!$("kgIntro").dataset.done;   // already marked (came back to this step): let it go on
   if(n===3&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
     const once=I_OPTS[IW.idx][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; }); }
 $("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
