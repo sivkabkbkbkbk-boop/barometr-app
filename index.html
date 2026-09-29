@@ -4574,16 +4574,12 @@ function renderFriends(state){
     }
     h+=`</div></div>`;
   }
-  // coincidences and a two-week comparison
+  // two weeks of smileys side by side
   if(fl.length){
-    const since=isoDay(new Date(Date.now()-60*DAY)), lines=[];
-    for(const f of fl){ const fm=f.data?.mood||{}; let both=0,same=0,bad=[]; const sc=v=>typeof v==="number"?v:(v?.s??null);
-      for(const [d,r] of Object.entries(S.mood)){ const fs=sc(fm[d]); if(d<since||fs==null) continue; both++; if(Math.abs(fs-r.v)<0.75) same++; if(fs<=1.5&&r.v<=1.5) bad.push(d); }
-      if(both>=3) lines.push(`С <b>${esc2(f.name)}</b> самочувствие совпало ${same} из ${both} дней${bad.length?` — обоим было плохо ${bad.sort().slice(-3).map(d=>fmtDM(new Date(d+"T12:00:00"))).join(", ")}`:""}.`); }
     const days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(Date.now()-i*DAY)));
     const emo=v=>v==null?"":ekf(typeof v==="number"?(MOOD[v]?.e||""):(v.e||""));
     const rows=[[`Я`, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", d=>f.data?.mood?.[d]]));
-    h+=`<div class="card"><div class="label">Совпадения самочувствия</div>${lines.length?`<div class="ins" style="gap:6px">${lines.map(l=>`<span>${l}</span>`).join("")}</div>`:`<div class="fhm" style="margin-top:6px">Появятся, когда у вас будет хотя бы 3 общих дня с отметками.</div>`}
+    h+=`<div class="card"><div class="label">Самочувствие за 2 недели</div>
       <div class="fgrid fgv" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
       rows.map(([n,get])=>`<tr><th class="nm">${esc2(n)}</th>${days.map(d=>`<td class="${d===days[13]?"today":""}">${emo(get(d))}</td>`).join("")}</tr>`).join("")+`</tbody></table></div></div>`;
   }
