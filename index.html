@@ -2874,7 +2874,11 @@ function renderToggles(){
 }
 $("tglList").addEventListener("change",e=>{ const c=e.target.closest("[data-card]"); if(!c) return; LAYOUT[c.dataset.card]=c.checked; store.set("layout",JSON.stringify(LAYOUT)); applyLayout(); if(c.checked&&c.dataset.card==="cardRain") drawRadar(); });
 const APP_VER="26.09 · сборка 33 (темы «Мята» и «Графит», светлая карта в светлой теме)";
-$("gearBtn").addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); showSheet("setSheet"); });
+// the real build number from Android (the text in APP_VER is only for the web version)
+function appVerShow(){ const el=$("appVer"); el.textContent="Версия приложения: "+APP_VER;
+  const A=window.Capacitor?.isNativePlatform?.()?window.Capacitor.Plugins?.App:null;
+  A?.getInfo?.().then(i=>{ if(i?.build) el.textContent=`Версия приложения: сборка ${i.build}`; }).catch(()=>{}); }
+$("gearBtn").addEventListener("click",()=>{ appVerShow(); renderToggles(); renderY(); showSheet("setSheet"); });
 applyLayout();
 
 /* ---------- refresh: straight from the sources ---------- */
@@ -5188,7 +5192,7 @@ for(const id of ["remFrom","remTo"]) $(id).addEventListener("change",()=>{ const
 $("remTest").addEventListener("click",async()=>{ if(MN){ try{ await MN.test(); toast("Опустите шторку — там пример вопроса"); }catch(e){} }
   else if(LN){ try{ await LN.schedule({notifications:[{id:99, title:"Как себя чувствуешь?", body:"Так будет выглядеть вопрос", schedule:{at:new Date(Date.now()+1500)}, channelId:"mood", actionTypeId:"MOOD", smallIcon:"ic_stat_barometr"}]}); }catch(e){} } });
 $("moodToRep").addEventListener("click",()=>openMoodAnalysis());
-$("remGo")?.addEventListener("click",()=>{ $("appVer").textContent="Версия приложения: "+APP_VER; renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
+$("remGo")?.addEventListener("click",()=>{ appVerShow(); renderToggles(); renderY(); renderRemind(); showSheet("setSheet"); setTimeout(()=>$("remW").scrollIntoView({block:"center"}),350); });
 $("gearBtn").addEventListener("click",()=>{ renderRemind(); thRender(); setTimeout(renderRemind,60); });
 if(LN){
   LN.createChannel?.({id:"mood", name:"Самочувствие", description:"Вопрос о самочувствии", importance:4, visibility:1, vibration:true}).catch(()=>{});
@@ -5688,8 +5692,11 @@ async function checkUpdate(loud, force){
   if(!loud && !force && store.get("updChk")===isoDay(new Date())) return;
   try{
     const mine = +(await AppU.getInfo()).build || 0;
-    const r = await fetch(UPD_API, {cache:"no-store"}); if(!r.ok) throw new Error("http");
-    const m = String((await r.json()).tag_name||"").match(/build-(\d+)/), last = m ? +m[1] : 0;
+    let last = 0;
+    try{ last = +(await APKU.latest()).build || 0; }catch(e){}   // native: the releases page, no hourly limit (build 117+)
+    if(!last){ const r = await fetch(UPD_API, {cache:"no-store"}); if(!r.ok) throw new Error("http");
+      const m = String((await r.json()).tag_name||"").match(/build-(\d+)/); last = m ? +m[1] : 0; }
+    if(!last) throw new Error("no build");
     store.set("updChk", isoDay(new Date()));
     if(last > mine && (loud || store.get("updSkip")!==String(last))){ $("updN").textContent="(сборка "+last+")"; $("updBar").dataset.n=last; $("updBar").hidden=false; if(loud) hideSheet(); }
     else if(loud) toast("У вас последняя версия");
@@ -5704,12 +5711,16 @@ async function updInstall(){
     const ok=(await APKU.canInstall()).ok;
     if(!ok){ updWaitPerm=true; updText("Разрешите установку для «Не18мнеуже» и вернитесь назад"); await APKU.openInstallSettings(); return; }
     updText("Подтвердите «Обновить» в окне Android"); window.ICO_HOLD=Date.now()+10*60000; await APKU.install();
-  }catch(e){ updText("Не удалось открыть установку"); }
+    // if the Android window was closed or did not show up, the file is already here: one tap opens it again
+    const go=$("updGo"); go.dataset.ready="1"; go.textContent="Установить"; go.hidden=false;
+  }catch(e){ updText("Не удалось открыть установку"); const go=$("updGo"); go.textContent="Ещё раз"; go.hidden=false; delete go.dataset.ready; }
 }
 $("updGo").addEventListener("click",async e=>{
   if(!APKU){ $("updBar").hidden=true; toast("Скачайте файл и откройте его — Android предложит «Обновить». Ваши данные останутся."); return; }   // older builds: the browser downloads it
-  e.preventDefault(); if(updBusy) return; updBusy=true;
-  const go=$("updGo"); go.hidden=true; updText("Скачиваю обновление…");
+  e.preventDefault(); if(updBusy) return;
+  const go=$("updGo");
+  if(go.dataset.ready){ go.hidden=true; await updInstall(); return; }   // already downloaded
+  updBusy=true; go.hidden=true; updText("Скачиваю обновление…");
   let h=null; try{ h=await APKU.addListener("progress",p=>{ if(p.pct>=0) updText("Скачиваю обновление… "+p.pct+"%"); }); }catch(_){}
   try{ await APKU.download({url:go.href}); h?.remove?.(); updText("Готово, открываю установку…"); await updInstall(); }
   catch(err){ h?.remove?.(); updText("Не получилось скачать. Проверьте интернет (VPN лучше выключить)"); go.hidden=false; go.textContent="Ещё раз"; }

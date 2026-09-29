@@ -159,6 +159,18 @@ jobs:
                   call.resolve();
               }
 
+              // the newest build on GitHub, asked from here and not from the web view: no CORS, no API limit
+              @PluginMethod
+              public void latest(final PluginCall call) {
+                  new Thread(new Runnable() { public void run() {
+                      long b = UpdateCheck.latestBuild();
+                      if (b <= 0) { call.reject("offline"); return; }
+                      JSObject r = new JSObject();
+                      r.put("build", b);
+                      call.resolve(r);
+                  }}).start();
+              }
+
               @PluginMethod
               public void canInstall(PluginCall call) {
                   JSObject r = new JSObject();
@@ -220,6 +232,7 @@ jobs:
               static final String CH = "updates";
               static final int NID = 7401;
               static final String API = "https://api.github.com/repos/sivkabkbkbkbk-boop/barometr-app/releases/latest";
+              static final String PAGE = "https://github.com/sivkabkbkbkbk-boop/barometr-app/releases/latest";
               static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
 
               static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
@@ -242,31 +255,52 @@ jobs:
                   } catch (Exception e) { return 0; }
               }
 
+              // the newest build number, 0 if GitHub cannot be reached; runs on a background thread.
+              // First the releases page, which answers with a redirect to /tag/build-N: it has no hourly limit,
+              // unlike the API (60 requests an hour per address, quickly used up behind a VPN).
+              static long latestBuild() {
+                  Pattern bp = Pattern.compile("build-(\\d+)");
+                  try {
+                      HttpURLConnection con = (HttpURLConnection) new URL(PAGE).openConnection();
+                      con.setInstanceFollowRedirects(false);
+                      con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
+                      con.setConnectTimeout(15000);
+                      con.setReadTimeout(15000);
+                      try {
+                          con.getResponseCode();
+                          String loc = con.getHeaderField("Location");
+                          Matcher m = bp.matcher(loc == null ? "" : loc);
+                          if (m.find()) return Long.parseLong(m.group(1));
+                      } finally { con.disconnect(); }
+                  } catch (Exception e) { }
+                  try {
+                      HttpURLConnection con = (HttpURLConnection) new URL(API).openConnection();
+                      con.setRequestProperty("Accept", "application/vnd.github+json");
+                      con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
+                      con.setConnectTimeout(15000);
+                      con.setReadTimeout(15000);
+                      try {
+                          if (con.getResponseCode() != 200) return 0;
+                          StringBuilder sb = new StringBuilder();
+                          BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                          String line;
+                          while ((line = r.readLine()) != null) sb.append(line);
+                          r.close();
+                          Matcher m = bp.matcher(new JSONObject(sb.toString()).optString("tag_name"));
+                          if (m.find()) return Long.parseLong(m.group(1));
+                      } finally { con.disconnect(); }
+                  } catch (Exception e) { }
+                  return 0;
+              }
+
               // runs on a background thread
               static void check(Context c) throws Exception {
-                  HttpURLConnection con = (HttpURLConnection) new URL(API).openConnection();
-                  con.setRequestProperty("Accept", "application/vnd.github+json");
-                  con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
-                  con.setConnectTimeout(20000);
-                  con.setReadTimeout(20000);
-                  try {
-                      if (con.getResponseCode() != 200) return;
-                      StringBuilder sb = new StringBuilder();
-                      BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-                      String line;
-                      while ((line = r.readLine()) != null) sb.append(line);
-                      r.close();
-                      Matcher m = Pattern.compile("build-(\\d+)").matcher(new JSONObject(sb.toString()).optString("tag_name"));
-                      if (!m.find()) return;
-                      long last = Long.parseLong(m.group(1));
-                      if (last <= myBuild(c)) return;
-                      SharedPreferences p = prefs(c);
-                      if (p.getLong("notified", 0) >= last) return;   // tell about each build only once
-                      post(c, last);
-                      p.edit().putLong("notified", last).apply();
-                  } finally {
-                      con.disconnect();
-                  }
+                  long last = latestBuild();
+                  if (last <= 0 || last <= myBuild(c)) return;
+                  SharedPreferences p = prefs(c);
+                  if (p.getLong("notified", 0) >= last) return;   // tell about each build only once
+                  post(c, last);
+                  p.edit().putLong("notified", last).apply();
               }
 
               static void post(Context c, long build) {
