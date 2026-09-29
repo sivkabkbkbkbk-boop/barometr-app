@@ -434,20 +434,26 @@ jobs:
                           if (box == null) continue;
                           byte[] key = Base64.decode(f.optString("key"), Base64.DEFAULT);
                           List<String> lines = new ArrayList<String>();
-                          String newest = since;
+                          String newest = since, lastG = "";
+                          JSONArray mute = f.optJSONArray("mute");   // group chats I have not joined or have left
                           for (int j = 0; j < box.length(); j++) {
                               JSONObject o;
                               try { o = open(key, box.getJSONObject(j)); } catch (Exception e) { continue; }
                               String t = o.optString("t");
                               if (t.compareTo(since) <= 0) continue;
+                              String g = o.optString("g", "");
+                              boolean muted = false;
+                              if (!g.isEmpty() && mute != null) for (int q = 0; q < mute.length(); q++) if (g.equals(mute.optString(q))) muted = true;
+                              if (muted) continue;
                               String x = o.has("c") ? "📋 поделился(ась) состоянием" : o.optString("x");
                               if (x.length() > 120) x = x.substring(0, 120) + "…";
                               lines.add(x);
+                              lastG = g;
                               if (t.compareTo(newest) > 0) newest = t;
                           }
                           if (!lines.isEmpty()) {
                               int total = p.getInt("c:" + k, 0) + lines.size();
-                              post(c, k, f.optString("n", "Друг"), lines, total);
+                              post(c, k, f.optString("n", "Друг"), lines, total, lastG);
                               ed.putString("n:" + k, newest).putInt("c:" + k, total);
                           }
                       } catch (Exception e) { }
@@ -455,7 +461,7 @@ jobs:
                   ed.apply();
               }
 
-              static void post(Context c, String k, String name, List<String> lines, int total) {
+              static void post(Context c, String k, String name, List<String> lines, int total, String g) {
                   NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
                   if (Build.VERSION.SDK_INT >= 26) {
                       NotificationChannel ch = new NotificationChannel(CH, "Сообщения от друзей", NotificationManager.IMPORTANCE_HIGH);
@@ -463,7 +469,7 @@ jobs:
                       ch.setShowBadge(true);
                       nm.createNotificationChannel(ch);
                   }
-                  Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("barometr://chat?k=" + Uri.encode(k)));
+                  Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("barometr://chat?k=" + Uri.encode(k) + (g.isEmpty() ? "" : "&g=" + Uri.encode(g))));
                   i.setPackage(c.getPackageName());
                   i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                   NotificationCompat.InboxStyle st = new NotificationCompat.InboxStyle();
