@@ -3898,7 +3898,7 @@ function showFriendPop(){
   $("frT").innerHTML = how==="invite" ? `${nm} приглашает вас в друзья` : how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : how==="sent" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
   $("frP").innerHTML = how==="invite" ? `Вы будете видеть самочувствие друг друга и сможете переписываться.` : how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
     : how==="wait" ? `Отправьте ${nm} ответ, чтобы и он(а) увидел(а) вас.`
-    : how==="sent" ? `Ответ отправлен. Когда ${nm} нажмёт на ссылку в сообщении, вы будете видеть друг друга. Если отправили не туда — откройте ${nm} во вкладке «Друзья» и отправьте ответ ещё раз.`
+    : how==="sent" ? `Ответ отправлен. Когда ${nm} нажмёт на ссылку в сообщении, вы будете видеть друг друга. Если отправили не туда — нажмите на имя во вкладке «Друзья» и отправьте ответ ещё раз.`
     : how==="reply" ? `Остался один шаг, чтобы и ${nm} увидел(а) вас: нажмите «Отправить ответ» и выберите ваш чат с ${nm}. Когда ${nm} нажмёт на ссылку — вы станете друзьями у обоих.`
     : `Теперь вы видите состояние друг друга и можете переписываться.`;
   $("frChat").textContent = how==="invite" ? "🤝 Принять" : how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
@@ -4528,7 +4528,7 @@ async function addFriendFromLink(url){
     const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
     if(ok) friendWelcome(FR.list[f.k],"wait");
     else {   // no server: the answer goes back through the messenger right away, the chat list opens by itself
-      toast(`Выберите чат с ${nm} — ответ добавит вас к ${nm} в друзья`);
+      toast("Выберите чат, откуда пришло приглашение, — так вы появитесь в друзьях и там");
       await shareUpload().catch(()=>{});
       const sent=await new Promise(r=>setTimeout(()=>shareSend(true, nm).then(r,()=>r(false)),900));
       friendWelcome(FR.list[f.k], sent?"sent":"reply");
