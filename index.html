@@ -1477,6 +1477,7 @@ header{position:relative}
     <div class="istep ibye" data-is="4" hidden>
       <div class="iq">Приятного пользования!</div>
       <div class="src ihtxt">Отмечайте самочувствие, когда захочется, — приложение всё запомнит и подскажет.</div>
+      <button class="btn inext" id="iStart">Начать</button>
     </div>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</div>
   </div>
@@ -3894,9 +3895,10 @@ function friendWelcome(f, how){
 function showFriendPop(){
   const [f,how]=FRQ[0]; const nm=esc(f.name||"Друг");
   $("frAv").innerHTML=`<span class="av" style="background:${colorOf(SH.key||"me")}">${esc((SH.name||"Я")[0].toUpperCase())}</span><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}</span>`;
-  $("frT").innerHTML = how==="invite" ? `${nm} приглашает вас в друзья` : how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
+  $("frT").innerHTML = how==="invite" ? `${nm} приглашает вас в друзья` : how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : how==="sent" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
   $("frP").innerHTML = how==="invite" ? `Вы будете видеть самочувствие друг друга и сможете переписываться.` : how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
     : how==="wait" ? `Отправьте ${nm} ответ, чтобы и он(а) увидел(а) вас.`
+    : how==="sent" ? `Ответ отправлен. Когда ${nm} нажмёт на ссылку в сообщении, вы будете видеть друг друга. Если отправили не туда — откройте ${nm} во вкладке «Друзья» и отправьте ответ ещё раз.`
     : how==="reply" ? `Остался один шаг, чтобы и ${nm} увидел(а) вас: нажмите «Отправить ответ» и выберите ваш чат с ${nm}. Когда ${nm} нажмёт на ссылку — вы станете друзьями у обоих.`
     : `Теперь вы видите состояние друг друга и можете переписываться.`;
   $("frChat").textContent = how==="invite" ? "🤝 Принять" : how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
@@ -4311,7 +4313,7 @@ $("iRem").addEventListener("click",async()=>{ introDone();
   const every=IW?I_OPTS[IW.idx][0]:1440;
   const r=every===1440?{every, from:$("iTime").value||"20:00", to:"22:00"}:{every, from:$("iFrom").value||"09:00", to:$("iTo").value||"22:00"};
   if(every<1440 && hm2m(r.to)<=hm2m(r.from)){ toast("Время «до» должно быть позже, чем «с»."); store.set("introDone",""); return; }
-  await introBye(); await saveRemind(r); dragTip(); });
+  await saveRemind(r); await introBye(); dragTip(); });
 $("iSkip").addEventListener("click",async()=>{ introDone(); await introBye(); toast("Напоминания можно включить в ⚙ Настройках. Отмечаться можно в любой момент."); setTimeout(dragTip,3500); });
 /* the last window: "enjoy", the smiley nods and vanishes, then the window slides down */
 let I_BYE=false;
@@ -4319,10 +4321,17 @@ async function introBye(){
   if(I_BYE) return; I_BYE=true;
   const sh=$("introSheet"), box=$("iMas"), mb=box.querySelector(".mb"), mx=box.querySelector(".mx");
   introStep(4);
-  if(MAS_CALM()){ await masNap(1600); hideSheet(true); I_BYE=false; return; }
-  await masNap(750); mx.innerHTML=MAS.joy;
-  mb.animate([{transform:"none"},{transform:"translateY(4px) scale(1,.93)",offset:.25},{transform:"none",offset:.5},{transform:"translateY(4px) scale(1,.93)",offset:.75},{transform:"none"}],{duration:700,easing:"ease-in-out"});
-  await masNap(800); mx.innerHTML=MAS.wink; await masNap(550);
+  // the window stays until "Start" (or until it is swiped away); meanwhile the smiley nods now and then
+  let go=false; const start=$("iStart"), on=()=>{ go=true; }; start.addEventListener("click",on);
+  const nod=()=>mb.animate([{transform:"none"},{transform:"translateY(4px) scale(1,.93)",offset:.25},{transform:"none",offset:.5},{transform:"translateY(4px) scale(1,.93)",offset:.75},{transform:"none"}],{duration:700,easing:"ease-in-out"});
+  await masNap(750);
+  for(let t=0; !go && !sh.hidden; t+=100){
+    if(!MAS_CALM()&&t%3000===0){ mx.innerHTML=MAS.joy; nod(); setTimeout(()=>{ if(!go) mx.innerHTML=MAS.wink; },800); setTimeout(()=>{ if(!go) mx.innerHTML=MAS.hi; },1400); }
+    await masNap(100); }
+  start.removeEventListener("click",on);
+  if(sh.hidden){ I_BYE=false; return; }
+  if(MAS_CALM()){ hideSheet(true); I_BYE=false; return; }
+  mx.innerHTML=MAS.wink; await masNap(250);
   MAS_PK++; mb.animate([{transform:"none",opacity:1},{transform:"scale(1.15)",opacity:1,offset:.35},{transform:"scale(0)",opacity:0}],{duration:420,easing:"ease-in",fill:"forwards"});
   await masNap(500);
   const a=sh.animate([{transform:"none"},{transform:"translateY(105%)"}],{duration:650,easing:"cubic-bezier(.5,0,.75,0)",fill:"forwards"});
@@ -4470,16 +4479,17 @@ async function clipInvite(){
 let PENDING_CLIP="";
 function fsResume(){ const p=loadJSON("fsPending",null); if(p&&p.mode&&Y.token) setTimeout(()=>fsOpen(p.mode,p.to), 600); }
 
-async function shareSend(reply){
+async function shareSend(reply, to){
   const nm=SH.name||"Друг";
   const text = reply
     ? `${nm} принял(а) твоё приглашение в «Не18мнеуже» 🌦 Нажми на ссылку, чтобы видеть состояние друг друга и переписываться:\n${shareLink(true)}`
     : `${nm} хочет с тобой подружиться и обмениваться своим состоянием в «Не18мнеуже» 🌦\nНажми на ссылку, чтобы принять приглашение:\n${shareLink()}\n\nЕщё нет приложения? Скачать: ${GET_URL}`;
   const Sh=window.Capacitor?.Plugins?.Share;
   const title=`${nm} приглашает в «Не18мнеуже»`;
-  try{ if(Sh){ await Sh.share({title, text, dialogTitle:"Отправить приглашение"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
-  try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
-  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); }catch(e){ toast(shareLink()); }
+  const dialogTitle=reply&&to?`Ответ для ${to}: выберите ваш чат`:"Отправить приглашение";
+  try{ if(Sh){ await Sh.share({title, text, dialogTitle}); return true; } }catch(e){ if(String(e).includes("cancel")) return false; }
+  try{ if(navigator.share){ await navigator.share({title, text}); return true; } }catch(e){ return false; }
+  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); return true; }catch(e){ toast(shareLink()); return false; }
 }
 const GET_URL="https://sivkabkbkbkbk-boop.github.io/barometr/get.html";   // for RuStore this becomes the store page
 $("hShare").addEventListener("click",()=>$("appShare").click());
@@ -4517,7 +4527,12 @@ async function addFriendFromLink(url){
   if(SH.on){
     const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
     if(ok) friendWelcome(FR.list[f.k],"wait");
-    else friendWelcome(FR.list[f.k],"reply");
+    else {   // no server: the answer goes back through the messenger right away, the chat list opens by itself
+      toast(`Выберите чат с ${nm} — ответ добавит вас к ${nm} в друзья`);
+      await shareUpload().catch(()=>{});
+      const sent=await new Promise(r=>setTimeout(()=>shareSend(true, nm).then(r,()=>r(false)),900));
+      friendWelcome(FR.list[f.k], sent?"sent":"reply");
+    }
   } else {
     FR.replyTo=null; renderFriends(); fsOpen("reply", nm);
   }
@@ -5003,7 +5018,7 @@ $("chatList").addEventListener("click",e=>{
   if(!g&&e.target.closest("[data-fdel]")){ const k=CH_OPEN, f=FR.list[k]; if(!f||!confirm(`Убрать ${f.name} из друзей? Вы перестанете видеть друг друга.`)) return;
     FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); hideSheet(); renderFriends(); renderChatBadge(); toast(`${f.name} больше не в друзьях`); return; }
   if(g&&e.target.closest("[data-gleave]")){ if(confirm(`Выйти из общего чата «${CHAT.groups[g]?.name}»? Сообщения из него больше не будут приходить.`)) groupAnswer(g,"leave"); return; } const gi=e.target.closest("[data-mid]"); if(gi&&!e.target.closest("[data-retry]")){ RC.open=RC.open===gi.dataset.mid?null:gi.dataset.mid; renderChat(); return; }
-  if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
+  if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")){ const f=FR.list[CH_OPEN]; shareSend(!!f, f?.name); } });   // a reply link: opening it adds us on their side at once
 
 /* ---------- friends tab: people and chats ---------- */
 let FSEG="friends";
