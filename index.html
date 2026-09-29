@@ -668,7 +668,16 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .fvals .li{width:14px;height:14px;opacity:.7;flex:none}
 #pgFriends .fcard .fr{gap:9px}#pgFriends .fcard .x{padding:4px 2px}
 .fvals .no b{color:var(--muted)}
-.fcard .fn b .fhm{font-weight:400;font-size:12.5px;margin-left:4px}
+.flist{padding:6px 10px}
+.flh,.flr{display:grid;grid-template-columns:30px minmax(0,1fr) 66px 36px 46px 34px;gap:6px;align-items:center}
+.flh{height:24px;color:var(--muted);border-bottom:1px solid var(--glass-line)}.flh span{display:grid;place-items:center}.flh .li{width:15px;height:15px;opacity:.75}
+.flb{max-height:210px;overflow-y:auto;overscroll-behavior:contain}   /* 5 friends in view */
+.flr{height:42px;cursor:pointer;border-bottom:1px solid var(--glass-line)}.flr:last-child{border-bottom:0}
+.flr .av{width:30px;height:30px;font-size:13px}.flr .av em{width:15px;height:15px;right:-4px;bottom:-4px}
+.flr .fnm{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flr .fw{font-style:normal;color:var(--kp-hi);font-weight:700}
+.flr .fv{font-family:var(--f-mono);font-size:12.5px;text-align:center;white-space:nowrap}.flr .fv.no{color:var(--muted)}
+.flr .chatb{padding:4px 6px;justify-self:end}
 .fgrid table{border-collapse:separate;border-spacing:2px;font-size:12px}
 .fgrid th{font-family:var(--f-mono);font-weight:400;color:var(--muted);font-size:9.5px;padding:0 1px;min-width:20px}
 .fgrid th.nm{text-align:left;min-width:0;font-family:var(--f-body);font-size:12px;color:var(--ink);font-weight:600;padding-right:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sheet-2);z-index:1}
@@ -4546,22 +4555,24 @@ function renderFriends(state){
   const fl=Object.values(FR.list);
   if(!fl.length&&SH.on) h+=`<div class="card hempty"><div class="hei">${lic("🤝")}</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">Пригласить друга</button></div>`;
   const today=isoDay(new Date());
-  for(const f of fl){
-    const d=f.data||{}, mood=d.mood||{}, tm=mood[today], hmv=d.hm||[];
-    const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
-    const ls=[...hmv].reverse().find(m=>m.type==="steps"&&m.d>=isoDay(new Date(Date.now()-DAY)));
-    const wx=d.wx&&Date.now()-+new Date(d.wx.at||0)<12*H?` · ${d.wx.t}° <span class="wxi">${icon(WXS[d.wx.k]||"cloudy")}</span>`:"";
-    const un=chatUnread(f);
-    const val=(ic,v,title,c)=>`<span title="${title}"${v==null?' class="no"':""}>${lic(ic)}<b${c?` style="color:${c}"`:""}>${v==null?"—":v}</b></span>`;
-    h+=`<div class="card fcard">
-      <div class="fr"><span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${ekf(tm.e)}</em>`:""}</span>
-        <span class="fn"><b>${esc2(f.name||"Друг")} <span class="fhm">${f.gone?"закрыл(а) доступ":esc2(d.city||"загружаю…")}${wx}</span></b>
-          ${f.data?`<span class="fvals">${val("🩺",lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}${val("🩸",lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}${val("👣",ls?ls.v.toLocaleString("ru-RU"):null,ls?`Шаги, ${ls.d===isoDay(new Date())?"сегодня":"вчера"}`:"Шаги: нет данных")}</span>`:""}</span>
-        <button class="chatb big" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/></svg>${un?`<i>${un}</i>`:""}</button>
-        <button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>
-      ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">У ${esc2(f.name)} вас пока нет в друзьях. <button class="mlink" data-f="send" style="padding:0">Отправить приглашение</button></div>`:""}
-      ${!f.s?`<div class="fhm">Для чата и давления нужно новое приглашение от ${esc2(f.name)}.</div>`:""}
-    </div>`;
+  // all friends in one compact list, like the wellbeing table: a row each, 5 in view, the rest scroll inside
+  if(fl.length){
+    h+=`<div class="card flist"><div class="flh"><span></span><span></span><span title="Давление">${lic("🩺")}</span><span title="Сахар">${lic("🩸")}</span><span title="Шаги">${lic("👣")}</span><span></span></div><div class="flb">`;
+    for(const f of fl){
+      const d=f.data||{}, tm=(d.mood||{})[today], hmv=d.hm||[];
+      const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
+      const ls=[...hmv].reverse().find(m=>m.type==="steps"&&m.d>=isoDay(new Date(Date.now()-DAY)));
+      const un=chatUnread(f), warn=!f.s||f.gone||(SH.on&&f.s&&f.data&&!f.acked);
+      const cell=(v,title,c)=>`<span class="fv${v==null?" no":""}" title="${title}"${c?` style="color:${c}"`:""}>${v==null?"—":v}</span>`;
+      h+=`<div class="flr" data-chat="${esc2(f.k)}" title="${esc2(f.gone?"закрыл(а) доступ":d.city||"")}">
+        <span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${ekf(tm.e)}</em>`:""}</span>
+        <span class="fnm">${esc2(f.name||"Друг")}${warn?' <i class="fw">!</i>':""}</span>
+        ${cell(lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}
+        ${cell(lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}
+        ${cell(ls?(ls.v>=10000?(ls.v/1000).toFixed(1).replace(".",",")+"т":ls.v.toLocaleString("ru-RU")):null,ls?`Шаги, ${ls.d===isoDay(new Date())?"сегодня":"вчера"}: ${ls.v}`:"Шаги: нет данных")}
+        <button class="chatb" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/></svg>${un?`<i>${un}</i>`:""}</button></div>`;
+    }
+    h+=`</div></div>`;
   }
   // coincidences and a two-week comparison
   if(fl.length){
@@ -4842,7 +4853,10 @@ function renderChat(){
     }
   }
   if(isG&&all.length) h+=`<button class="mlink gleave" data-gleave>Выйти из общего чата</button>`;
+  if(!isG){ if(SH.on&&f.s&&f.data&&!f.acked) h+=`<div class="cnote">У ${esc(f.name)} вас пока нет в друзьях.<button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
+ }
   if(!all.length&&SH.on) h+=`<div class="cnote">${isG?`Это общий чат «${esc(CHAT.groups[g].name)}». Напишите первым 👋`:`Напишите ${esc(f.name)} первым 👋`}<br>Сообщения шифруются: прочитать их могут только участники.</div>`;
+  if(!isG) h+=`<button class="mlink gleave" data-fdel>Убрать из друзей</button>`;
   box.innerHTML=h;
   $("chatQuick").innerHTML=["__me",...QUICK].map(q=>q==="__me"?`<button class="chip" data-q="__me">📋 Моё состояние</button>`:`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
   const can=!!(SH.on&&Y.token&&(isG||f.s)); $("chatIn").disabled=!can; $("chatSend").disabled=!can; $("chatQuick").hidden=!can;
@@ -4990,6 +5004,8 @@ $("chatList").addEventListener("click",e=>{
   const g=String(CH_OPEN||"").startsWith("g:")?CH_OPEN.slice(2):null;
   if(g&&e.target.closest("[data-gjoin]")) return groupAnswer(g,"join");
   if(g&&e.target.closest("[data-gdecl]")) return groupAnswer(g,"decline");
+  if(!g&&e.target.closest("[data-fdel]")){ const k=CH_OPEN, f=FR.list[k]; if(!f||!confirm(`Убрать ${f.name} из друзей? Вы перестанете видеть друг друга.`)) return;
+    FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); hideSheet(); renderFriends(); renderChatBadge(); toast(`${f.name} больше не в друзьях`); return; }
   if(g&&e.target.closest("[data-gleave]")){ if(confirm(`Выйти из общего чата «${CHAT.groups[g]?.name}»? Сообщения из него больше не будут приходить.`)) groupAnswer(g,"leave"); return; } const gi=e.target.closest("[data-mid]"); if(gi&&!e.target.closest("[data-retry]")){ RC.open=RC.open===gi.dataset.mid?null:gi.dataset.mid; renderChat(); return; }
   if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
 
