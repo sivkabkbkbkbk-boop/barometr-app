@@ -658,6 +658,17 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .fbox input{flex:1;min-width:0;background:var(--sheet);border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;color:var(--ink);font-size:13.5px}
 .fbox .hint{margin:0}
 .fgrid{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fgrid.fgv{overflow:auto;max-height:160px;overscroll-behavior:contain;position:relative}   /* me + 5 friends, the rest scroll inside */
+.fgrid.fgv thead th{position:sticky;top:0;background:var(--sheet-2);z-index:2}
+#pgFriends .fgrid th.nm,#pgFriends .fgrid.fgv thead th{background:var(--sky-top)}
+.fgrid.fgv thead th:first-child{left:0;z-index:3}
+.fvals{display:flex;gap:9px;flex-wrap:nowrap;margin-top:4px;font-size:12.5px;overflow:hidden}
+.fvals span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.fvals b{font-family:var(--f-mono);font-weight:400}
+.fvals .li{width:14px;height:14px;opacity:.7;flex:none}
+#pgFriends .fcard .fr{gap:9px}#pgFriends .fcard .x{padding:4px 2px}
+.fvals .no b{color:var(--muted)}
+.fcard .fn b .fhm{font-weight:400;font-size:12.5px;margin-left:4px}
 .fgrid table{border-collapse:separate;border-spacing:2px;font-size:12px}
 .fgrid th{font-family:var(--f-mono);font-weight:400;color:var(--muted);font-size:9.5px;padding:0 1px;min-width:20px}
 .fgrid th.nm{text-align:left;min-width:0;font-family:var(--f-body);font-size:12px;color:var(--ink);font-weight:600;padding-right:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sheet-2);z-index:1}
@@ -4377,6 +4388,7 @@ async function shareUpload(){
   let hm=null;
   if(SH.hm!==false && SH.secret){ const since2=new Date(Date.now()-120*DAY).toISOString();
     const rows=HM.list.filter(m=>!HM.del[m.id]&&m.t>=since2).map(m=>m.type==="bp"?{t:m.t,type:"bp",sys:m.sys,dia:m.dia}:{t:m.t,type:"glu",v:m.v,ctx:m.ctx});
+    try{ for(let i=6;i>=0;i--){ const d=isoDay(new Date(Date.now()-i*DAY)), v=stepsOf(d); if(v!=null) rows.push({t:d+"T12:00:00",type:"steps",d,v}); } }catch(e){}   // steps of the last week
     try{ hm=await aesSeal(await shareKey(SH.secret), rows); }catch(e){} }
   let wx=null; try{ const fd=S.feed[S.slug], h=fd?.hours?.[nearestIdx(fd.hours,Date.now())]; if(h) wx={t:Math.round(h.temp),k:cond(h.sym).kind,p:h.p!=null?Math.round(h.p*HPA2MM):null,at:new Date().toISOString()}; }catch(e){}
   const body=JSON.stringify({app:"Не18мнеуже",v:2,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood,ack,hm,wx});
@@ -4537,17 +4549,16 @@ function renderFriends(state){
   for(const f of fl){
     const d=f.data||{}, mood=d.mood||{}, tm=mood[today], hmv=d.hm||[];
     const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
-    const wk=[]; for(let i=3;i>=0;i--){ const r=mood[isoDay(new Date(Date.now()-i*DAY))]; wk.push(r?.e?ekf(r.e):"·"); }
+    const ls=[...hmv].reverse().find(m=>m.type==="steps"&&m.d>=isoDay(new Date(Date.now()-DAY)));
     const wx=d.wx&&Date.now()-+new Date(d.wx.at||0)<12*H?` · ${d.wx.t}° <span class="wxi">${icon(WXS[d.wx.k]||"cloudy")}</span>`:"";
-    const L=threadLast(f.k), un=chatUnread(f);
-    const tile=(lab,val,pill,sub)=>`<div class="ftile"><span class="kl">${lab}</span><span class="mono fv">${val}</span>${pill?`<span class="hp" style="--c:${pill.c}">${pill.l}</span>`:`<span class="kl">${sub||""}</span>`}</div>`;
+    const un=chatUnread(f);
+    const val=(ic,v,title,c)=>`<span title="${title}"${v==null?' class="no"':""}>${lic(ic)}<b${c?` style="color:${c}"`:""}>${v==null?"—":v}</b></span>`;
     h+=`<div class="card fcard">
       <div class="fr"><span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${ekf(tm.e)}</em>`:""}</span>
-        <span class="fn"><b>${esc2(f.name||"Друг")}</b><span class="fhm">${f.gone?"закрыл(а) доступ":esc2(d.city||"загружаю…")}${wx}</span></span>
+        <span class="fn"><b>${esc2(f.name||"Друг")} <span class="fhm">${f.gone?"закрыл(а) доступ":esc2(d.city||"загружаю…")}${wx}</span></b>
+          ${f.data?`<span class="fvals">${val("🩺",lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}${val("🩸",lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}${val("👣",ls?ls.v.toLocaleString("ru-RU"):null,ls?`Шаги, ${ls.d===isoDay(new Date())?"сегодня":"вчера"}`:"Шаги: нет данных")}</span>`:""}</span>
         <button class="chatb big" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/></svg>${un?`<i>${un}</i>`:""}</button>
         <button class="x" data-del="${esc2(f.k)}" aria-label="Убрать ${esc2(f.name)} из друзей">×</button></div>
-      ${f.data?`<div class="ftiles">${tile(lb?`А/Д · ${shortWhen(lb.t)}`:"А/Д",lb?`${lb.sys}/${lb.dia}`:"—",lb?bpCat(lb.sys,lb.dia):null,lb?"":"нет данных")}${tile(lg?`Сахар · ${shortWhen(lg.t)}`:"Сахар",lg?fmtNum(lg.v):"—",lg?gluCat(lg.v,lg.ctx):null,lg?"":"нет данных")}${tile("4 дня",`<span class="wk4">${wk.join("")}</span>`,null,tm?tm.l||"":"сегодня без отметки")}</div>`:""}
-      ${L?`<button class="flast" data-chat="${esc2(f.k)}"><b>${L.me?"Вы":esc2(f.name)}:</b> ${L.c?"состояние":esc2(L.x)} <span class="fhm">· ${shortWhen(L.t)}</span></button>`:""}
       ${SH.on&&f.s&&f.data&&!f.acked?`<div class="fhm">У ${esc2(f.name)} вас пока нет в друзьях. <button class="mlink" data-f="send" style="padding:0">Отправить приглашение</button></div>`:""}
       ${!f.s?`<div class="fhm">Для чата и давления нужно новое приглашение от ${esc2(f.name)}.</div>`:""}
     </div>`;
@@ -4562,7 +4573,7 @@ function renderFriends(state){
     const emo=v=>v==null?"":ekf(typeof v==="number"?(MOOD[v]?.e||""):(v.e||""));
     const rows=[[`Я`, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", d=>f.data?.mood?.[d]]));
     h+=`<div class="card"><div class="label">Совпадения самочувствия</div>${lines.length?`<div class="ins" style="gap:6px">${lines.map(l=>`<span>${l}</span>`).join("")}</div>`:`<div class="fhm" style="margin-top:6px">Появятся, когда у вас будет хотя бы 3 общих дня с отметками.</div>`}
-      <div class="fgrid" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
+      <div class="fgrid fgv" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
       rows.map(([n,get])=>`<tr><th class="nm">${esc2(n)}</th>${days.map(d=>`<td class="${d===days[13]?"today":""}">${emo(get(d))}</td>`).join("")}</tr>`).join("")+`</tbody></table></div></div>`;
   }
   if(SH.on) h+=`<div class="fbox"><label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
@@ -4573,6 +4584,9 @@ function renderFriends(state){
   h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
   box.innerHTML=h;
   box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
+  // exactly me + 5 friends in view; more rows scroll inside the table
+  const fg=box.querySelector(".fgv"), tr=fg?.querySelectorAll("tbody tr");
+  if(tr?.length>6&&tr[6].offsetTop) fg.style.maxHeight=tr[6].offsetTop+"px"; else if(fg&&tr?.length<=6) fg.style.maxHeight="none";
 }
 $("friends").addEventListener("change",e=>{ const rr=e.target.closest('[data-f="rr"]'); if(rr){ SH.rr=rr.checked; saveShare(); chatRcSoon(); toast(rr.checked?"Отчёты о прочтении включены.":"Отчёты о прочтении выключены."); return; }
   const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
