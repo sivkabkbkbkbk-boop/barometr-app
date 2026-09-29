@@ -669,15 +669,15 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 #pgFriends .fcard .fr{gap:9px}#pgFriends .fcard .x{padding:4px 2px}
 .fvals .no b{color:var(--muted)}
 .flist{padding:6px 10px}
-.flh,.flr{display:grid;grid-template-columns:30px minmax(0,1fr) 66px 36px 46px 34px;gap:6px;align-items:center}
+.flh,.flr{display:grid;grid-template-columns:minmax(0,1fr) 66px 36px 46px 28px;gap:6px;align-items:center}
 .flh{height:24px;color:var(--muted);border-bottom:1px solid var(--glass-line)}.flh span{display:grid;place-items:center}.flh .li{width:15px;height:15px;opacity:.75}
-.flb{max-height:210px;overflow-y:auto;overscroll-behavior:contain}   /* 5 friends in view */
-.flr{height:42px;cursor:pointer;border-bottom:1px solid var(--glass-line)}.flr:last-child{border-bottom:0}
+.flb{max-height:160px;overflow-y:auto;overscroll-behavior:contain}   /* 5 friends in view */
+.flr{height:32px;cursor:pointer;border-bottom:1px solid var(--glass-line)}.flr:last-child{border-bottom:0}
 .flr .av{width:30px;height:30px;font-size:13px}.flr .av em{width:15px;height:15px;right:-4px;bottom:-4px}
 .flr .fnm{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .flr .fw{font-style:normal;color:var(--kp-hi);font-weight:700}
 .flr .fv{font-family:var(--f-mono);font-size:12.5px;text-align:center;white-space:nowrap}.flr .fv.no{color:var(--muted)}
-.flr .chatb{padding:4px 6px;justify-self:end}
+.flr .chatb{padding:2px;justify-self:end;border:0}.flr .chatb .li{width:17px;height:17px}.flh{height:20px}
 .fgrid table{border-collapse:separate;border-spacing:2px;font-size:12px}
 .fgrid th{font-family:var(--f-mono);font-weight:400;color:var(--muted);font-size:9.5px;padding:0 1px;min-width:20px}
 .fgrid th.nm{text-align:left;min-width:0;font-family:var(--f-body);font-size:12px;color:var(--ink);font-weight:600;padding-right:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sheet-2);z-index:1}
@@ -4558,7 +4558,7 @@ function renderFriends(state){
   const today=isoDay(new Date());
   // all friends in one compact list, like the wellbeing table: a row each, 5 in view, the rest scroll inside
   if(fl.length){
-    h+=`<div class="card flist"><div class="flh"><span></span><span></span><span title="Давление">${lic("🩺")}</span><span title="Сахар">${lic("🩸")}</span><span title="Шаги">${lic("👣")}</span><span></span></div><div class="flb">`;
+    h+=`<div class="card flist"><div class="flh"><span></span><span title="Давление">${lic("🩺")}</span><span title="Сахар">${lic("🩸")}</span><span title="Шаги">${lic("👣")}</span><span></span></div><div class="flb">`;
     for(const f of fl){
       const d=f.data||{}, hmv=d.hm||[];
       const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
@@ -4566,7 +4566,6 @@ function renderFriends(state){
       const un=chatUnread(f), warn=!f.s||f.gone||(SH.on&&f.s&&f.data&&!f.acked);
       const cell=(v,title,c)=>`<span class="fv${v==null?" no":""}" title="${title}"${c?` style="color:${c}"`:""}>${v==null?"—":v}</span>`;
       h+=`<div class="flr" data-chat="${esc2(f.k)}" title="${esc2(f.gone?"закрыл(а) доступ":d.city||"")}">
-        <span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}</span>
         <span class="fnm">${esc2(f.name||"Друг")}${warn?' <i class="fw">!</i>':""}</span>
         ${cell(lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}
         ${cell(lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}
