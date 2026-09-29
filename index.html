@@ -570,6 +570,7 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 #chatSheet .sbody{flex:1}
 .clist{display:flex;flex-direction:column;gap:6px;padding-top:4px}
 .cday{align-self:center;font-size:11px;color:var(--muted);background:var(--sheet-2);border-radius:99px;padding:2px 10px;margin:6px 0 2px}
+.msg .tx{white-space:pre-wrap}
 .msg{max-width:80%;align-self:flex-start;background:var(--sheet-2);border-radius:16px 16px 16px 4px;padding:7px 11px 5px;display:flex;flex-direction:column;gap:2px;font-size:14.5px;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere}
 .msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
 .msg .tm{align-self:flex-end;font-size:10px;color:rgb(var(--inkc) / .6);font-family:var(--f-mono)}
@@ -634,10 +635,10 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .cnote{align-self:center;text-align:center;font-size:13px;color:var(--muted);background:var(--sheet-2);border-radius:14px;padding:12px 14px;margin:10px 0;display:flex;flex-direction:column;gap:8px;align-items:center}
 .cfoot{flex:none;padding:6px 12px 10px;border-top:1px solid var(--glass-line);display:flex;flex-direction:column;gap:8px;background:var(--sheet)}
 .cquick .chip{font-size:12.5px}
-.cin{display:flex;gap:8px}
-.cin input{flex:1;min-width:0;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:22px;padding:10px 14px;color:var(--ink);font-size:15px}
+.cin{display:flex;gap:8px;align-items:flex-end}
+.cin textarea{flex:1;min-width:0;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:22px;padding:11px 14px;color:var(--ink);font:inherit;font-size:15px;line-height:20px;height:44px;max-height:124px;resize:none;overflow-y:hidden;box-sizing:border-box;display:block}   /* grows with the text up to 5 lines, like in Telegram */
 .csend{width:44px;height:44px;border-radius:50%;border:0;background:var(--press);color:var(--on-acc);font-size:18px;cursor:pointer;flex:none}
-.csend:disabled,.cin input:disabled{opacity:.4}
+.csend:disabled,.cin textarea:disabled{opacity:.4}
 /* friends */
 .friends{display:flex;flex-direction:column;gap:10px}
 .fbox{background:var(--sheet-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
@@ -1507,7 +1508,7 @@ header{position:relative}
   <div class="sbody"><div class="clist" id="chatList"></div></div>
   <div class="cfoot">
     <div class="chips cquick" id="chatQuick"></div>
-    <div class="cin"><input id="chatIn" placeholder="Сообщение" maxlength="1000" autocomplete="off" aria-label="Сообщение"><button class="csend" id="chatSend" aria-label="Отправить">➤</button></div>
+    <div class="cin"><textarea id="chatIn" rows="1" placeholder="Сообщение" maxlength="1000" autocomplete="off" aria-label="Сообщение"></textarea><button class="csend" id="chatSend" aria-label="Отправить">➤</button></div>
   </div>
 </section>
 
@@ -4903,16 +4904,20 @@ $("chatFab").addEventListener("pointermove",e=>{ const d=CFAB.drag, b=e.currentT
   if(d.moved){ b.style.left=Math.max(4, Math.min(innerWidth-60, d.l+dx))+"px"; b.style.top=Math.max(40, Math.min(innerHeight-60, d.t+dy))+"px"; } });
 function chatFabUp(e){ const d=CFAB.drag, b=$("chatFab"); CFAB.drag=null; if(!d) return;
   b.classList.remove("drag");
-  if(!d.moved){ if(e.type==="pointerup") openChatsSheet(); return; }
+  if(!d.moved) return;   // a tap: the "click" below opens the chats
+  CFAB.dragged=true; setTimeout(()=>CFAB.dragged=false,400);
   const x=parseFloat(b.style.left), y=parseFloat(b.style.top);
   store.set("chatFab", JSON.stringify({s:x+28<innerWidth/2?"l":"r", b:Math.round(innerHeight-y-56)}));
   chatFabPos(); }
 $("chatFab").addEventListener("pointerup",chatFabUp);
 $("chatFab").addEventListener("pointercancel",chatFabUp);
-$("chatFab").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openChatsSheet(); } });
+$("chatFab").addEventListener("click",()=>{ if(CFAB.dragged){ CFAB.dragged=false; return; } openChatsSheet(); });
 addEventListener("resize",()=>{ if(!$("chatFab").hidden) chatFabPos(); });
-$("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatSend(v); i.focus(); });
-$("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("chatSend").click(); } });
+function chatInFit(){ const i=$("chatIn"); i.style.height="44px"; const h=Math.min(i.scrollHeight+2,124); i.style.height=h+"px"; i.style.overflowY=i.scrollHeight+2>124?"auto":"hidden"; }
+$("chatIn").addEventListener("input",chatInFit);
+$("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatInFit(); chatSend(v); i.focus(); });
+// Enter sends on a computer; on a phone it starts a new line and the button sends, as in Telegram
+$("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&matchMedia("(pointer:fine)").matches){ e.preventDefault(); $("chatSend").click(); } });
 $("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; if(b.dataset.q==="__me"){ const st=myState(); chatSend(st.x, st.c); } else chatSend(b.dataset.q); });
 $("chatList").addEventListener("click",e=>{ const gi=e.target.closest("[data-mid]"); if(gi&&!e.target.closest("[data-retry]")){ RC.open=RC.open===gi.dataset.mid?null:gi.dataset.mid; renderChat(); return; }
   if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")) shareSend(); });
