@@ -4559,13 +4559,13 @@ function renderFriends(state){
   if(fl.length){
     h+=`<div class="card flist"><div class="flh"><span></span><span></span><span title="Давление">${lic("🩺")}</span><span title="Сахар">${lic("🩸")}</span><span title="Шаги">${lic("👣")}</span><span></span></div><div class="flb">`;
     for(const f of fl){
-      const d=f.data||{}, tm=(d.mood||{})[today], hmv=d.hm||[];
+      const d=f.data||{}, hmv=d.hm||[];
       const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
       const ls=[...hmv].reverse().find(m=>m.type==="steps"&&m.d>=isoDay(new Date(Date.now()-DAY)));
       const un=chatUnread(f), warn=!f.s||f.gone||(SH.on&&f.s&&f.data&&!f.acked);
       const cell=(v,title,c)=>`<span class="fv${v==null?" no":""}" title="${title}"${c?` style="color:${c}"`:""}>${v==null?"—":v}</span>`;
       h+=`<div class="flr" data-chat="${esc2(f.k)}" title="${esc2(f.gone?"закрыл(а) доступ":d.city||"")}">
-        <span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}${tm?`<em>${ekf(tm.e)}</em>`:""}</span>
+        <span class="av" style="background:${colorOf(f.k)}">${esc2((f.name||"?")[0].toUpperCase())}</span>
         <span class="fnm">${esc2(f.name||"Друг")}${warn?' <i class="fw">!</i>':""}</span>
         ${cell(lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}
         ${cell(lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}
