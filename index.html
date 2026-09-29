@@ -56,7 +56,10 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px}
 html,body{overscroll-behavior-y:none}
 #ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 0px);z-index:15;width:40px;height:40px;border-radius:50%;background:var(--sheet);border:1px solid var(--glass-line);box-shadow:0 6px 20px rgba(0,0,0,.35);display:grid;place-items:center;transform:translate(-50%,-50px);opacity:0;pointer-events:none;transition:transform .25s ease, opacity .25s ease}
 #ptr.drag{transition:none}
-#gearBtn,#refreshBtn{display:none!important}   /* settings live in the bottom menu; refresh is a pull-down */
+#gearBtn,#refreshBtn{display:none!important}
+.hshare{order:9;width:38px;height:38px;flex:none;border-radius:50%;border:1px solid var(--glass-line);background:none;color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+.hshare svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round}
+.hshare:active{transform:scale(.92)}   /* settings live in the bottom menu; refresh is a pull-down */
 .bnav button#navSet.open{color:var(--ink)}.bnav button#navSet.open b{filter:none}
 #ptr svg{width:26px;height:26px;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #ptr .ic{stroke:var(--muted);stroke-width:2;transform-origin:13px 13px}
@@ -1153,6 +1156,7 @@ header{position:relative}
     </button>
     <div class="hright">
       <div class="upd" id="upd">—</div>
+      <button class="hshare" id="hShare" aria-label="Поделиться приложением"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="M8.7 10.7l6.6-3.9M8.7 13.3l6.6 3.9"/></svg></button>
       <div class="rstatus" id="rstatus" hidden></div>
       <button class="gear" id="gearBtn" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="16" cy="7" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="10" cy="17" r="2.2" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
       <button class="refresh" id="refreshBtn" data-state="idle" aria-label="Обновить данные">
@@ -4437,6 +4441,7 @@ async function shareSend(reply){
   try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); }catch(e){ toast(shareLink()); }
 }
 const GET_URL="https://sivkabkbkbkbk-boop.github.io/barometr/get.html";   // for RuStore this becomes the store page
+$("hShare").addEventListener("click",()=>$("appShare").click());
 $("appShare").addEventListener("click",async()=>{
   const title="«Не18мнеуже» — погода и самочувствие", text=`Попробуй «Не18мнеуже» 🌦 — дневник самочувствия с погодой, давлением и магнитными бурями. Скачать для Android:\n${GET_URL}`;
   const Sh=window.Capacitor?.Plugins?.Share;
