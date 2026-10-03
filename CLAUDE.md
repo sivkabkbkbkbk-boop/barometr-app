@@ -33,6 +33,7 @@
 - Reports: «Нейросеть» card — small on-device MLP (`nnTrain`, 11 inputs → 6 → 1), needs 21 days, 5-fold
   check, «облако» canvas `#nnCv` (random drift, reacts to touch and scroll). «Что связано…» = tiles with a
   5-step scale (`facLevel`), details in `#facSheet`.
+  «Симптомы и погода» = the same tiles (`symLevel`, `symOpen`), same `#facSheet`.
 - First run: `introSheet`, steps 0–4 (greeting, location, first mark, reminders, «Приятного пользования» +
   «Начать»); live smiley scenes `masGo(n)`. Developer menu: tap the version line in Settings 7 times.
 - Friends: no server. Data lives on each person's Yandex Disk public folder; invite link carries the key and
