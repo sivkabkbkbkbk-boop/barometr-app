@@ -1213,6 +1213,7 @@ header{position:relative}
 .imas .ch{opacity:.6}.ihtxt{font-size:15px;line-height:1.45}
 .ibig{display:flex;flex-direction:column;gap:12px;margin:24px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
 #introSheet [data-is="3"]{min-height:220px}
+#introSheet [data-is="1"]{min-height:0;padding-bottom:8px}   /* just the question and two buttons: no empty space under them */
 .iwheel{height:200px}
 #iOnce,#iSpan{display:flex;flex-direction:column;gap:6px}#iOnce[hidden],#iSpan[hidden]{display:none}
 #introSheet .remrow input{font-size:15px}
@@ -1435,7 +1436,7 @@ header{position:relative}
     <div class="ctitle">Оформление</div>
     <div id="thSet"></div>
     <div class="ctitle">Что отслеживать</div>
-    <div class="cyrow" id="sexRow"><span>Вы</span><span class="chips" style="gap:6px"><button class="chip" data-sexs="f">женщина</button><button class="chip" data-sexs="m">мужчина</button></span></div>
+    <div class="cyrow" id="sexRow"><span>Пол</span><span class="chips" style="gap:6px"><button class="chip" data-sexs="f">женский</button><button class="chip" data-sexs="m">мужской</button></span></div>
     <div class="tgl" id="trList"></div>
     <div class="src">Выключенное прячется со всех экранов, из отчётов и прогноза, но не удаляется: включите — и всё на месте.</div>
     <div class="ctitle">Главный экран · что показывать</div>
@@ -1533,8 +1534,8 @@ header{position:relative}
       <button class="btn inext" data-inext="1">Начать</button>
     </div>
     <div class="istep" data-is="1" hidden>
-      <div class="iq">Вы…</div>
-      <div class="isex"><button class="btn ghost" data-sex="f">Женщина</button><button class="btn ghost" data-sex="m">Мужчина</button></div>
+      <div class="iq">Ваш пол</div>
+      <div class="isex"><button class="btn ghost" data-sex="f">Женский</button><button class="btn ghost" data-sex="m">Мужской</button></div>
     </div>
     <div class="istep" data-is="2" hidden>
       <div class="iq">Самочувствие и цикл</div>
