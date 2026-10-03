@@ -654,8 +654,9 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .fcc .fprog i b{display:block;height:100%;background:var(--ink);opacity:.7}
 .wxbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:1px solid var(--glass-line);border-radius:14px;padding:11px 14px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .wxbtn .go{color:var(--muted);transition:transform .2s}.wxbtn.open .go{transform:rotate(90deg)}
-.wxmore{display:flex;flex-direction:column;gap:12px}
-.wxmore[hidden]{display:none}
+.hmmore{display:flex;flex-direction:column;gap:12px}
+.hmmore[hidden]{display:none}
+#diarySheet #moodDaysC{display:flex;flex-direction:column}
 .fcc .tips{margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-line);font-size:13px;display:flex;flex-direction:column;gap:5px}
 .fcc .tips div::before{content:"• ";color:var(--press)}
 .fcc .prog{height:8px;border-radius:4px;background:rgb(var(--inkc) / .1);overflow:hidden;margin:8px 0 4px}.fcc .prog i{display:block;height:100%;background:var(--press);border-radius:4px}
@@ -911,7 +912,7 @@ header{position:relative}
 @media (min-width:760px){
   .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:stretch}
   .app>*,.app>header{min-width:0}
-  #pgToday>header,#pgToday>.notice,#pgToday>.hero,#wxBtn,#wxMore,#cardRain,#cardHours,#card5,
+  #pgToday>header,#pgToday>.notice,#pgToday>.hero,#hmBtn,#hmMore,#cardRain,#cardHours,#card5,
   .app>.ptitle,.app>.src,.app>.seg3,#repData,#hBody,#fcCard,#moodDaysC{grid-column:1/-1}
   #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:stretch}
   #repData>*{min-width:0}
@@ -921,8 +922,6 @@ header{position:relative}
   #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
   #pgFriends{display:flex;max-width:760px}
   #pgToday{grid-auto-flow:row dense}
-  .wxmore{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
-  .wxmore[hidden]{display:none}
   #grid2{grid-column:auto}
   #pgToday,#repData.rsec,#hBody{align-items:stretch}   /* cards side by side are the same height */
   #pgToday>.card,#grid2>.card,#repData>.card,#hBody>.card{height:100%;box-sizing:border-box}
@@ -1281,7 +1280,7 @@ header{position:relative}
 <feComponentTransfer><feFuncR type="linear" slope="0.86" intercept="0.10"/><feFuncG type="linear" slope="0.84" intercept="0.14"/><feFuncB type="linear" slope="0.84" intercept="0.12"/></feComponentTransfer></filter><filter id="noosm" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feMorphology operator="erode" radius="1.6"/><feMorphology operator="dilate" radius="3.2"/><feMorphology operator="erode" radius="1.6"/><feComponentTransfer><feFuncR type="table" tableValues="0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.239 0.377 0.515 0.561 0.576 0.592 0.608 0.624 0.639 0.655 0.667"/><feFuncG type="table" tableValues="0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.588 0.668 0.749 0.775 0.783 0.792 0.800 0.808 0.817 0.825 0.831"/><feFuncB type="table" tableValues="0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.871 0.745 0.620 0.596 0.607 0.617 0.627 0.638 0.648 0.659 0.667"/></feComponentTransfer></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 26 26"><g class="ic"><path d="M18.5 8.5A6.5 6.5 0 1 0 19.5 13"/><path d="M19.2 4.8v4h-4"/></g><circle class="sp" cx="13" cy="13" r="8"/><path class="ck" d="M8 13.5l3.2 3.2L18 9.8"/></svg></div>
-<main class="app page" id="pgToday">
+<main class="app page" id="pgToday" hidden>
   <header>
     <button class="citybtn" id="citybtn" aria-haspopup="dialog">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5c0 3.4 4.5 8.5 4.5 8.5s4.5-5.1 4.5-8.5A4.5 4.5 0 0 0 8 1.5zm0 6.2a1.7 1.7 0 1 1 0-3.4 1.7 1.7 0 0 1 0 3.4z" fill="currentColor"/></svg>
@@ -1306,13 +1305,7 @@ header{position:relative}
 
   <div class="notice" id="pendingNote" hidden></div>
 
-  <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
-    <div class="mchead"><div class="mq">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
-    <div class="kgrid k3" id="kgMain"></div>
-    <div class="mtoday" id="mtMain"></div>
-  </section>
 
-  <section class="card fade fcc" id="fcCard" hidden></section>
 
   <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Погода: подробный прогноз на сегодня">
     <div>
@@ -1323,12 +1316,6 @@ header{position:relative}
     <div class="cond"><div class="icon" id="cicon"></div><div class="txt" id="ctext"></div></div>
   </section>
 
-  <button class="wxbtn" id="wxBtn" aria-expanded="false" aria-controls="wxMore"><span>Погода подробнее</span><span class="go">›</span></button>
-  <div class="wxmore" id="wxMore" hidden>
-  <section class="card fade risk" id="cardRisk" style="animation-delay:.01s" aria-label="Погода и самочувствие сегодня">
-    <div class="mchead"><div class="label">Погода и самочувствие сегодня</div><span class="rpill" id="riskPill"></span></div>
-    <div class="rbody"><svg id="riskG" viewBox="0 0 96 58" aria-hidden="true"></svg><div class="rwhy" id="riskWhy"></div></div>
-  </section>
 
   <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div><div class="d5hint">нажмите на день — подробный прогноз</div></section>
 
@@ -1358,28 +1345,35 @@ header{position:relative}
     <div class="rans"><span class="rsi" id="prico"></span><div><div class="prnote" id="prnote"></div><div class="rat">на карте <b class="jat">сейчас</b></div></div></div>
     <div class="rmap" id="rmapSmall"><button class="mapx" id="mapExpand" aria-label="Открыть карту на весь экран">⤢</button></div>
   </section>
-  </div>
 
-  <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
-    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">отчёт ›</button></div>
-    <div class="htiles" id="hTiles"></div>
-  </section>
 
   <footer><button class="btn ghost" id="installBtn" hidden>Установить приложение</button><div>Погода и архив: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Kp: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA</a>, <a href="https://kp.gfz.de/" target="_blank" rel="noopener">GFZ</a></div></footer>
 </main>
 
 
-<main class="app page" id="pgHealth" hidden>
+<main class="app page" id="pgHealth">
   <div class="ptitle"><h1>Здоровье</h1></div>
+  <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
+    <div class="mchead"><div class="mq">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
+    <div class="kgrid k3" id="kgMain"></div>
+    <div class="mtoday" id="mtMain" hidden></div>
+  </section>
+  <section class="card fade fcc" id="fcCard" hidden></section>
+  <section class="card fade risk" id="cardRisk" style="animation-delay:.01s" aria-label="Погода и самочувствие сегодня">
+    <div class="mchead"><div class="label">Погода сегодня — для метеозависимых</div><span class="rpill" id="riskPill"></span></div>
+    <div class="rbody"><svg id="riskG" viewBox="0 0 96 58" aria-hidden="true"></svg><div class="rwhy" id="riskWhy"></div></div>
+  </section>
+  <button class="wxbtn" id="hmBtn" aria-expanded="false" aria-controls="hmMore"><span>Давление, сахар и шаги</span><span class="go">›</span></button>
+  <div class="hmmore" id="hmMore" hidden>
   <div class="seg3" id="hSeg"></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
-  <div class="card" id="moodDaysC" hidden><div class="label" style="margin-bottom:10px">Последние 7 дней</div>
-    <div class="days" id="mdays"></div>
-    <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
-    <button class="mlink" id="moodToRep" style="margin-top:10px;align-self:flex-start">Что влияет на самочувствие — в отчётах ›</button>
-    <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">Спрашивать в шторке — настроить ›</button>
+  <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
+    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">отчёт ›</button></div>
+    <div class="htiles" id="hTiles"></div>
+  </section>
   </div>
   <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
+
 </main>
 <main class="app page" id="pgRep" hidden>
   <div class="ptitle"><div><h1>Отчёты</h1><div class="sc" id="repSub"></div></div><button class="chip" id="repShare"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5M5 12v7h14v-7"/></svg> Врачу</button></div>
@@ -1413,8 +1407,8 @@ header{position:relative}
   <div class="friends" id="chats" hidden></div>
 </main>
 <nav class="bnav" id="bnav" aria-label="Разделы">
-  <button data-tab="today" aria-current="page"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.3M2.5 9h1.3M4.4 4.4l.9.9M13.6 4.4l-.9.9"/><path d="M8 20h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.4A2.8 2.8 0 0 0 8 20z"/></svg></b>Сегодня</button>
-  <button data-tab="health"><b><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></b>Здоровье</button>
+  <button data-tab="health" aria-current="page"><b><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></b>Здоровье</button>
+  <button data-tab="today"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.3M2.5 9h1.3M4.4 4.4l.9.9M13.6 4.4l-.9.9"/><path d="M8 20h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.4A2.8 2.8 0 0 0 8 20z"/></svg></b>Погода</button>
   <button data-tab="cycle" id="navCy" hidden><b><svg viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 1-6 2.5"/><path d="M6 3.2V6h2.8"/><path d="M12 8.6c1.6 2 2.5 3.3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.3.9-2.6 2.5-4.6z"/></svg></b>Цикл</button>
   <button data-tab="rep"><b><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></b>Отчёты</button>
   <button data-tab="friends"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5.5M18 20a5 5 0 0 0-3-4.6"/></svg></b>Друзья<i id="navN"></i></button>
@@ -1623,6 +1617,18 @@ header{position:relative}
   <div class="grab"></div>
   <div class="shead"><div><h2 id="cyDayT"></h2><div class="sc" id="cyDayS"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
   <div class="sbody" id="cyDayB"></div>
+</section>
+<section class="sheet" id="diarySheet" role="dialog" aria-modal="true" aria-labelledby="diaryT" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="diaryT">Дневник отметок</h2></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody">
+  <div id="moodDaysC">
+    <div class="days" id="mdays"></div>
+    <div class="picker" id="mpicker" hidden style="margin-top:10px"></div>
+    <button class="mlink" id="moodToRep" style="margin-top:10px;align-self:flex-start">Что влияет на самочувствие — в отчётах ›</button>
+    <button class="mlink" id="remGo" style="margin-top:10px;align-self:flex-start">Спрашивать в шторке — настроить ›</button>
+  </div>
+  </div>
 </section>
 <section class="sheet" id="facSheet" role="dialog" aria-modal="true" aria-labelledby="facT" hidden>
   <div class="grab"></div>
@@ -3041,7 +3047,7 @@ const CARDS=[
 const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],true])), loadJSON("layout",{})||{});
 function applyLayout(){
   for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
-  try{ if(!hmRecent()) $("cardHealth").hidden=true; }catch(e){}   // HM is defined further down
+  $("cardHealth").hidden=true;
   const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
   $("grid2").hidden=!n; $("grid2").classList.toggle("one", n===1);
   if(LAYOUT.cardMood) $("moodChip").hidden=true; else if($("moodPop").hidden && typeof renderMood==="function" && window.KIND_READY) $("moodChip").hidden=false;
@@ -3303,8 +3309,8 @@ $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new 
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
 $("moodChip").addEventListener("click",()=>showMoodPop());
 let RSEG="data";   // reports have one part now: everything is in "Показатели"
-const moodShown=()=>TAB==="rep"||(TAB==="health"&&HSEG==="mood");
-function openMoodSheet(){ if(openSheet) hideSheet(true); HSEG="mood"; store.set("hseg",HSEG); showTab("health"); setTimeout(()=>$("moodDaysC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
+const moodShown=()=>TAB==="rep"||openSheet==="diarySheet";
+function openMoodSheet(){ if(openSheet) hideSheet(true); MS.sel=null; showSheet("diarySheet"); renderMoodSheet(); }
 function openMoodAnalysis(){ if(openSheet) hideSheet(true); showTab("rep"); setTimeout(()=>$("moodFacC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
 function renderRepSeg(){ $("repData").hidden=false; drawReport(); MS.sel=null; renderMoodSheet(); if(window.NN_READY) nnRender(); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
@@ -3543,7 +3549,7 @@ function renderHealth(){
   $("hTiles").innerHTML =
     (tr("bp")?(bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",whenTxt(bp.t),bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)):"") +
     (tr("glu")?(gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null)):"");
-  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","glu"].some(tr)||!hmRecent();
+  const ch=$("cardHealth"); if(ch) ch.hidden=true;
 }
 function openMeas(tab){ HM.tab=tab||HM.tab; renderMeas(); showSheet("measSheet"); }
 function nowLocal(){ const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
@@ -4085,14 +4091,15 @@ function weekCompare(type){
 }
 function moodNear(t){ const ms=S.marks.filter(m=>!S.marksDel[m.id]&&KIND[m.k]&&Math.abs(+new Date(m.t)-+new Date(t))<=3*H); return ms.length?kf(ms[ms.length-1].k):""; }
 function renderHealthPage(){
-  const segs=Object.keys(MT).filter(mtOn).concat(tr("steps")?["steps"]:[],"mood"); if(!segs.includes(HSEG)) HSEG=segs[0];
+  if(typeof fcRender==="function") fcRender();
+  if(!hmOpen()) return;
+  const segs=Object.keys(MT).filter(mtOn).concat(tr("steps")?["steps"]:[]); if(!segs.includes(HSEG)) HSEG=segs[0];
+  if(!segs.length){ $("hSeg").innerHTML=""; $("hBody").innerHTML=""; return; }
   const SEGN={mood:["😊","Состояние"],steps:["👣","Шаги"]};
   $("hSeg").innerHTML=segs.map(k=>`<button data-hs="${k}"><span>${lic(SEGN[k]?SEGN[k][0]:MT[k].e)}</span> <span>${SEGN[k]?SEGN[k][1]:MT[k].l}</span></button>`).join("");
   $("hSeg").classList.toggle("many",segs.length>3);
   $("hSeg").style.gridTemplateColumns=`repeat(${segs.length},1fr)`;
   document.querySelectorAll("#hSeg [data-hs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hs===HSEG));
-  $("moodDaysC").hidden=HSEG!=="mood"; if(HSEG==="mood"){ MS.sel=null; renderMoodSheet(); }
-  if(typeof fcRender==="function") fcRender();
   const box=$("hBody"); let h="";
   if(HSEG==="steps"){ box.innerHTML=hcTiles()||`<div class="card hempty"><div class="hei">${lic("👣")}</div><div>Телефон считает шаги сам, когда он с вами. Первая цифра появится после того, как вы походите с ним.</div></div>`; $("hFab")?.remove(); return; }
   if(HSEG==="mood"){
@@ -4284,7 +4291,7 @@ function buildTimeline(fast){
 $("mapInfo").addEventListener("click",()=>toast("Прогноз численной модели Open-Meteo, а не снимок радара: отдельный ливень может сместиться на несколько километров. Сетка ≈ 28 км, при приближении — ≈ 5 км."));
 
 /* ---------- bottom tabs ---------- */
-let TAB="today";
+let TAB="health";
 const PAGES={today:"pgToday",health:"pgHealth",cycle:"pgCycle",rep:"pgRep",friends:"pgFriends"};
 function showTab(t, sub){
   if(!PAGES[t]||t==="cycle"&&!cycOn()) t="today";
@@ -4298,11 +4305,12 @@ function showTab(t, sub){
   if(t==="cycle") renderCycle();
   if(t==="friends"){ if(sub) FSEG=sub; renderFriendsPage(); fetchFriends(false); }
   if(t==="today"){ render(); drawRadar(); }
-  if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood"||HSEG==="steps";
+  if($("hFab")) $("hFab").hidden=t!=="health"||!hmOpen()||HSEG==="steps";
+  if(t==="today") requestAnimationFrame(()=>{ try{ if(mapSmall.home) mapSmall.setHome(...mapSmall.home); else mapSmall.draw(); }catch(e){} });
   $("moodChip").hidden = t!=="today" || !!LAYOUT.cardMood || !$("moodPop").hidden;
 }
 $("bnav").addEventListener("click",e=>{ if(e.target.closest("#navSet")){ $("gearBtn").click(); return; } const b=e.target.closest("[data-tab]"); if(b){ if(openSheet) hideSheet(true); showTab(b.dataset.tab); } });
-document.body.dataset.tab="today";
+document.body.dataset.tab="health";
 /* ---------- Yandex Disk sync: marks and cities in the app folder of the user's Disk ---------- */
 const YD="https://cloud-api.yandex.net/v1/disk/resources", YFILE="app:/barometr-neba.json";
 const Y_CLIENT_ID = "d75cc9a3e86941919d2a35fca284c9c5";   // «Не18мнеуже» on oauth.yandex.ru: web redirect to auth.html, access to the app folder on Disk only
@@ -5763,7 +5771,7 @@ cyNav();
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
   {id:"2026-10-04b", t:[
-    ["📊","<b>Главный экран проще.</b> Наверху — крупные смайлики для отметки, под ними прогноз на завтра с главной причиной. Карточки погоды свернуты под кнопку «Погода подробнее»."]]},
+    ["📊","<b>Две вкладки: Здоровье и Погода.</b> Здоровье открывается первым: крупные смайлики и прогноз самочувствия на завтра. Давление, сахар и шаги свернуты внизу, отметки — в дневнике. Во вкладке Погода — всё погодное."]]},
   {id:"2026-10-04", t:[
     ["🔔","<b>Новые смайлики и проще отметка.</b> Теперь три лица: Отлично, Нормально, Плохо — одно касание. После «Нормально» или «Плохо» можно отметить, что не так: голова, сердце, упадок сил, суставы, головокружение. Можно и пропустить — оценка уже записана."],
     ["📊","<b>В шторке так же:</b> нажали «Плохо» — уведомление само спросит, что беспокоит. Все прежние отметки сохранились и учитываются в анализе."]]},
@@ -6309,6 +6317,7 @@ function fcRender(){
   if(!F){ card.hidden=true; return; }
   const L=FC_L[F.lv], main=F.why.find(x=>x.w>0)||F.why[0], more=F.why.filter(x=>x!==main);
   card.style.setProperty("--fc",L.c); card.hidden=false;
+  if($("cardRisk")) $("cardRisk").hidden=F.personal||!LAYOUT.cardRisk;
   const line=x=>`<div><span class="i">${lic(x.i)}</span><span>${x.t}${x.sub?`<br><span class="fhm">${x.sub}</span>`:""}</span></div>`;
   const prog=F.personal?"":`<div class="fprog"><span>Личный прогноз: <b>${F.n} из ${FC_NEED}</b> дней</span><i><b style="width:${Math.round(Math.min(F.n,FC_NEED)/FC_NEED*100)}%"></b></i></div>`;
   const det=(main&&main.sub?`<div class="why">${line({...main,t:"Почему так"})}</div>`:"")+
@@ -6327,12 +6336,12 @@ $("fcCard").addEventListener("click",e=>{
   if(e.target.closest("[data-fcmore]")){ FC_OPEN=!FC_OPEN; const c=$("fcCard"); c.querySelector(".fcdet").hidden=!FC_OPEN;
     const b=c.querySelector("[data-fcmore]"); b.textContent=FC_OPEN?"скрыть ›":"подробнее ›"; b.setAttribute("aria-expanded",FC_OPEN); }
 });
-/* «Погода подробнее»: the weather cards fold away; the app remembers whether they are open */
-function wxMoreSet(open){ $("wxMore").hidden=!open; $("wxBtn").setAttribute("aria-expanded",open); $("wxBtn").classList.toggle("open",open);
-  $("wxBtn").firstElementChild.textContent=open?"Свернуть погоду":"Погода подробнее";
-  if(open) requestAnimationFrame(()=>{ try{ if(mapSmall.home) mapSmall.setHome(...mapSmall.home); else mapSmall.draw(); }catch(e){} }); }
-wxMoreSet(store.get("wxMore")==="1");
-$("wxBtn").addEventListener("click",()=>{ const o=$("wxMore").hidden; store.set("wxMore",o?"1":"0"); wxMoreSet(o); });
+/* «Давление, сахар и шаги» on the health tab: folded away; the app remembers whether it is open */
+function hmOpen(){ return !$("hmMore").hidden; }
+function hmMoreSet(open){ $("hmMore").hidden=!open; $("hmBtn").setAttribute("aria-expanded",open); $("hmBtn").classList.toggle("open",open);
+  if($("hFab")) $("hFab").hidden=TAB!=="health"||!open||HSEG==="steps"; }
+hmMoreSet(store.get("hmOpen")==="1");
+$("hmBtn").addEventListener("click",()=>{ const o=!hmOpen(); store.set("hmOpen",o?"1":"0"); hmMoreSet(o); if(o) renderHealthPage(); });
 /* the evening warning (native, build 67+): the app leaves the next two evenings' texts, Android shows them on time */
 var FCN = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.FcNotify||null) : null, fcTimer=0;
 const fcOn=()=>store.get("fcOn")!=="0", fcTime=()=>/^\d\d:\d\d$/.test(store.get("fcTime")||"")?store.get("fcTime"):"20:00";
@@ -6362,7 +6371,7 @@ if(FCN){
     toast($("fcOn").checked?`Предупрежу в ${fcTime()}, если завтра будет тяжело.`:"Предупреждения накануне выключены."); });
   $("fcTime").addEventListener("change",()=>{ if(/^\d\d:\d\d$/.test($("fcTime").value)){ store.set("fcTime",$("fcTime").value); fcPlanSend(); } });
 }
-window.FC_READY=true; fcRender();
+window.FC_READY=true; fcRender(); try{ renderHealthPage(); }catch(e){}
 
 /* ---------- home-screen widget 2x1 (build 65+): an hourly plan for two days; the widget picks the current hour
    and a background for its weather ---------- */
