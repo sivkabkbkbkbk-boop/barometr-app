@@ -22,7 +22,7 @@
   --sheet:#1c1f24; --sheet-2:#262a31;
   --on-ink:#15171b; --on-acc:#1b1d22;                 /* text on an ink or accent background */
   --temp:#ffb86b; --press:#ffb04a; --pressc:255 176 74; --rd:#ffcf7d; --rain:#78adff; --hum:#9fc3ff; --wind:#c9b6ff;
-  --kp-ok:#8be38f; --kp-mid:#f2c94c; --kp-hi:#ff7a6b;
+  --kp-ok:#8be38f; --kp-mid:#f2c94c; --kp-hi:#ff7a6b; --cy:#ff8fab;
   --f-disp:"Unbounded", "Onest", system-ui, sans-serif;
   --f-body:"Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -37,7 +37,7 @@
   --sheet:#f4fcf9; --sheet-2:#e2f5ee;
   --on-ink:#ffffff; --on-acc:#ffffff;
   --temp:#e0662a; --press:#0f9d85; --pressc:15 157 133; --rd:#7ff0d6; --rain:#2f7de0; --hum:#3a78c9; --wind:#7a5fd0;
-  --kp-ok:#1f9d55; --kp-mid:#c98500; --kp-hi:#d9463a;
+  --kp-ok:#1f9d55; --kp-mid:#c98500; --kp-hi:#d9463a; --cy:#c43d66;
 }
 html,body{height:100%}
 *{box-sizing:border-box}
@@ -494,7 +494,7 @@ body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2
 .oli small{color:var(--muted);font-size:10.5px}
 .oli.dim{opacity:.5}
 /* bottom tabs */
-.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-template-columns:repeat(5,1fr);background:rgb(var(--shc) / .96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:rgb(var(--shc) / .96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--glass-line);padding:6px 4px calc(8px + env(safe-area-inset-bottom,0px))}
 .bnav button{position:relative;border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .bnav button b{font-size:21px;font-weight:400;line-height:1.1;filter:grayscale(1) opacity(.65);transition:filter .2s,transform .2s}
 .bnav button[aria-current]{color:var(--ink)}
@@ -1020,6 +1020,45 @@ header{position:relative}
 #pgHealth .hle .kf{width:22px;height:22px;color:var(--muted)}
 /* the reports screen */
 #pgRep .ptitle h1{font-weight:200;font-size:30px}
+#pgCycle .ptitle h1{font-weight:200;font-size:30px}
+#pgCycle .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
+/* the cycle tab: a ring with today on it, a month calendar, the person's own numbers */
+.cyring{display:flex;align-items:center;gap:16px}
+.cyring svg{width:128px;height:128px;flex:none;fill:none;stroke:currentColor;stroke-linecap:round}
+.cyring .big{font-size:30px;font-weight:200;line-height:1.1}
+.cyring .ph{font-size:15px;font-weight:300;margin-top:2px}
+.cyring .nx{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.35}
+.cybtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.cybtns .btn{flex:1;min-width:140px}
+.cymh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.cymh button{background:none;border:0;color:var(--ink);font-size:24px;font-weight:200;padding:0 14px;cursor:pointer;line-height:1}
+.cycal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cycal .wd{font-size:11px;color:var(--muted);padding-bottom:4px;font-weight:300}
+.cycal button{aspect-ratio:1;max-height:46px;border:1px solid transparent;border-radius:50%;background:none;color:var(--ink);font:inherit;font-size:14px;font-weight:300;display:grid;place-items:center;position:relative;cursor:pointer;padding:0;margin:0 auto;width:100%}
+.cycal .out{opacity:.28}
+.cycal .m{border-color:var(--cy);color:var(--cy)}
+.cycal .mp{border:1px dashed var(--cy);color:var(--cy)}
+.cycal .pms::after,.cycal .mid::after{content:"";position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:currentColor;opacity:.55}
+.cycal .pms::after{width:12px;height:1px}
+.cycal .mid::after{width:3px;height:3px;border-radius:50%}
+.cycal .td{font-weight:600}
+.cycal .td::before{content:"";position:absolute;inset:-3px;border-radius:50%;border:1px solid currentColor;opacity:.35}
+.cyleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted);margin-top:12px;font-weight:300}
+.cyleg span{display:inline-flex;align-items:center;gap:6px}
+.cyleg i{display:inline-block;width:13px;height:13px;border-radius:50%;border:1px solid var(--cy)}
+.cyleg i.p{border-style:dashed}.cyleg i.u{border:0;border-bottom:1px solid currentColor;border-radius:0;height:7px;width:12px}.cyleg i.d{border:0;width:3px;height:3px;background:currentColor}
+.cyset{display:flex;flex-direction:column;gap:12px}
+.cyrow{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:300}
+.cystep{display:flex;align-items:center;border:1px solid var(--glass-line);border-radius:12px}
+.cystep button{background:none;border:0;color:var(--ink);font-size:20px;font-weight:200;width:36px;height:34px;cursor:pointer}
+.cystep b{min-width:34px;text-align:center;font-weight:400;font-family:var(--f-mono)}
+.cyph{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.cyph>div{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;font-size:13.5px;font-weight:300}
+.cyph .sc{display:flex;gap:3px}.cyph .sc i{width:14px;height:4px;border-radius:2px;background:var(--glass-line)}.cyph .sc i.on{background:currentColor}
+.cyph small{grid-column:1/-1;color:var(--muted);font-size:11.5px}
+.cynums{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}.cynums div{display:flex;flex-direction:column}.cynums b{font-size:24px;font-weight:200}.cynums span{font-size:11.5px;color:var(--muted)}
+.cywarn{border-left:2px solid var(--kp-mid);padding:2px 0 2px 10px;font-size:13px;font-weight:300;margin-top:10px}
+.isex{display:flex;gap:10px;margin-top:6px}.isex .btn{flex:1}
+#iCyc{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 #pgRep .sc{font-weight:300}
 #pgRep .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
 #pgRep .label{font-weight:400;letter-spacing:.16em}
@@ -1173,7 +1212,7 @@ header{position:relative}
 .imas .dot{fill:var(--ink);stroke:none}
 .imas .ch{opacity:.6}.ihtxt{font-size:15px;line-height:1.45}
 .ibig{display:flex;flex-direction:column;gap:12px;margin:24px 0 10px}.ibig .btn{align-self:stretch;text-align:center;padding:15px;font-size:16px}
-#introSheet [data-is="1"]{min-height:220px}
+#introSheet [data-is="2"]{min-height:220px}
 .iwheel{height:200px}
 #iOnce,#iSpan{display:flex;flex-direction:column;gap:6px}#iOnce[hidden],#iSpan[hidden]{display:none}
 #introSheet .remrow input{font-size:15px}
@@ -1324,6 +1363,16 @@ header{position:relative}
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
 </main>
+<main class="app page" id="pgCycle" hidden>
+  <div class="ptitle"><h1>Цикл</h1></div>
+  <section class="card" id="cyNow"></section>
+  <section class="card" id="cyCalC"><div class="cymh"><button id="cyPrev" aria-label="Предыдущий месяц">‹</button><div class="label" id="cyMon"></div><button id="cyNext" aria-label="Следующий месяц">›</button></div>
+    <div class="cycal" id="cyCal"></div>
+    <div class="cyleg"><span><i></i>месячные</span><span><i class="p"></i>ожидаются</span><span><i class="d"></i>середина цикла</span><span><i class="u"></i>перед месячными</span></div>
+    <div class="fhm" style="margin-top:8px;text-align:center">нажмите на день — отметить начало или конец месячных</div></section>
+  <section class="card" id="cyStatC"></section>
+  <div class="src">Календарь считает дни и фазы по вашим отметкам, прогноз приблизительный. Это не способ предохранения от беременности и не диагноз: если цикл заметно изменился, месячные стали очень болезненными или задержка больше недели — обратитесь к врачу. Данные цикла хранятся только на телефоне и в вашей папке на Яндекс Диске, друзьям они не показываются.</div>
+</main>
 <main class="app page" id="pgFriends" hidden>
   <div class="ptitle"><h1>Друзья</h1><button class="chip on" id="frInvite">＋ Пригласить</button></div>
   <div class="seg3 two" id="fSeg"><button data-fs="friends">Друзья</button><button data-fs="chats">Чаты <i id="fSegN"></i></button></div>
@@ -1333,6 +1382,7 @@ header{position:relative}
 <nav class="bnav" id="bnav" aria-label="Разделы">
   <button data-tab="today" aria-current="page"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.3M2.5 9h1.3M4.4 4.4l.9.9M13.6 4.4l-.9.9"/><path d="M8 20h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.4A2.8 2.8 0 0 0 8 20z"/></svg></b>Сегодня</button>
   <button data-tab="health"><b><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></b>Здоровье</button>
+  <button data-tab="cycle" id="navCy" hidden><b><svg viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 1-6 2.5"/><path d="M6 3.2V6h2.8"/><path d="M12 8.6c1.6 2 2.5 3.3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.3.9-2.6 2.5-4.6z"/></svg></b>Цикл</button>
   <button data-tab="rep"><b><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></b>Отчёты</button>
   <button data-tab="friends"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5.5M18 20a5 5 0 0 0-3-4.6"/></svg></b>Друзья<i id="navN"></i></button>
   <button data-act="settings" id="navSet"><b><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></b>Настройки</button>
@@ -1385,6 +1435,7 @@ header{position:relative}
     <div class="ctitle">Оформление</div>
     <div id="thSet"></div>
     <div class="ctitle">Что отслеживать</div>
+    <div class="cyrow" id="sexRow"><span>Вы</span><span class="chips" style="gap:6px"><button class="chip" data-sexs="f">женщина</button><button class="chip" data-sexs="m">мужчина</button></span></div>
     <div class="tgl" id="trList"></div>
     <div class="src">Выключенное прячется со всех экранов, из отчётов и прогноза, но не удаляется: включите — и всё на месте.</div>
     <div class="ctitle">Главный экран · что показывать</div>
@@ -1414,7 +1465,7 @@ header{position:relative}
     <details class="smore" id="setMore"><summary>Дополнительно</summary><div class="smb">
       <div class="ctitle">О приложении</div>
       <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
-      <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
+      <div class="src">Данные о здоровье, включая календарь цикла, хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает, друзьям цикл не показывается. Календарь цикла считает прогноз приблизительно и не является способом предохранения от беременности. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
       <label class="rsw" id="statW" hidden style="justify-content:space-between"><span>Анонимная статистика<br><span class="fhm">раз в день приложение отмечает «открыто сегодня», а при первом запуске — «установлено». Без имени, номера телефона, города и данных о здоровье. Так разработчик видит, сколько людей пользуются приложением</span></span><input type="checkbox" id="statOn"><span class="knob" aria-hidden="true"></span></label>
       <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Политика конфиденциальности</a>
       <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
@@ -1482,17 +1533,28 @@ header{position:relative}
       <button class="btn inext" data-inext="1">Начать</button>
     </div>
     <div class="istep" data-is="1" hidden>
+      <div class="iq">Расскажите о себе: вы…</div>
+      <div class="isex"><button class="btn ghost" data-sex="f">Женщина</button><button class="btn ghost" data-sex="m">Мужчина</button></div>
+      <div class="src">Самочувствие женщин зависит ещё и от цикла. Если вы женщина, появится вкладка «Цикл», и анализ будет учитывать его, чтобы не путать с погодой.</div>
+      <div id="iCyc" hidden>
+        <div class="src" style="color:var(--ink)">Когда начались последние месячные?</div>
+        <input type="date" class="pdfin" id="iCycD">
+        <div class="src">Не помните точно — укажите примерно или пропустите: это можно сделать позже во вкладке «Цикл».</div>
+        <button class="btn inext" id="iCycGo">Далее</button>
+      </div>
+    </div>
+    <div class="istep" data-is="2" hidden>
       <div class="iq">Как будем определять ваше местоположение?</div>
       <div class="ibig"><button class="btn" id="iLocate">По спутникам GPS</button><button class="btn ghost" id="iPick">Укажу сам</button></div>
       <div class="src" id="iHint" hidden></div>
     </div>
-    <div class="istep" data-is="2" hidden>
+    <div class="istep" data-is="3" hidden>
       <div class="iq">Как вы себя чувствуете сейчас?</div>
       <div class="src" id="iMarked">Нажмите на смайлик — это первая отметка в дневнике.</div>
       <div class="kgrid" id="kgIntro"></div>
-      <button class="btn inext" data-inext="3" id="iNext2" hidden>Далее</button>
+      <button class="btn inext" data-inext="4" id="iNext2" hidden>Далее</button>
     </div>
-    <div class="istep" data-is="3" hidden>
+    <div class="istep" data-is="4" hidden>
       <div class="iq">Как часто напоминать отметить самочувствие?</div>
       <div class="wheel iwheel"><div class="wsel" aria-hidden="true"></div><div class="wlist" id="iEvery" role="listbox" tabindex="0" aria-label="Как часто напоминать"></div></div>
       <div id="iOnce"><div class="remrow">Во сколько напомнить: <input type="time" id="iTime" value="20:00" aria-label="Время напоминания"></div>
@@ -1502,7 +1564,7 @@ header{position:relative}
       <div class="inote" id="iWhy"></div>
       <div class="ibtns"><button class="btn" id="iRem">Напоминать</button><button class="btn ghost" id="iSkip">Не напоминать</button></div>
     </div>
-    <div class="istep ibye" data-is="4" hidden>
+    <div class="istep ibye" data-is="5" hidden>
       <div class="iq">Приятного пользования!</div>
       <div class="src ihtxt">Отмечайте самочувствие, когда захочется, — приложение всё запомнит и подскажет.</div>
       <button class="btn inext" id="iStart">Начать</button>
@@ -1511,6 +1573,11 @@ header{position:relative}
   </div>
 </section>
 
+<section class="sheet" id="cyDaySheet" role="dialog" aria-modal="true" aria-labelledby="cyDayT" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="cyDayT"></h2><div class="sc" id="cyDayS"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody" id="cyDayB"></div>
+</section>
 <section class="sheet" id="facSheet" role="dialog" aria-modal="true" aria-labelledby="facT" hidden>
   <div class="grab"></div>
   <div class="shead"><div><h2 id="facT"></h2></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
@@ -2314,7 +2381,7 @@ function locate(){
     try{ const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 8000); name=j.city||j.locality||name; region=[j.principalSubdivision,j.countryName].filter(Boolean).join(", "); }
     catch(e){ try{ const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&accept-language=ru&zoom=10`, 8000); const a=j.address||{}; name=a.city||a.town||a.village||a.county||name; region=[a.state,a.country].filter(Boolean).join(", "); }catch(e2){} }
     const id=addCity(name, lat, lon, region); store.set("gpsDone","1");
-    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()&&(I_CUR===null||I_CUR<=1)) introStep(2);   // only from the location step: a late GPS answer must not pull the window back; only the city list closes; a welcome or other window stays
+    LOCATING=false; selectCity(id); if(openSheet&&openSheet.id==="cities") hideSheet(); introCity(); if(inIntro()&&(I_CUR===null||I_CUR<=2)) introStep(3);   // only from the location step: a late GPS answer must not pull the window back; only the city list closes; a welcome or other window stays
   }, err=>{
     LOCATING=false; introCity(); if(inIntro()){ const e=$("iHint"); if(e){ e.hidden=false; e.textContent="Не получилось определить — нажмите «Укажу сам»."; } return; }
     toast(err.code===1?"Доступ к местоположению запрещён. Разрешите его в настройках браузера или выберите город вручную.":"Не удалось определить местоположение.");
@@ -2323,7 +2390,7 @@ function locate(){
 function selectCity(id){
   S.slug=id; store.set("city",id);
   if(typeof introCity==="function") setTimeout(introCity,0);
-  if(INTRO_BACK_PENDING()) setTimeout(()=>{ if(I_CUR===null||I_CUR<=1) introStep(2); showIntro(); },500);
+  if(INTRO_BACK_PENDING()) setTimeout(()=>{ if(I_CUR===null||I_CUR<=2) introStep(3); showIntro(); },500);
   if(!S.feed[id]) S.feed[id]=loadJSON("feed:"+id,null)||undefined;
   stopPlay(); RAD.times=[]; RAD.lats=[]; radarFromCache(id);
   render(); drawRadar(); refreshNow(true);
@@ -3005,7 +3072,7 @@ const KFACE={great:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".
   joints:'<path d="M13 11a3 3 0 1 1 3.5 3.5L25.5 23.5A3 3 0 1 1 29 29a3 3 0 1 1-3.5-3.5L14.5 16.5A3 3 0 1 1 11 11"/>',
   bad:'<circle cx="20" cy="20" r="14"/><g class="xl"><path d="M13 15.5l3.5 3.5M16.5 15.5L13 19"/></g><g class="xr"><path d="M23.5 15.5l3.5 3.5M27 15.5L23.5 19"/></g><path class="mouth" d="M14 27q6-5 12 0"/>'};
 /* line icons that stand in for the emoji on the screens (the emoji stay in notifications, toasts and texts) */
-const GLI={"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',"🧲":'<path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/>',
+const GLI={"🌸":'<path d="M12 3.5a8.5 8.5 0 1 1-6 2.5"/><path d="M6 3.2V6h2.8"/><path d="M12 8.6c1.6 2 2.5 3.3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.3.9-2.6 2.5-4.6z"/>',"⏳":'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',"🧲":'<path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/>',
   "🌡":'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 11v6"/>',"💨":'<path d="M3 8.5h11a2.6 2.6 0 1 0-2.6-2.6M3 12.5h15a2.8 2.8 0 1 1-2.8 2.8M3 16.5h7"/>',
   "🌧":'<path d="M7 14h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.3 3.3 0 0 0 7 14z"/><path d="M9 17l-1 3M13 17l-1 3M17 17l-1 3"/>',
   "💧":'<path d="M12 3.5C9 7.6 6.5 10.7 6.5 14a5.5 5.5 0 0 0 11 0c0-3.3-2.5-6.4-5.5-10.5z"/>',"🩸":'<path d="M12 3.5C9 7.6 6.5 10.7 6.5 14a5.5 5.5 0 0 0 11 0c0-3.3-2.5-6.4-5.5-10.5z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
@@ -3189,10 +3256,10 @@ function dayFeatures(date, slug){
   if(typeof HCD!=="undefined"&&HCD&&HCD.psteps[date]!=null) f.steps=HCD.psteps[date];
   return f;
 }
-const FAC_IC={press:"⬇️",dpress:"🧭",kp:"🧲",temp:"🌡",dtemp:"🌡",hum:"💧",wind:"💨",wet:"🌧"};
-const FAC_SHORT={press:"Давление",dpress:"Перепад давления",kp:"Магнитный фон",temp:"Температура",dtemp:"Перепад температуры",hum:"Влажность",wind:"Ветер",wet:"Осадки"};
+const FAC_IC={mens:"🌸",pms:"⏳",press:"⬇️",dpress:"🧭",kp:"🧲",temp:"🌡",dtemp:"🌡",hum:"💧",wind:"💨",wet:"🌧"};
+const FAC_SHORT={mens:"Месячные",pms:"Перед месячными",press:"Давление",dpress:"Перепад давления",kp:"Магнитный фон",temp:"Температура",dtemp:"Перепад температуры",hum:"Влажность",wind:"Ветер",wet:"Осадки"};
 const FAC_W=["","почти нет","слабо","заметно","сильно","очень сильно"];
-const FAC_WHEN={press:["давление высокое","давление низкое"],dpress:["давление сильно скачет","давление почти не меняется"],kp:["магнитный фон высокий","магнитный фон спокойный"],temp:["тепло","холодно"],dtemp:["температура сильно скачет","температура ровная"],hum:["влажно","сухо"],wind:["ветрено","безветренно"],wet:["идёт дождь или снег","сухо"]};
+const FAC_WHEN={mens:["идут месячные","месячных нет"],pms:["скоро месячные","до месячных далеко"],press:["давление высокое","давление низкое"],dpress:["давление сильно скачет","давление почти не меняется"],kp:["магнитный фон высокий","магнитный фон спокойный"],temp:["тепло","холодно"],dtemp:["температура сильно скачет","температура ровная"],hum:["влажно","сухо"],wind:["ветрено","безветренно"],wet:["идёт дождь или снег","сухо"]};
 const facLevel=o=>{ if(!o.enough) return 0; const a=Math.abs(o.r); return a>=.6?5:a>=.45?4:a>=.3?3:a>=.2?2:a>=.1?1:0; };
 function facOpen(i){
   const o=(window.FAC_OUT||[])[i]; if(!o) return;
@@ -3203,7 +3270,7 @@ function facOpen(i){
     : `Самочувствие ${["","чуть","немного","заметно","сильно","очень сильно"][L]} хуже, когда ${(FAC_WHEN[o.k]||["показатель выше","показатель ниже"])[o.r<0?0:1]}`;
   $("facB").innerHTML=`<div class="fbig">${big}</div>
     ${o.mg!=null||o.mb!=null?`<div class="fcmp"><div style="color:var(--kp-ok)">${kf("great")}<b>${o.fmt(o.mg)}</b><span class="fhm">в хорошие дни</span></div><div style="color:var(--kp-hi)">${kf("bad")}<b>${o.fmt(o.mb)}</b><span class="fhm">в плохие дни</span></div></div>`:""}
-    <div class="fhm" style="line-height:1.45">${o.enough?`Сила связи: ${FAC_W[L]||"нет"} (r = ${o.r.toFixed(2).replace(".",",")}) по ${o.pts.length} ${o.pts.length%10===1&&o.pts.length%100!==11?"дню":"дням"}. `:""}Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем. Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>`;
+    <div class="fhm" style="line-height:1.45">${o.enough?`Сила связи: ${FAC_W[L]||"нет"} (r = ${o.r.toFixed(2).replace(".",",")}) по ${o.pts.length} ${o.pts.length%10===1&&o.pts.length%100!==11?"дню":"дням"}. `:""}${o.cyc?"Сравнивается, насколько чаще плохое самочувствие приходится на эти дни цикла (по вашим отметкам месячных во вкладке «Цикл»). Числа — доля таких дней среди хороших и среди плохих дней.":`Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем.${o.adj?" Влияние цикла вычтено из ваших оценок, чтобы не путать его с погодой.":""}`} Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>`;
   showSheet("facSheet");
 }
 document.addEventListener("click",e=>{ const t=e.target.closest("[data-fac]"); if(t) facOpen(+t.dataset.fac); });
@@ -3211,7 +3278,7 @@ document.addEventListener("click",e=>{ const t=e.target.closest("[data-fac]"); i
 const symLevel=d=>{ const a=d?Math.abs(d.eff):0; return a>=1.2?5:a>=.9?4:a>=.65?3:a>=.45?2:a>=.25?1:0; };
 function symOpen(i){
   const o=(window.SYM_OUT||[])[i]; if(!o) return;
-  const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?" "+d.unit:"");
+  const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?(d.unit==="%"?"":" ")+d.unit:"");
   const d=o.diffs[0], L=o.L;
   $("facT").innerHTML=`${kf(o.x.k).replace('class="kf"','class="kf li"')} ${o.x.l}`;
   const big=o.n<3?`Пока мало данных: ${o.n} из 3 дней с этим симптомом. Отмечайте его, когда он есть, — вывод появится сам.`
@@ -3235,6 +3302,8 @@ const FACTORS=[
   ["wind","Ветер","м/с",1,"в ветреные дни","в безветренные дни"],
   ["wet","Осадки","ч",0,"в дождливые дни","в сухие дни"]
 ];
+const CY_FACTORS=[["mens","Дни месячных","%",0,"в дни месячных","в остальные дни"],["pms","Дни перед месячными","%",0,"перед месячными","в остальные дни"]];
+const facList=()=>cycOn()&&CY.list.length?[...CY_FACTORS,...FACTORS]:FACTORS;
 function pearson(xs,ys){ const n=xs.length, mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n; let sxy=0,sxx=0,syy=0; for(let i=0;i<n;i++){const dx=xs[i]-mx,dy=ys[i]-my;sxy+=dx*dy;sxx+=dx*dx;syy+=dy*dy;} return sxx&&syy?sxy/Math.sqrt(sxx*syy):0; }
 const MS={sel:null};
 function renderMoodSheet(){
@@ -3266,16 +3335,23 @@ function renderMoodSheet(){
   } else pk.hidden=true;
   }
   // analysis
-  const rows=Object.entries(S.mood).map(([d,r])=>({d,v:r.v,f:dayFeatures(d, r.city||S.slug)}));
-  const out=FACTORS.map(([k,name,unit,dg,hiTxt,loTxt])=>{
-    const pts=rows.filter(r=>r.f[k]!=null);
+  const rows=Object.entries(S.mood).map(([d,r])=>({d,v:r.v,f:{...dayFeatures(d, r.city||S.slug), ...cycFeat(d)}}));
+  // for women: what the cycle does is taken out of the marks before they are compared with the weather,
+  // so a period headache is not blamed on the pressure (each phase's own average is subtracted)
+  let adj=false;
+  if(cycOn()){ const cr=rows.filter(r=>r.f.mens!=null), g={}; for(const r of cr){ const k=r.f.mens?"m":r.f.pms?"p":"o"; (g[k]=g[k]||[]).push(r.v); }
+    if(cr.length>=10&&Object.values(g).filter(a=>a.length>=3).length>=2){ const all=cr.reduce((a,r)=>a+r.v,0)/cr.length, mu={}; for(const [k,a] of Object.entries(g)) mu[k]=a.length>=3?a.reduce((x,y)=>x+y,0)/a.length:all;
+      for(const r of cr) r.va=r.v-mu[r.f.mens?"m":r.f.pms?"p":"o"]+all; adj=true; } }
+  const out=facList().map(([k,name,unit,dg,hiTxt,loTxt])=>{
+    const cyc=k==="mens"||k==="pms", other=k==="mens"?"pms":"mens";
+    const pts=rows.filter(r=>r.f[k]!=null&&(!cyc||!r.f[other]));   // a cycle phase is compared with ordinary days, not with the other phase
     const good=pts.filter(r=>r.v>=2.5), bad=pts.filter(r=>r.v<=1.5);
     const mean=a=>a.length?a.reduce((x,r)=>x+r.f[k],0)/a.length:null;
     const mg=mean(good), mb=mean(bad);
-    const fmt=v=>v==null?"—":v.toFixed(dg).replace(".",",")+(unit?" "+unit:"");
-    const enough=pts.length>=7 && new Set(pts.map(p=>Math.round(p.v*2))).size>1;
-    const r=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>p.v)):0;
-    return {k,name,pts,mg,mb,fmt,enough,r,hiTxt,loTxt};
+    const fmt=v=>v==null?"—":v.toFixed(dg).replace(".",",")+(unit?(unit==="%"?"":" ")+unit:"");
+    const enough=pts.length>=7 && new Set(pts.map(p=>Math.round(p.v*2))).size>1 && (!cyc||new Set(pts.map(p=>p.f[k])).size>1);
+    const r=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>cyc||p.va==null?p.v:p.va)):0;
+    return {k,name,pts,mg,mb,fmt,enough,r,hiTxt,loTxt,adj:adj&&!cyc,cyc};
   });
   out.sort((a,b)=>(b.enough-a.enough)||Math.abs(b.r)-Math.abs(a.r));
   window.FAC_OUT=out;
@@ -3283,13 +3359,13 @@ function renderMoodSheet(){
     const a=Math.abs(o.r), L=facLevel(o), ic=FAC_IC[o.k]||"🧭";
     return `<button class="ft l${L}${o.enough?"":" nd"}" data-fac="${i}"><span class="top">${lic(ic)}<span class="ar">${!o.enough||a<.1?"–":o.r<0?"↑":"↓"}</span></span><span class="nm">${FAC_SHORT[o.k]||o.name}</span>
       <span class="sc">${[1,2,3,4,5].map(j=>`<i${j<=L?' class="on"':""}></i>`).join("")}</span>
-      <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 7`:a<.1?"не влияет":`${FAC_W[L]} · хуже при ${o.r<0?"росте":"падении"}`}</span></button>`;
+      <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 7`:a<.1?"не влияет":`${FAC_W[L]} · ${o.cyc?(o.r<0?"хуже в эти дни":"в эти дни лучше"):`хуже при ${o.r<0?"росте":"падении"}`}`}</span></button>`;
   }).join("");
   // symptoms: weather on days with the symptom vs. days without it, as tiles like the factors above
   const sout=KPICK.filter(x=>x.sym).map(x=>{
     const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
     const diffs=[];
-    if(withS.length>=3) for(const [k,name,unit,dg] of FACTORS){
+    if(withS.length>=3) for(const [k,name,unit,dg] of facList()){
       const a=withS.map(r=>r.f[k]).filter(v=>v!=null), b=without.map(r=>r.f[k]).filter(v=>v!=null);
       if(a.length<3||b.length<3) continue;
       const ma=a.reduce((p,q)=>p+q,0)/a.length, mb=b.reduce((p,q)=>p+q,0)/b.length;
@@ -3341,7 +3417,8 @@ const GCTX={fast:"натощак",before:"до еды",after:"после еды"
 var TRACK = Object.assign({bp:true, glu:true, steps:true}, loadJSON("track",{})||{});
 const tr=k=>!TRACK||TRACK[k]!==false;       // TRACK is a var: undefined while the script loads, then everything counts as on
 const TR_ITEMS=[["mood","😊","Самочувствие","вручную: смайлики и симптомы",1],["bp","🩺","Давление","вручную"],
-  ["glu","🩸","Сахар в крови","вручную"],["steps","👣","Шаги","считает телефон сам"]];
+  ["glu","🩸","Сахар в крови","вручную"],["steps","👣","Шаги","считает телефон сам"],["cycle","🌸","Цикл","женский календарь: месячные и фазы, учитываются в анализе"]];
+const trItems=()=>TR_ITEMS.filter(([k])=>k!=="cycle"||SEX==="f");
 // measurement types in the Health tab: pressure, sugar
 const MT={bp:{e:"🩺",l:"Давление",tr:"bp",add:"＋ Записать давление"},
   glu:{e:"🩸",l:"Сахар",tr:"glu",add:"＋ Записать сахар"}};
@@ -4111,9 +4188,9 @@ $("mapInfo").addEventListener("click",()=>toast("Прогноз численно
 
 /* ---------- bottom tabs ---------- */
 let TAB="today";
-const PAGES={today:"pgToday",health:"pgHealth",rep:"pgRep",friends:"pgFriends"};
+const PAGES={today:"pgToday",health:"pgHealth",cycle:"pgCycle",rep:"pgRep",friends:"pgFriends"};
 function showTab(t, sub){
-  if(!PAGES[t]) t="today";
+  if(!PAGES[t]||t==="cycle"&&!cycOn()) t="today";
   const changed=TAB!==t; TAB=t;
   for(const [k,id] of Object.entries(PAGES)) $(id).hidden=k!==t;
   document.querySelectorAll("#bnav [data-tab]").forEach(b=>{ if(b.dataset.tab===t) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
@@ -4121,6 +4198,7 @@ function showTab(t, sub){
   if(changed) scrollTo(0,0);
   if(t==="health") renderHealthPage();
   if(t==="rep") renderRepSeg();
+  if(t==="cycle") renderCycle();
   if(t==="friends"){ if(sub) FSEG=sub; renderFriendsPage(); fetchFriends(false); }
   if(t==="today"){ render(); drawRadar(); }
   if($("hFab")) $("hFab").hidden=t!=="health"||HSEG==="mood"||HSEG==="steps";
@@ -4159,23 +4237,27 @@ async function ySync(loud){
     if(dl.status===200 && dl.data?.href){ const f=await yReq("GET", dl.data.href, null, false); if(f.status===200) remote=typeof f.data==="string"?JSON.parse(f.data):f.data; }
     else if(dl.status!==404) throw new Error("net");
     // 2) merge
-    const before=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del]);
+    const before=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del,CY]);
     if(remote){
       let rm=remote.marks;
       if(!Array.isArray(rm)){ rm=[]; for(const [d,r] of Object.entries(remote.mood||{})) if(r&&OLDV[r.v]) rm.push({id:"m"+d.replace(/-/g,""),t:new Date(d+"T12:00:00").toISOString(),k:OLDV[r.v],city:r.city}); }
       const mm=mergeMarks(S.marks, rm, S.marksDel, remote.marksDel); S.marks=mm.marks; S.marksDel=mm.del; rebuildMood();
       for(const [id,c] of Object.entries(remote.cities||{})) if(!S.cities[id]) S.cities[id]={...c,status:"ready"};
       const hm=mergeMarks(HM.list, remote.meas||[], HM.del, remote.measDel); HM.list=hm.marks; HM.del=hm.del;
+      if(remote.cycle){ const cm=mergeMarks(CY.list, (remote.cycle.list||[]).map(p=>({...p,t:p.s})), CY.del, remote.cycle.del); CY.list=cm.marks; CY.del=cm.del;
+        if(+(remote.cycle.at||0)>+(CY.at||0)){ CY.len=remote.cycle.len||CY.len; CY.plen=remote.cycle.plen||CY.plen; CY.at=remote.cycle.at; } }
+      if(remote.sex&&(!SEX||+(remote.sexT||0)>+(store.get("sexT")||0))&&remote.sex!==SEX){ SEX=remote.sex; store.set("sex",SEX); store.set("sexT",String(remote.sexT||Date.now())); cyNav(); renderTrack(); }
     }
-    const changedHere=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del])!==before;
-    if(changedHere){ store.set("marks",JSON.stringify(S.marks)); store.set("marksDel",JSON.stringify(S.marksDel)); store.set("cities",JSON.stringify(S.cities)); saveHM(true); renderHealth();
+    const changedHere=JSON.stringify([S.marks,S.marksDel,S.cities,HM.list,HM.del,CY])!==before;
+    if(changedHere){ saveCY(true); if(TAB==="cycle") renderCycle(); store.set("marks",JSON.stringify(S.marks)); store.set("marksDel",JSON.stringify(S.marksDel)); store.set("cities",JSON.stringify(S.cities)); saveHM(true); renderHealth();
       renderMood(); if(moodShown()) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
     if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)){ if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f; else if(FR.list[k]&&!FR.list[k].s&&f.s) FR.list[k].s=f.s; }
     const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added,s:f.s||""};
-    const body=JSON.stringify({app:"Не18мнеуже",v:3,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,meas:HM.list,measDel:HM.del,cities,friends});
-    if(!remote || JSON.stringify(remote.meas||[])!==JSON.stringify(HM.list) || JSON.stringify(remote.measDel||{})!==JSON.stringify(HM.del) || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length){
+    const body=JSON.stringify({app:"Не18мнеуже",v:3,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,meas:HM.list,measDel:HM.del,cities,friends,
+      cycle:{list:CY.list,del:CY.del,len:CY.len,plen:CY.plen,at:CY.at||0}, sex:SEX, sexT:+(store.get("sexT")||0)});
+    if(!remote || JSON.stringify(remote.meas||[])!==JSON.stringify(HM.list) || JSON.stringify(remote.measDel||{})!==JSON.stringify(HM.del) || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length || JSON.stringify(remote.cycle||null)!==JSON.stringify({list:CY.list,del:CY.del,len:CY.len,plen:CY.plen,at:CY.at||0}) || (remote.sex||"")!==SEX){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
       if(up.status===401||up.status===403) throw new Error("auth");
       if(up.status!==200||!up.data?.href) throw new Error("net");
@@ -4278,7 +4360,7 @@ const MAS={
   pre: '<path d="M12 15.5q2.5 2.5 5 1M23 16.5q2.5-1.5 5-1"/><ellipse cx="20" cy="26" rx="2.5" ry="3"/>',
   achoo:'<path d="M12 17l4.5 1.5-4.5 1.5M28 17l-4.5 1.5 4.5 1.5"/><path d="M15 25.5q5-3 10 0"/>'
 };
-const MAS_FIRST=["hi","joy","hi","joy","joy"];   // the face a window starts with (and the only one when animations are off)
+const MAS_FIRST=["hi","hi","joy","hi","joy","joy"];   // the face a window starts with (and the only one when animations are off)
 let MAS_N=-1, MAS_PK=0, MAS_IDLE=null, MAS_BLINK=0;
 const MAS_CALM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 const masNap=ms=>new Promise(r=>setTimeout(r,ms));
@@ -4290,7 +4372,7 @@ function masGo(n,force){
   if(MAS_CALM()){ mx.innerHTML=MAS[MAS_FIRST[n]||"hi"]; return; }
   masIdle();
   if(n===0){ masPeek(live, first?850:0); return; }
-  const run=()=>[null,masSun,masSneeze,masDance][n]?.(live,box);
+  const run=()=>[null,masWho,masSun,masSneeze,masDance][n]?.(live,box);
   if(first){ mx.innerHTML=MAS[MAS_FIRST[n]]; setTimeout(run,400); return; }
   // a little jump; the face changes at the top of it, then the window's own scene starts
   mb.animate([{transform:"none"},{transform:"translateY(3px) scale(1.08,.9)",offset:.18},{transform:"translateY(-9px) scale(.95,1.06)",offset:.5},{transform:"translateY(1px) scale(1.05,.95)",offset:.82},{transform:"none"}],{duration:560,easing:"ease-in-out"});
@@ -4313,6 +4395,29 @@ async function masPeek(live,wait){
   if(!live()) return; mx.innerHTML=MAS.joy; await masNap(1200);
   if(!live()) return; mx.innerHTML=MAS.wink; await masNap(600);
   if(!live()) return; mx.innerHTML=MAS.hi;
+}
+/* 1 (who are you?): a question mark over the head, it tries on a bow, then a moustache, and wonders which one;
+   on an answer it keeps the chosen one and is glad */
+const MAS_BOW='<path d="M29 6.5l-4.6-3.3v6.6zM29 6.5l4.6-3.3v6.6z"/><circle cx="29" cy="6.5" r="1.2"/>';
+const MAS_MOU='<path d="M14 23.2q3-2.6 6 0q3-2.6 6 0"/>';
+const MAS_Q='<path d="M31.5 2.2q1.6-1.8 3.6-.6t-.6 3.6q-1.5 1.2-1.5 2.6"/><circle cx="33" cy="10.6" r=".5"/>';
+const MAS_W={
+  hm: '<g class="me"><circle class="dot" cx="14.5" cy="17" r="1.4"/><circle class="dot" cx="25.5" cy="17" r="1.4"/></g><path d="M16.5 26.5q3.5-1.2 7 .4"/>',
+  bow:'<g class="me"><circle class="dot" cx="14.5" cy="17" r="1.4"/><circle class="dot" cx="25.5" cy="17" r="1.4"/></g><path d="M14 23.5q6 5.5 12 0"/>',
+  mou:'<g class="me"><circle class="dot" cx="14.5" cy="16.5" r="1.4"/><circle class="dot" cx="25.5" cy="16.5" r="1.4"/></g>'+MAS_MOU+'<path d="M17.5 27.5q2.5 1.5 5 0"/>'
+};
+let MAS_SEX_PICK=null;
+async function masWho(live,box){
+  const mb=box.querySelector(".mb"), mx=box.querySelector(".mx"), ex=box.querySelector(".mex");
+  const tilt=r=>mb.animate([{transform:`rotate(${-r}deg)`},{transform:`rotate(${r}deg)`}],{duration:520,direction:"alternate",iterations:2,easing:"ease-in-out"});
+  while(live()){
+    if(MAS_SEX_PICK){ const f=MAS_SEX_PICK==="f"; mx.innerHTML=f?MAS_W.bow:MAS_W.mou; ex.innerHTML=f?MAS_BOW:""; 
+      mb.animate([{transform:"none"},{transform:"translateY(-7px) scale(.96,1.05)",offset:.45},{transform:"translateY(1px) scale(1.05,.95)",offset:.8},{transform:"none"}],{duration:480});
+      await masNap(500); if(!live()) break; mx.innerHTML=f?MAS.joy:MAS.wink; if(!f) mx.insertAdjacentHTML("beforeend",MAS_MOU); await masNap(900); continue; }
+    ex.innerHTML=MAS_Q; mx.innerHTML=MAS_W.hm; tilt(7); await masNap(1300); if(!live()||MAS_SEX_PICK) continue;
+    ex.innerHTML=MAS_BOW; mx.innerHTML=MAS_W.bow; ex.firstChild.animate([{transform:"scale(.2)",opacity:0},{transform:"none",opacity:1}],{duration:260}); await masNap(1100); if(!live()||MAS_SEX_PICK) continue;
+    ex.innerHTML=MAS_Q; mx.innerHTML=MAS_W.hm; await masNap(700); if(!live()||MAS_SEX_PICK) continue;
+    ex.innerHTML=""; mx.innerHTML=MAS_W.mou; mx.lastChild.previousSibling?.animate([{transform:"scaleX(.2)"},{transform:"none"}],{duration:260}); await masNap(1100); }
 }
 /* 2: rays come out and slowly turn around the head, like the sun */
 async function masSun(live,box){
@@ -4363,14 +4468,21 @@ function introStep(n){
   else show();
 }
 function introStepReady(n){
-  if(n===2) $("iNext2").hidden=!$("kgIntro").dataset.done;   // already marked (came back to this step): let it go on
-  if(n===3&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
+  if(n===1){ $("iCycD").max=isoDay(new Date()); $("introSheet").querySelectorAll("[data-sex]").forEach(b=>b.classList.toggle("ghost",b.dataset.sex!==SEX)); $("iCyc").hidden=SEX!=="f"; }
+  if(n===3) $("iNext2").hidden=!$("kgIntro").dataset.done;   // already marked (came back to this step): let it go on
+  if(n===4&&IW) requestAnimationFrame(()=>{ if(!IW.touched){ IW.touched=1; IW.idx=I_OPTS.length-1; } IW.set(IW.idx,false);   // "once a day" at first
     const once=I_OPTS[IW.idx][0]===1440; $("iOnce").hidden=!once; $("iSpan").hidden=once; }); }
 $("introSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-inext]"); if(n) introStep(+n.dataset.inext); });
 $("kgIntro").addEventListener("click",e=>{ const k=e.target.closest(".kbtn"); if(!k||$("kgIntro").dataset.done) return; $("kgIntro").dataset.done="1";
   k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); kfPlay(k); addMark(k.dataset.k); rebuildMood(); renderMood();
   $("iMarked").textContent=`${KIND[k.dataset.k].l} — записано. Первая отметка есть!`;
-  setTimeout(()=>introStep(3), 1300); });      // a moment to see it recorded, then the next step
+  setTimeout(()=>introStep(4), 1300); });      // a moment to see it recorded, then the next step
+$("introSheet").addEventListener("click",e=>{ const b=e.target.closest("[data-sex]"); if(!b) return;
+  const v=b.dataset.sex; setSex(v); MAS_SEX_PICK=v; masGo(1,true);
+  $("introSheet").querySelectorAll("[data-sex]").forEach(x=>x.classList.toggle("ghost",x!==b));
+  if(v==="f"){ $("iCyc").hidden=false; $("iCycD").max=isoDay(new Date()); setTimeout(()=>$("iCyc").scrollIntoView({block:"nearest",behavior:"smooth"}),50); }
+  else { $("iCyc").hidden=true; setTimeout(()=>introStep(2),900); } });
+$("iCycGo").addEventListener("click",()=>{ const d=$("iCycD").value; if(d&&d<=isoDay(new Date())&&!CY.list.length) cyStart(d); introStep(2); });
 $("iLocate").addEventListener("click",()=>{ locate(); introCity(); });
 $("iPick").addEventListener("click",()=>{ INTRO_BACK=true; hideSheet(true); $("citybtn").click(); });   // the city list, then back to this step
 let I_OPTS=null;   // the same choices as in the settings, without "don't ask" (filled when the window opens: REM_OPTS comes later in the script)
@@ -4386,7 +4498,7 @@ let I_BYE=false;
 async function introBye(){
   if(I_BYE) return; I_BYE=true;
   const sh=$("introSheet"), box=$("iMas"), mb=box.querySelector(".mb"), mx=box.querySelector(".mx");
-  introStep(4);
+  introStep(5);
   // the window stays until "Start" (or until it is swiped away); meanwhile the smiley nods now and then
   let go=false; const start=$("iStart"), on=()=>{ go=true; }; start.addEventListener("click",on);
   const nod=()=>mb.animate([{transform:"none"},{transform:"translateY(4px) scale(1,.93)",offset:.25},{transform:"none",offset:.5},{transform:"translateY(4px) scale(1,.93)",offset:.75},{transform:"none"}],{duration:700,easing:"ease-in-out"});
@@ -5406,17 +5518,164 @@ if(PSP){
   document.addEventListener("visibilitychange",()=>{ if(!document.hidden) phoneStepsRead(); });
 }
 
+/* ---------- the cycle calendar (only for women) ----------
+   Asked once on the first run (or set in ⚙). She marks the day a period started (and, if she likes, ended); the app
+   counts the day of the cycle and the phases from her own average and draws the coming periods. No fertile window:
+   this is not a way to avoid pregnancy. The data stays on the phone and in her own copy on Yandex Disk, never goes
+   to friends. The phases also go into the analysis, so that what the cycle does is not blamed on the weather. */
+var SEX = store.get("sex")||"";                      // "f", "m" or "" (not asked)
+var CY = Object.assign({list:[], del:{}, len:28, plen:5}, loadJSON("cycle",{})||{});
+function cycOn(){ return SEX==="f" && !(typeof TRACK!=="undefined" && TRACK.cycle===false); }
+function saveCY(quiet){ CY.list=CY.list.filter(p=>p&&p.s&&!CY.del[p.id]).sort((a,b)=>a.s<b.s?-1:1); for(const p of CY.list) p.t=p.s;
+  store.set("cycle",JSON.stringify(CY)); if(!quiet) ySyncSoon(); }
+function setSex(v){ SEX=v; store.set("sex",v); store.set("sexT",String(Date.now())); cyNav(); if(typeof renderTrack==="function") renderTrack(); ySyncSoon(); }
+const cyDays=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/DAY);   // from a to b
+const cyAdd=(d,n)=>isoDay(new Date(+new Date(d+"T12:00:00")+n*DAY));
+const CY_PH={mens:"Месячные", after:"После месячных", mid:"Середина цикла", pms:"Перед месячными", late:"Задержка"};
+// her own numbers: the average of the last six cycles and periods, or what she told when there is too little
+function cyStats(){
+  const st=CY.list.map(p=>p.s), lens=[]; for(let i=1;i<st.length;i++){ const n=cyDays(st[i-1],st[i]); if(n>=15&&n<=60) lens.push(n); }
+  const l6=lens.slice(-6), pl=CY.list.filter(p=>p.e).map(p=>cyDays(p.s,p.e)+1).filter(n=>n>=1&&n<=14).slice(-6), avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  return {L:l6.length>=2?Math.round(avg(l6)):l6.length?Math.round((l6[0]+CY.len)/2):CY.len, P:pl.length?Math.round(avg(pl)):CY.plen,
+    lens, own:l6.length>=2, spread:l6.length>=3?Math.max(...l6)-Math.min(...l6):null, mn:l6.length?Math.min(...l6):null, mx:l6.length?Math.max(...l6):null, pl};
+}
+// what a day is: the day of the cycle and the phase; days after the expected start count as expected cycles (future) or a delay
+function cyAt(d, st){
+  if(!CY.list.length) return null; st=st||cyStats();
+  let p=null, i=-1; CY.list.forEach((x,j)=>{ if(x.s<=d){ p=x; i=j; } }); if(!p) return null;
+  const today=isoDay(new Date()), last=i===CY.list.length-1, L=st.L;
+  let start=p.s, n=cyDays(p.s,d)+1, pred=false, late=false;
+  if(last&&n>L){
+    if(d<=today) late=true;                                   // the expected day has passed: a delay
+    else { const base=cyAdd(p.s,L)>today?cyAdd(p.s,L):cyAdd(today,1);   // during a delay the next one is counted from tomorrow
+      const k=Math.floor(cyDays(base,d)/L); start=cyAdd(base,k*L); n=cyDays(start,d)+1; pred=true; } }
+  const P=!pred&&p.e?cyDays(p.s,p.e)+1:st.P;
+  const ph=late?"late":n<=P?"mens":n>L-7?"pms":(n>=L-16&&n<=L-12)?"mid":"after";
+  return {n, L, ph, pred, start};
+}
+// for the analysis: was it a period day or a few days before one (only days she has really marked around)
+function cycFeat(d, ahead){ if(!cycOn()) return {}; const a=cyAt(d); if(!a||(!ahead&&(a.pred||d>isoDay(new Date())))) return {};
+  if(d<CY.list[0].s) return {};
+  return {mens:a.ph==="mens"?100:0, pms:a.ph==="pms"||a.ph==="late"?100:0}; }
+function cyNav(){ const b=$("navCy"); if(b) b.hidden=!cycOn(); if(!cycOn()&&typeof TAB!=="undefined"&&TAB==="cycle") showTab("today"); }
+const CYV={mon:null};
+function cyRing(a){
+  const R=52, C=64, ang=n=>(n-1)/a.L*Math.PI*2-Math.PI/2, pt=(n,r=R)=>[C+Math.cos(ang(n))*r, C+Math.sin(ang(n))*r];
+  const arc=(n1,n2,extra)=>{ const [x1,y1]=pt(n1), [x2,y2]=pt(n2+1); const big=(n2+1-n1)/a.L>.5?1:0; return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)}A${R} ${R} 0 ${big} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" ${extra}/>`; };
+  const st=cyStats(), P=Math.min(st.P,a.L-1);
+  let g=`<circle cx="${C}" cy="${C}" r="${R}" stroke-width="1" opacity=".22"/>`;
+  g+=arc(1,P,`stroke="var(--cy)" stroke-width="3"`);
+  g+=arc(Math.max(P+1,a.L-16),a.L-12,`stroke-width="1.4" stroke-dasharray="1 4" opacity=".7"`);
+  g+=arc(a.L-6,a.L,`stroke-width="1.4" opacity=".55"`);
+  const [tx,ty]=pt(Math.min(a.n,a.L)+.5);
+  g+=`<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="5" fill="var(--sky-top)" stroke-width="1.6"/><circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="1.6" fill="currentColor" stroke="none"/>`;
+  return `<svg viewBox="0 0 128 128" aria-hidden="true">${g}</svg>`;
+}
+function cyDM(d){ const x=new Date(d+"T12:00:00"); return x.getDate()+" "+["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"][x.getMonth()]; }
+const cyDn=n=>n%10===1&&n%100!==11?"день":n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?"дня":"дней";
+function cyStepper(id,v){ return `<span class="cystep"><button data-cst="${id}" data-d="-1" aria-label="Меньше">−</button><b id="${id}">${v}</b><button data-cst="${id}" data-d="1" aria-label="Больше">＋</button></span>`; }
+function renderCycle(){
+  if(!$("cyNow")) return;
+  const today=isoDay(new Date()), st=cyStats(), a=cyAt(today, st);
+  if(!CY.list.length){
+    $("cyNow").innerHTML=`<div class="label">Начнём</div><div class="cyset" style="margin-top:10px">
+      <div class="cyrow"><span>Когда начались последние месячные?</span></div>
+      <input type="date" class="pdfin" id="cySetD" max="${today}" value="${today}">
+      <div class="cyrow"><span>Обычно цикл длится</span>${cyStepper("cySetL",CY.len)}</div>
+      <div class="cyrow"><span>Месячные длятся</span>${cyStepper("cySetP",CY.plen)}</div>
+      <div class="fhm">Не помните точно — укажите примерно. Дальше календарь будет считать по вашим отметкам.</div>
+      <button class="btn" id="cySetGo">Сохранить</button></div>`;
+    $("cyCalC").hidden=true; $("cyStatC").hidden=true; return;
+  }
+  $("cyCalC").hidden=false; $("cyStatC").hidden=false;
+  const last=CY.list[CY.list.length-1], open=!last.e&&cyDays(last.s,today)<st.P+2;   // a period without an end mark is over after her usual length
+  const next=cyAdd(last.s,st.L), until=cyDays(today,next);
+  let nx;
+  if(a.ph==="late"){ const dl=cyDays(next,today); nx=`Месячные ожидались ${cyDM(next)} — задержка <b>${dl} ${cyDn(dl)}</b>.${dl>7?" Если задержка больше недели, стоит обратиться к врачу.":""}`; }
+  else if(a.ph==="mens") nx=`Идут месячные${open?"":` (по вашей отметке до ${cyDM(last.e||cyAdd(last.s,st.P-1))})`}. Следующие ожидаются около ${cyDM(next)}.`;
+  else nx=until===0?"Месячные ожидаются сегодня.":`Месячные через ~${until} ${cyDn(until)}, около ${cyDM(next)}.`;
+  $("cyNow").innerHTML=`<div class="cyring">${cyRing(a)}<div><div class="big">${a.ph==="late"?a.n:a.n}-й день</div><div class="ph">${CY_PH[a.ph]}</div><div class="nx">${nx}</div></div></div>
+    <div class="cybtns">${open?`<button class="btn" id="cyEnd">Закончились сегодня</button>`:`<button class="btn" id="cyStart">Начались сегодня</button>`}</div>`;
+  // the month
+  if(!CYV.mon) CYV.mon=today.slice(0,7);
+  const [Y,M]=CYV.mon.split("-").map(Number), first=new Date(Y,M-1,1), shift=(first.getDay()+6)%7, dim=new Date(Y,M,0).getDate();
+  $("cyMon").textContent=first.toLocaleDateString("ru-RU",{month:"long",year:"numeric"});
+  let h=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"].map(w=>`<div class="wd">${w}</div>`).join("");
+  const cells=Math.ceil((shift+dim)/7)*7;
+  for(let c=0;c<cells;c++){ const dt=new Date(Y,M-1,1-shift+c), d=isoDay(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(),12)), x=cyAt(d,st);
+    let cl=dt.getMonth()!==M-1?"out":"";
+    if(x){ if(x.ph==="mens") cl+=x.pred||d>today&&!(open&&cyDays(last.s,d)<st.P)?" mp":" m"; else if(x.ph==="mid") cl+=" mid"; else if(x.ph==="pms") cl+=" pms"; }
+    if(d===today) cl+=" td";
+    h+=`<button class="${cl.trim()}" data-cyd="${d}" aria-label="${cyDM(d)}${x?", "+CY_PH[x.ph].toLowerCase():""}">${dt.getDate()}</button>`; }
+  $("cyCal").innerHTML=h;
+  // her numbers and how she feels in each phase
+  const warn=[]; if(st.own&&st.L<21) warn.push(`цикл короче 21 дня`); if(st.own&&st.L>35) warn.push(`цикл длиннее 35 дней`);
+  if(st.pl.length&&st.P>7) warn.push(`месячные дольше 7 дней`); if(st.spread!=null&&st.spread>9) warn.push(`длина цикла меняется сильно: от ${st.mn} до ${st.mx} дней`);
+  const ph={}; for(const [d,r] of Object.entries(S.mood)){ const f=cyAt(d,st); if(!f||f.pred||d<CY.list[0].s) continue; const k=f.ph==="late"?"pms":f.ph;
+    (ph[k]=ph[k]||{n:0,bad:0,sym:{}}).n++; if(fcBad(r)) ph[k].bad++; for(const s2 of new Set(r.kinds||[])) if(KIND[s2]?.sym) ph[k].sym[s2]=(ph[k].sym[s2]||0)+1; }
+  const allBad=Object.values(ph).reduce((x,o)=>x+o.bad,0), allN=Object.values(ph).reduce((x,o)=>x+o.n,0);
+  const phRows=["mens","after","mid","pms"].map(k=>{ const o=ph[k]; if(!o) return `<div><span>${CY_PH[k]}</span><span class="fhm">нет отметок</span></div>`;
+    const r=o.bad/o.n, lv=Math.min(5,Math.round(r*5)), top=Object.entries(o.sym).sort((x,y)=>y[1]-x[1])[0];
+    return `<div style="color:${o.n>=3&&allN&&r>=allBad/allN*1.5&&r>=.3?"var(--kp-hi)":"inherit"}"><span style="color:var(--ink)">${CY_PH[k]}</span><span class="sc">${[1,2,3,4,5].map(j=>`<i${j<=lv?' class="on"':""}></i>`).join("")}</span>
+      <small>плохих дней ${Math.round(r*100)}% (${o.bad} из ${o.n})${top?`, чаще всего — ${KIND[top[0]].l.toLowerCase()}`:""}</small></div>`; }).join("");
+  $("cyStatC").innerHTML=`<div class="label">Ваш цикл</div>
+    <div class="cynums"><div><b>${st.L}</b><span>дней — цикл${st.own?` (по ${st.lens.slice(-6).length} последним)`:", как вы указали"}</span></div><div><b>${st.P}</b><span>дней — месячные</span></div></div>
+    ${warn.length?`<div class="cywarn">По вашим отметкам: ${warn.join(", ")}. Это не диагноз, но стоит обсудить с гинекологом.</div>`:""}
+    <div class="label" style="margin-top:16px">Самочувствие по фазам</div>
+    ${allN?`<div class="cyph">${phRows}</div><div class="fhm" style="margin-top:8px">Как фазы связаны с погодой и симптомами — в «Отчётах»: цикл учитывается при поиске того, что на вас влияет.</div>`
+      :`<div class="fhm" style="margin-top:6px">Отмечайте самочувствие — здесь появится, в какие дни цикла вам хуже.</div>`}
+    <div class="label" style="margin-top:16px">Если отметок мало, считать так</div>
+    <div class="cyset" style="margin-top:8px"><div class="cyrow"><span>Обычно цикл длится</span>${cyStepper("cyL",CY.len)}</div><div class="cyrow"><span>Месячные длятся</span>${cyStepper("cyP",CY.plen)}</div></div>`;
+}
+function cyStart(d){
+  const near=CY.list.find(p=>Math.abs(cyDays(p.s,d))<=7);
+  if(near){ near.s=d; if(near.e&&near.e<d) delete near.e; }
+  else CY.list.push({id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), s:d});
+  saveCY(); renderCycle(); if(typeof renderRepSeg==="function"&&TAB==="rep") renderRepSeg();
+}
+function cyEnd(d){ const p=[...CY.list].reverse().find(x=>x.s<=d&&cyDays(x.s,d)<=14); if(!p){ toast("Сначала отметьте день, когда месячные начались."); return; } p.e=d; saveCY(); renderCycle(); }
+function cyDayOpen(d){
+  const st=cyStats(), x=cyAt(d,st), today=isoDay(new Date());
+  const inP=CY.list.find(p=>p.s<=d&&d<=(p.e||cyAdd(p.s,st.P-1)));
+  $("cyDayT").textContent=cyDM(d); $("cyDayS").textContent=x?(x.pred?"прогноз: ":"")+`${x.n}-й день цикла · ${CY_PH[x.ph].toLowerCase()}`:"";
+  let b="";
+  if(d<=today){
+    if(!inP||inP.s!==d) b+=`<button class="btn" data-cya="s">Месячные начались в этот день</button>`;
+    if(CY.list.some(p=>p.s<=d&&cyDays(p.s,d)<=14)&&!(inP&&inP.s===d)) b+=`<button class="btn ghost" data-cya="e">Месячные закончились в этот день</button>`;
+    if(inP) b+=`<button class="btn ghost" data-cya="x">Удалить эти месячные (${cyDM(inP.s)}${inP.e?" – "+cyDM(inP.e):""})</button>`;
+  } else b+=`<div class="src">Это прогноз по вашему среднему циклу. Отметить можно, когда день наступит.</div>`;
+  $("cyDayB").innerHTML=b; $("cyDayB").dataset.d=d; showSheet("cyDaySheet");
+}
+$("cyDayB").addEventListener("click",e=>{ const b=e.target.closest("[data-cya]"); if(!b) return; const d=$("cyDayB").dataset.d, st=cyStats();
+  if(b.dataset.cya==="s") cyStart(d); else if(b.dataset.cya==="e") cyEnd(d);
+  else { const p=CY.list.find(p=>p.s<=d&&d<=(p.e||cyAdd(p.s,st.P-1))); if(p){ CY.del[p.id]=Date.now(); saveCY(); renderCycle(); } }
+  hideSheet(); });
+$("pgCycle").addEventListener("click",e=>{
+  const d=e.target.closest("[data-cyd]"); if(d){ cyDayOpen(d.dataset.cyd); return; }
+  const sp=e.target.closest("[data-cst]"); if(sp){ const id=sp.dataset.cst, el=$(id), isL=/L$/.test(id), v=Math.max(isL?20:2, Math.min(isL?45:10, +el.textContent+(+sp.dataset.d)));
+    el.textContent=v; if(id==="cyL"||id==="cyP"){ if(id==="cyL") CY.len=v; else CY.plen=v; CY.at=Date.now(); saveCY(); renderCycle(); } return; }
+  if(e.target.closest("#cySetGo")){ const d=$("cySetD").value||isoDay(new Date()); CY.len=+$("cySetL").textContent; CY.plen=+$("cySetP").textContent; CYV.mon=null; cyStart(d<=isoDay(new Date())?d:isoDay(new Date())); toast("Сохранено. Календарь посчитал фазы."); return; }
+  if(e.target.closest("#cyStart")){ cyStart(isoDay(new Date())); toast("Записано: месячные начались сегодня."); return; }
+  if(e.target.closest("#cyEnd")){ cyEnd(isoDay(new Date())); toast("Записано: месячные закончились."); return; }
+  if(e.target.closest("#cyPrev")||e.target.closest("#cyNext")){ const [Y,M]=CYV.mon.split("-").map(Number), t=new Date(Y,M-1+(e.target.closest("#cyNext")?1:-1),1); CYV.mon=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0"); renderCycle(); }
+});
+cyNav();
+
 /* ---------- what to track: settings and the welcome step ---------- */
 function trTile(k,e,l,d,lock){ return `<button class="tropt" data-tr="${k}" aria-pressed="${!!(lock||tr(k))}" ${lock?"disabled":""}><span class="e">${e}</span><span class="ck">✓</span><b>${l}</b><small>${lock?"всегда включено":d}</small></button>`; }
 function renderTrack(){
-  if($("trWel")) $("trWel").innerHTML=TR_ITEMS.map(x=>trTile(...x)).join("");
-  if($("trList")) $("trList").innerHTML=TR_ITEMS.map(([k,e,l,d,lock])=>`<label><span><span class="tri">${lic(e)}</span>${l}<small>${lock?"всегда включено — без него не с чем сравнивать погоду":d}</small></span><span class="rsw"><input type="checkbox" data-trk="${k}" ${lock||tr(k)?"checked":""} ${lock?"disabled":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
+  if($("trWel")) $("trWel").innerHTML=trItems().map(x=>trTile(...x)).join("");
+  document.querySelectorAll("[data-sexs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sexs===SEX));
+  if($("trList")) $("trList").innerHTML=trItems().map(([k,e,l,d,lock])=>`<label><span><span class="tri">${lic(e)}</span>${l}<small>${lock?"всегда включено — без него не с чем сравнивать погоду":d}</small></span><span class="rsw"><input type="checkbox" data-trk="${k}" ${lock||tr(k)?"checked":""} ${lock?"disabled":""}><span class="knob" aria-hidden="true"></span></span></label>`).join("");
 }
 async function trackSet(k,on){
   TRACK[k]=on; store.set("track",JSON.stringify(TRACK));
   renderTrack(); renderHealth(); if(TAB==="health") renderHealthPage(); if(TAB==="rep") renderRepSeg(); fcRender();
   if(k==="steps") phoneStepsStart(true);
+  if(k==="cycle") cyNav();
 }
+$("sexRow").addEventListener("click",e=>{ const b=e.target.closest("[data-sexs]"); if(!b) return; setSex(b.dataset.sexs);
+  if(TAB==="rep") renderRepSeg(); fcRender(); toast(SEX==="f"?"Вкладка «Цикл» включена.":"Хорошо. Календарь цикла не показывается."); });
 $("trWel")?.addEventListener("click",e=>{ const b=e.target.closest("[data-tr]"); if(!b||b.disabled) return; trackSet(b.dataset.tr,!tr(b.dataset.tr)); });
 $("trList").addEventListener("change",e=>{ const c=e.target.closest("[data-trk]"); if(c) trackSet(c.dataset.trk,c.checked); });
 $("welSheet").addEventListener("click",e=>{ const n=e.target.closest("[data-wnext]"); if(!n) return; const k=n.dataset.wnext;
@@ -5429,10 +5688,10 @@ renderTrack();
    The wording keeps it a diary: records entered by the person, reference ranges, not a diagnosis. */
 const PDFO=[["sum","Сводка","средние, минимум и максимум",null],["bp","Давление","график и таблица измерений","bp"],
   ["glu","Сахар в крови","натощак и после еды","glu"],["mood","Самочувствие","самооценка от 1 до 5 и частые симптомы",null],["steps","Шаги","в среднем за день","steps"],
-  ["wx","Погода и магнитные бури","перепады давления, Kp",null],["ins","Совпадения с погодой","статистика ваших записей",null],["notes","Заметки к измерениям","",null]];
-const PDF={per:"30", on:Object.assign({sum:1,bp:1,glu:1,mood:1,steps:0,wx:1,ins:1,notes:0}, loadJSON("pdfOn",{})||{})};
+  ["wx","Погода и магнитные бури","перепады давления, Kp",null],["ins","Совпадения с погодой","статистика ваших записей",null],["cyc","Менструальный цикл","даты месячных, длина цикла, самочувствие по фазам","cycle"],["notes","Заметки к измерениям","",null]];
+const PDF={per:"30", on:Object.assign({sum:1,bp:1,glu:1,mood:1,steps:0,wx:1,ins:1,cyc:1,notes:0}, loadJSON("pdfOn",{})||{})};
 var PDFP = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.PdfReport||null) : null;
-const pdfAvail=([,,,t])=>!t||tr(t);
+const pdfAvail=([,,,t])=>!t||(t==="cycle"?cycOn():tr(t));
 function openPdfSheet(){
   const who=loadJSON("pdfWho",{})||{};
   $("pdfName").value=who.n||""; $("pdfYear").value=who.y||""; $("pdfMeds").value=who.m||"";
@@ -5526,6 +5785,13 @@ function pdfBuild(from,to){
     const a=avg(scores), bad=scores.filter(v=>v<=2).length;
     blocks.push([9,`<div class="sec">Самочувствие</div><div>Средняя самооценка за период: ${pdfSc(Math.round(a))} <b>${fmtNum(a)} из 5</b> · дней с оценкой 1–2: ${bad} из ${scores.length}</div>${top.length?`<div style="margin-top:.3em">Чаще всего отмечались: ${top.join(", ")}</div>`:""}<div class="lg">Самооценка: ${[1,2,3,4,5].map(pdfSc).join(" ")} &nbsp;1 — плохо, 5 — отлично</div>`]);
   }
+  if(on("cyc")&&CY.list.length){ const st=cyStats(), all=CY.list, inP=all.filter(p=>p.s<=isoDay(to)&&(p.e||cyAdd(p.s,st.P-1))>=isoDay(from));
+    const ph={}; for(const d of days){ const r=S.mood[d], f=r&&cyAt(d,st); if(!f||f.pred||d<all[0].s) continue; const k=f.ph==="late"?"pms":f.ph; (ph[k]=ph[k]||{n:0,bad:0}).n++; if(fcBad(r)) ph[k].bad++; }
+    blocks.push([7.6+(Object.keys(ph).length?1.6+Object.keys(ph).length*1.5:0),`<div class="sec">Менструальный цикл (со слов пользователя)</div><div class="kpis"><div class="kpi"><b>${st.L} дн.</b><span>длина цикла${st.own?`, среднее по ${st.lens.slice(-6).length} последним`:", указано пользователем"}${st.spread!=null?`; от ${st.mn} до ${st.mx}`:""}</span></div><div class="kpi"><b>${st.P} дн.</b><span>длительность месячных</span></div></div>
+      ${Object.keys(ph).length?`<div style="margin-top:.5em">Дни с оценкой самочувствия 1–2 по фазам цикла: ${["mens","after","mid","pms"].filter(k=>ph[k]).map(k=>`${CY_PH[k].toLowerCase()} — ${ph[k].bad} из ${ph[k].n} (${Math.round(ph[k].bad/ph[k].n*100)}%)`).join("; ")}.</div>`:""}`]);
+    if(inP.length) blocks.push({title:`<div class="sec">Месячные за период</div>`, cols:`<tr><th>Начало</th><th>Конец</th><th>Дней</th><th>Цикл до следующих</th></tr>`,
+      rows:inP.slice().reverse().map(p=>{ const i=all.indexOf(p), nx=all[i+1]; return `<tr><td>${pdfDY(p.s+"T12:00:00")}</td><td>${p.e?pdfDY(p.e+"T12:00:00"):"—"}</td><td>${p.e?cyDays(p.s,p.e)+1:"—"}</td><td>${nx?cyDays(p.s,nx.s)+" дн.":"—"}</td></tr>`; })});
+  }
   if(on("steps")){ const sv=days.map(stepsOf).filter(v=>v!=null&&v>0);
     if(sv.length) blocks.push([5,`<div class="sec">Шаги</div><div>В среднем ${Math.round(avg(sv)).toLocaleString("ru-RU")} в день, от ${Math.min(...sv).toLocaleString("ru-RU")} до ${Math.max(...sv).toLocaleString("ru-RU")} (${sv.length} ${fcDays(sv.length)} с данными). Считает телефон, когда он при себе.</div>`]); }
   if(!blocks.length) blocks.push([6,`<div class="sec">Записей за этот период нет</div>`]);
@@ -5600,7 +5866,8 @@ function hcTiles(){
    Learns on this phone only, from the person's own days: the weather and magnetic field of each marked day
    (and the day before) -> was it a bad day. 11 inputs, 6 hidden neurons, 1 output; retrained when the data
    changes, checked on days it has not seen (5-fold), nothing is sent anywhere. */
-const NN_IN=[["press","давление"],["dpress","перепад давления"],["chp","изменение давления к прошлому дню"],["temp","температура"],["dtemp","перепад температуры"],["cht","изменение температуры к прошлому дню"],["hum","влажность"],["wind","ветер"],["wet","осадки"],["kp","магнитный фон"],["prev","самочувствие накануне"]];
+const NN_IN0=[["press","давление"],["dpress","перепад давления"],["chp","изменение давления к прошлому дню"],["temp","температура"],["dtemp","перепад температуры"],["cht","изменение температуры к прошлому дню"],["hum","влажность"],["wind","ветер"],["wet","осадки"],["kp","магнитный фон"],["prev","самочувствие накануне"]];
+let NN_IN=NN_IN0;   // for women with a cycle: also "a period day" and "the days before one"
 const NN_NEED=21, NN_H=6;
 function nnRow(d, prevF, prevR, F){
   if(!F||F.press==null&&F.temp==null&&F.kp==null) return null;
@@ -5611,9 +5878,10 @@ function nnRow(d, prevF, prevR, F){
   return NN_IN.map(([k])=>x[k]==null||!isFinite(x[k])?null:+x[k]);
 }
 function nnData(){
+  NN_IN=cycOn()&&CY.list.length?[...NN_IN0,["mens","дни месячных"],["pms","дни перед месячными"]]:NN_IN0;
   const ds=Object.keys(S.mood).filter(d=>d<isoDay(new Date())).sort(), X=[], Y=[];
   for(const d of ds){ const pd=isoDay(new Date(new Date(d+"T12:00:00")-DAY)), city=S.mood[d].city||S.slug;   // the city of that day, as in "what is linked"
-    const r=nnRow(d, dayFeatures(pd,city), S.mood[pd], dayFeatures(d,city)); if(!r) continue;
+    const r=nnRow(d, dayFeatures(pd,city), S.mood[pd], {...dayFeatures(d,city), ...cycFeat(d)}); if(!r) continue;
     X.push(r); Y.push(fcBad(S.mood[d])?1:0); }
   return {X,Y,n:ds.length};
 }
@@ -5670,7 +5938,7 @@ function nnRender(){
   const {M,chk,imp}=NN_CACHE, tm=isoDay(new Date(Date.now()+DAY)), w=fcDayWx(tm);
   let tom="";
   if(w){ const f=S.feed[S.slug], hs=(f?.hours||[]).filter(h=>isoDay(new Date(h.t))===tm), avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-    const F={...w, temp:avg(hs.map(h=>h.temp).filter(v=>v!=null)), hum:avg(hs.map(h=>h.hum).filter(v=>v!=null)), wind:avg(hs.map(h=>h.wind).filter(v=>v!=null)), wet:hs.filter(h=>(h.pr||0)>=.1).length};
+    const F={...w, ...cycFeat(tm,true), temp:avg(hs.map(h=>h.temp).filter(v=>v!=null)), hum:avg(hs.map(h=>h.hum).filter(v=>v!=null)), wind:avg(hs.map(h=>h.wind).filter(v=>v!=null)), wet:hs.filter(h=>(h.pr||0)>=.1).length};
     const x=nnRow(tm, fcDayWx(isoDay(new Date())), S.mood[isoDay(new Date())], F);
     if(x){ const p=Math.round(nnPredict(M,x)*100); tom=`<div class="nnt"><b>${p}%</b><span>вероятность плохого дня завтра<br><span class="fhm">${p>=60?"стоит поберечься":p>=35?"возможно недомогание":"скорее всего, всё будет хорошо"}</span></span></div>`; } }
   const better=chk.ok>chk.base, r10=v=>Math.round(v/chk.n*10);
@@ -5678,7 +5946,7 @@ function nnRender(){
   box.innerHTML=tom+
     (top.length&&better?`<div class="nnf">${top.map(o=>`<span>${o.l[0].toUpperCase()+o.l.slice(1)} <span class="fhm">· ${o.dir>0?"хуже, когда выше":"хуже, когда ниже"}</span></span><i style="width:${Math.max(12,Math.round(o.imp/mx*90))}px"></i>`).join("")}<small>на что нейросеть опирается сильнее всего</small></div>`
       :`<div class="nnq">Пока нейросеть не нашла в погоде ничего, что заметно влияло бы на ваше самочувствие. Чем больше отметок, тем точнее выводы.</div>`)+
-    `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
+    `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. ${NN_IN.length>NN_IN0.length?" Учитывает и фазу цикла.":""} Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
 }
 /* the network as a living cloud: points drift at random, link up when close, run from the finger and sway when
    the page scrolls; the more days it has learned from, the denser the cloud */
@@ -5835,6 +6103,13 @@ function fcFor(date){
       why.push({k:x.k, i:x.i, t:fcWxLine(x,w), sub, w:on&&p&&p.sens?2:1});
     } else if(x.k!=="low") why.push({k:x.k, i:x.i, t:fcWxLine(x,w), sub:"", w:0});
   }
+  if(cycOn()&&CY.list.length){ const a=cyAt(date);
+    if(a){ const ph=a.ph==="late"?"pms":a.ph, cnt={n:0,bad:0,on:0,obad:0};
+      for(const [d,r] of Object.entries(S.mood)){ const f=cyAt(d); if(!f||f.pred||d<CY.list[0].s) continue; const k=f.ph==="late"?"pms":f.ph;
+        if(k===ph){ cnt.n++; if(fcBad(r)) cnt.bad++; } else { cnt.on++; if(fcBad(r)) cnt.obad++; } }
+      const ra=cnt.n?cnt.bad/cnt.n:0, rb=cnt.on?cnt.obad/cnt.on:0, sens=(ph==="mens"||ph==="pms")&&cnt.n>=3&&cnt.on>=3&&ra>=rb*1.5&&ra-rb>=.2;
+      if(sens){ risk=Math.max(risk,ra); why.push({i:"🌸", w:2, t:`${a.n}-й день цикла — <b>${CY_PH[ph].toLowerCase()}</b>`, sub:`В эти дни цикла плохое самочувствие у вас было <b>${cnt.bad} ${fcTimes(cnt.bad)} из ${cnt.n}</b>`}); }
+      else why.push({i:"🌸", w:0, t:`${a.n}-й день цикла · ${CY_PH[ph].toLowerCase()}`, sub:""}); } }
   const hits=wxForecastHits(date), same={pfall:["dpress","low"],prise:["dpress"],kp:["kp"],cold:["dtemp"],warm:["dtemp"]};
   for(const {o,first,change} of hits){ risk=Math.max(risk,o.a/o.n1);
     for(const k of same[o.F.k]||[]) for(let n=why.length-1;n>=0;n--) if(why[n].k===k) why.splice(n,1);

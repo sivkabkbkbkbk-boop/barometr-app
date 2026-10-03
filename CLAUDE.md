@@ -35,8 +35,12 @@
   marked day) that grows from a small round seed over 14 marked days; points drift, react to touch and scroll. «Что связано…» = tiles with a
   5-step scale (`facLevel`), details in `#facSheet`.
   «Симптомы и погода» = the same tiles (`symLevel`, `symOpen`), same `#facSheet`.
-- First run: `introSheet`, steps 0–4 (greeting, location, first mark, reminders, «Приятного пользования» +
-  «Начать»); live smiley scenes `masGo(n)`. Developer menu: tap the version line in Settings 7 times.
+- First run: `introSheet`, steps 0–5 (greeting, «вы женщина/мужчина» + last period date for women, location,
+  first mark, reminders, «Приятного пользования» + «Начать»); live smiley scenes `masGo(n)` (`masWho`: bow / moustache).
+- Cycle (women only, `SEX=="f"`, `cycOn()`): tab «Цикл» `#pgCycle`, data `CY={list:[{id,s,e}],del,len,plen}` synced
+  in the Disk copy (never to friends); `cyStats()` own averages, `cyAt(d)` day + phase (mens/after/mid/pms/late),
+  no fertile window. Analysis: `cycFeat(d)` adds mens/pms to «Что связано…», symptoms, the network (`NN_IN`) and
+  `fcFor`; weather factors use marks with the phase average taken out. PDF option «Менструальный цикл». Developer menu: tap the version line in Settings 7 times.
 - Friends: no server. Data lives on each person's Yandex Disk public folder; invite link carries the key and
   secret; accepting opens the messenger with a reply link at once (`shareSend(true)`). Friends list = compact
   table (pressure, sugar, steps), two-week smiley table below. Group chats need «Вступить» (invitation state
