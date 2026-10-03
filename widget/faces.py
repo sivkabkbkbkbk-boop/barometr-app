@@ -2,7 +2,8 @@
 """The mood faces for the notification, drawn in thin lines like in the app.
 
 Reads the faces (KFACE) from index.html and writes Android vector drawables kf_<kind>.xml:
-res/drawable (dark lines for a light shade) and res/drawable-night (light lines for a dark shade).
+res/drawable (dark lines for a light shade), res/drawable-night (light lines for a dark shade)
+and kf_<kind>_w (white, chosen by the app when the phone is in dark mode).
 
     python3 widget/faces.py android/app/src/main/res
     python3 widget/faces.py --preview out.html      # the faces as they will look, for a quick check
@@ -62,6 +63,10 @@ def main():
         os.makedirs(os.path.join(res, folder), exist_ok=True)
         for k, s in faces().items():
             open(os.path.join(res, folder, f"kf_{k}.xml"), "w", encoding="utf-8").write(vector(paths(s), color))
+    # white faces for a dark shade, picked by the app itself: some phones draw a dark shade while the
+    # resources it reads say "day", so drawable-night alone is not enough
+    for k, s in faces().items():
+        open(os.path.join(res, "drawable", f"kf_{k}_w.xml"), "w", encoding="utf-8").write(vector(paths(s), "#FFFFFFFF"))
 
 
 if __name__ == "__main__":
