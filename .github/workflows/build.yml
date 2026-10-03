@@ -33,6 +33,9 @@ jobs:
         run: |
           npm init -y > /dev/null
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/local-notifications@6 @capacitor/app@6 @capacitor/preferences@6 @capacitor/share@6 @capacitor/clipboard@6
+          # the vector base map of the precipitation map
+          npm install maplibre-gl@4
+          cp node_modules/maplibre-gl/dist/maplibre-gl.js node_modules/maplibre-gl/dist/maplibre-gl.css www/
           npx cap init "Не18мнеуже" ru.barometr.neba --web-dir=www
           npx cap add android
           # the build number becomes the Android version: a new APK installs over the old one as an update
@@ -46,12 +49,14 @@ jobs:
       - name: Разрешения, цвета, иконка
         run: |
           M=android/app/src/main/AndroidManifest.xml
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n</manifest>|' $M
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />\n    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />\n</manifest>|' $M
           sed -i '0,/<\/activity>/s|</activity>|    <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="barometr" />\n            </intent-filter>\n        </activity>|' $M
-          # native parts: in-app update, daily update check, chat notifications, weather icon and the "how do you feel" notification
+          # native parts: in-app update, daily update check, weather icon and the "how do you feel" notification
           J=android/app/src/main/java/ru/barometr/neba
           L=android/app/src/main/res/layout
           mkdir -p $J $L
+          # the mood faces in thin lines for the notification, taken from the app (index.html)
+          python3 widget/faces.py android/app/src/main/res
           cat > $J/ApkUpdatePlugin.java <<'JAVA'
           package ru.barometr.neba;
 
@@ -154,6 +159,18 @@ jobs:
                   call.resolve();
               }
 
+              // the newest build on GitHub, asked from here and not from the web view: no CORS, no API limit
+              @PluginMethod
+              public void latest(final PluginCall call) {
+                  new Thread(new Runnable() { public void run() {
+                      long b = UpdateCheck.latestBuild();
+                      if (b <= 0) { call.reject("offline"); return; }
+                      JSObject r = new JSObject();
+                      r.put("build", b);
+                      call.resolve(r);
+                  }}).start();
+              }
+
               @PluginMethod
               public void canInstall(PluginCall call) {
                   JSObject r = new JSObject();
@@ -215,6 +232,7 @@ jobs:
               static final String CH = "updates";
               static final int NID = 7401;
               static final String API = "https://api.github.com/repos/sivkabkbkbkbk-boop/barometr-app/releases/latest";
+              static final String PAGE = "https://github.com/sivkabkbkbkbk-boop/barometr-app/releases/latest";
               static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
 
               static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
@@ -237,31 +255,52 @@ jobs:
                   } catch (Exception e) { return 0; }
               }
 
+              // the newest build number, 0 if GitHub cannot be reached; runs on a background thread.
+              // First the releases page, which answers with a redirect to /tag/build-N: it has no hourly limit,
+              // unlike the API (60 requests an hour per address, quickly used up behind a VPN).
+              static long latestBuild() {
+                  Pattern bp = Pattern.compile("build-(\\d+)");
+                  try {
+                      HttpURLConnection con = (HttpURLConnection) new URL(PAGE).openConnection();
+                      con.setInstanceFollowRedirects(false);
+                      con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
+                      con.setConnectTimeout(15000);
+                      con.setReadTimeout(15000);
+                      try {
+                          con.getResponseCode();
+                          String loc = con.getHeaderField("Location");
+                          Matcher m = bp.matcher(loc == null ? "" : loc);
+                          if (m.find()) return Long.parseLong(m.group(1));
+                      } finally { con.disconnect(); }
+                  } catch (Exception e) { }
+                  try {
+                      HttpURLConnection con = (HttpURLConnection) new URL(API).openConnection();
+                      con.setRequestProperty("Accept", "application/vnd.github+json");
+                      con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
+                      con.setConnectTimeout(15000);
+                      con.setReadTimeout(15000);
+                      try {
+                          if (con.getResponseCode() != 200) return 0;
+                          StringBuilder sb = new StringBuilder();
+                          BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                          String line;
+                          while ((line = r.readLine()) != null) sb.append(line);
+                          r.close();
+                          Matcher m = bp.matcher(new JSONObject(sb.toString()).optString("tag_name"));
+                          if (m.find()) return Long.parseLong(m.group(1));
+                      } finally { con.disconnect(); }
+                  } catch (Exception e) { }
+                  return 0;
+              }
+
               // runs on a background thread
               static void check(Context c) throws Exception {
-                  HttpURLConnection con = (HttpURLConnection) new URL(API).openConnection();
-                  con.setRequestProperty("Accept", "application/vnd.github+json");
-                  con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
-                  con.setConnectTimeout(20000);
-                  con.setReadTimeout(20000);
-                  try {
-                      if (con.getResponseCode() != 200) return;
-                      StringBuilder sb = new StringBuilder();
-                      BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-                      String line;
-                      while ((line = r.readLine()) != null) sb.append(line);
-                      r.close();
-                      Matcher m = Pattern.compile("build-(\\d+)").matcher(new JSONObject(sb.toString()).optString("tag_name"));
-                      if (!m.find()) return;
-                      long last = Long.parseLong(m.group(1));
-                      if (last <= myBuild(c)) return;
-                      SharedPreferences p = prefs(c);
-                      if (p.getLong("notified", 0) >= last) return;   // tell about each build only once
-                      post(c, last);
-                      p.edit().putLong("notified", last).apply();
-                  } finally {
-                      con.disconnect();
-                  }
+                  long last = latestBuild();
+                  if (last <= 0 || last <= myBuild(c)) return;
+                  SharedPreferences p = prefs(c);
+                  if (p.getLong("notified", 0) >= last) return;   // tell about each build only once
+                  post(c, last);
+                  p.edit().putLong("notified", last).apply();
               }
 
               static void post(Context c, long build) {
@@ -300,217 +339,6 @@ jobs:
                   new Thread(new Runnable() { public void run() {
                       try { UpdateCheck.check(c); } catch (Exception e) { } finally { res.finish(); }
                   }}).start();
-              }
-          }
-          JAVA
-          cat > $J/ChatWatch.java <<'JAVA'
-          package ru.barometr.neba;
-
-          import android.app.AlarmManager;
-          import android.app.NotificationChannel;
-          import android.app.NotificationManager;
-          import android.app.PendingIntent;
-          import android.content.Context;
-          import android.content.Intent;
-          import android.content.SharedPreferences;
-          import android.net.Uri;
-          import android.os.Build;
-          import android.util.Base64;
-          import androidx.core.app.NotificationCompat;
-          import java.io.BufferedReader;
-          import java.io.InputStreamReader;
-          import java.net.HttpURLConnection;
-          import java.net.URL;
-          import java.net.URLEncoder;
-          import java.util.ArrayList;
-          import java.util.List;
-          import javax.crypto.Cipher;
-          import javax.crypto.spec.GCMParameterSpec;
-          import javax.crypto.spec.SecretKeySpec;
-          import org.json.JSONArray;
-          import org.json.JSONObject;
-
-          // New chat messages while the app is closed: every ~5 minutes read each friend's chat.json on
-          // Yandex Disk, open the messages meant for us with the key both friends share, and show them in the shade.
-          public class ChatWatch {
-              static final String PREFS = "chat_watch";
-              static final String CH = "chat";
-              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
-
-              static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
-
-              static void schedule(Context c) {
-                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
-                  PendingIntent pi = PendingIntent.getBroadcast(c, 5, new Intent(c, ChatWatchReceiver.class), FLAGS);
-                  am.cancel(pi);
-                  if (!prefs(c).getBoolean("on", false)) return;
-                  // every ~5 minutes; when the phone sleeps for long, Android itself stretches this to 10–15 minutes
-                  am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5 * 60 * 1000L, 5 * 60 * 1000L, pi);
-              }
-
-              static int nid(String k) { return 7500 + (k.hashCode() & 0x3ff); }
-
-              static String get(String url) throws Exception {
-                  HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-                  con.setConnectTimeout(20000);
-                  con.setReadTimeout(20000);
-                  con.setRequestProperty("User-Agent", "Ne18mneuzhe-app");
-                  try {
-                      if (con.getResponseCode() != 200) return null;
-                      StringBuilder sb = new StringBuilder();
-                      BufferedReader r = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-                      String line;
-                      while ((line = r.readLine()) != null) sb.append(line);
-                      r.close();
-                      return sb.toString();
-                  } finally { con.disconnect(); }
-              }
-
-              static JSONObject open(byte[] key, JSONObject m) throws Exception {
-                  Cipher ci = Cipher.getInstance("AES/GCM/NoPadding");
-                  ci.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"),
-                      new GCMParameterSpec(128, Base64.decode(m.getString("iv"), Base64.DEFAULT)));
-                  return new JSONObject(new String(ci.doFinal(Base64.decode(m.getString("c"), Base64.DEFAULT)), "UTF-8"));
-              }
-
-              // runs on a background thread
-              static void check(Context c) throws Exception {
-                  SharedPreferences p = prefs(c);
-                  if (!p.getBoolean("on", false)) return;
-                  JSONArray fr = new JSONArray(p.getString("friends", "[]"));
-                  SharedPreferences.Editor ed = p.edit();
-                  for (int i = 0; i < fr.length(); i++) {
-                      JSONObject f = fr.optJSONObject(i);
-                      if (f == null) continue;
-                      String k = f.optString("k"), since = f.optString("since"), last = p.getString("n:" + k, "");
-                      if (last.compareTo(since) > 0) since = last;
-                      try {
-                          String meta = get("https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key="
-                              + URLEncoder.encode(k, "UTF-8") + "&path=" + URLEncoder.encode("/chat.json", "UTF-8"));
-                          if (meta == null) continue;
-                          String body = get(new JSONObject(meta).getString("href"));
-                          if (body == null) continue;
-                          JSONObject boxes = new JSONObject(body).optJSONObject("boxes");
-                          JSONArray box = boxes == null ? null : boxes.optJSONArray(f.optString("box"));
-                          if (box == null) continue;
-                          byte[] key = Base64.decode(f.optString("key"), Base64.DEFAULT);
-                          List<String> lines = new ArrayList<String>();
-                          String newest = since;
-                          for (int j = 0; j < box.length(); j++) {
-                              JSONObject o;
-                              try { o = open(key, box.getJSONObject(j)); } catch (Exception e) { continue; }
-                              String t = o.optString("t");
-                              if (t.compareTo(since) <= 0) continue;
-                              String x = o.has("c") ? "📋 поделился(ась) состоянием" : o.optString("x");
-                              if (x.length() > 120) x = x.substring(0, 120) + "…";
-                              lines.add(x);
-                              if (t.compareTo(newest) > 0) newest = t;
-                          }
-                          if (!lines.isEmpty()) {
-                              int total = p.getInt("c:" + k, 0) + lines.size();
-                              post(c, k, f.optString("n", "Друг"), lines, total);
-                              ed.putString("n:" + k, newest).putInt("c:" + k, total);
-                          }
-                      } catch (Exception e) { }
-                  }
-                  ed.apply();
-              }
-
-              static void post(Context c, String k, String name, List<String> lines, int total) {
-                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-                  if (Build.VERSION.SDK_INT >= 26) {
-                      NotificationChannel ch = new NotificationChannel(CH, "Сообщения от друзей", NotificationManager.IMPORTANCE_HIGH);
-                      ch.setDescription("Новые сообщения в чате");
-                      ch.setShowBadge(true);
-                      nm.createNotificationChannel(ch);
-                  }
-                  Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("barometr://chat?k=" + Uri.encode(k)));
-                  i.setPackage(c.getPackageName());
-                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                  NotificationCompat.InboxStyle st = new NotificationCompat.InboxStyle();
-                  for (String l : lines) st.addLine(l);
-                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
-                      .setSmallIcon(R.drawable.ic_stat_barometr)
-                      .setColor(0xFFFFB04A)
-                      .setContentTitle(name)
-                      .setContentText(lines.get(lines.size() - 1))
-                      .setStyle(st)
-                      .setNumber(total)
-                      .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
-                      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                      .setContentIntent(PendingIntent.getActivity(c, nid(k), i, FLAGS))
-                      .setAutoCancel(true)
-                      .setPriority(NotificationCompat.PRIORITY_HIGH);
-                  try { nm.notify(nid(k), b.build()); } catch (SecurityException e) { }
-              }
-
-              // the app has shown these messages: drop the notification and the counter
-              static void clear(Context c, String k) {
-                  prefs(c).edit().putInt("c:" + k, 0).apply();
-                  ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(nid(k));
-              }
-          }
-          JAVA
-          cat > $J/ChatWatchReceiver.java <<'JAVA'
-          package ru.barometr.neba;
-
-          import android.content.BroadcastReceiver;
-          import android.content.Context;
-          import android.content.Intent;
-
-          public class ChatWatchReceiver extends BroadcastReceiver {
-              @Override
-              public void onReceive(final Context c, Intent intent) {
-                  final PendingResult res = goAsync();
-                  new Thread(new Runnable() { public void run() {
-                      try { ChatWatch.check(c); } catch (Exception e) { } finally { res.finish(); }
-                  }}).start();
-              }
-          }
-          JAVA
-          cat > $J/ChatWatchPlugin.java <<'JAVA'
-          package ru.barometr.neba;
-
-          import com.getcapacitor.JSArray;
-          import com.getcapacitor.JSObject;
-          import com.getcapacitor.Plugin;
-          import com.getcapacitor.PluginCall;
-          import com.getcapacitor.PluginMethod;
-          import com.getcapacitor.annotation.CapacitorPlugin;
-          import org.json.JSONObject;
-
-          @CapacitorPlugin(name = "ChatWatch")
-          public class ChatWatchPlugin extends Plugin {
-              // friends: [{k, n, box, key, since}] — what to watch and what the app has already shown
-              @PluginMethod
-              public void configure(PluginCall call) {
-                  JSArray fr = call.getArray("friends");
-                  boolean on = Boolean.TRUE.equals(call.getBoolean("on", true)) && fr != null && fr.length() > 0;
-                  ChatWatch.prefs(getContext()).edit().putBoolean("on", on).putString("friends", fr == null ? "[]" : fr.toString()).apply();
-                  // messages the app already has: no notification for them
-                  if (fr != null) for (int i = 0; i < fr.length(); i++) {
-                      JSONObject f = fr.optJSONObject(i);
-                      if (f == null) continue;
-                      String k = f.optString("k");
-                      if (f.optString("since").compareTo(ChatWatch.prefs(getContext()).getString("n:" + k, "")) >= 0) ChatWatch.clear(getContext(), k);
-                  }
-                  ChatWatch.schedule(getContext());
-                  call.resolve();
-              }
-
-              @PluginMethod
-              public void clear(PluginCall call) {
-                  String k = call.getString("k");
-                  if (k != null) ChatWatch.clear(getContext(), k);
-                  call.resolve();
-              }
-
-              @PluginMethod
-              public void checkNow(PluginCall call) {
-                  new Thread(new Runnable() { public void run() {
-                      try { ChatWatch.check(getContext()); } catch (Exception e) { }
-                  }}).start();
-                  call.resolve();
               }
           }
           JAVA
@@ -700,10 +528,21 @@ jobs:
                   PendingIntent pi = PendingIntent.getBroadcast(c, 1, new Intent(c, MoodAlarmReceiver.class), FLAGS);
                   am.cancel(pi);
                   long t = nextAt(c, System.currentTimeMillis());
+                  prefs(c).edit().putLong("next", t).apply();
                   if (t <= 0) return;
-                  if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
-                  else am.set(AlarmManager.RTC_WAKEUP, t, pi);
+                  // an exact alarm: phones that save battery hard (vivo, Xiaomi…) put off the inexact ones for hours
+                  boolean exact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms();
+                  String err = "";
+                  try {
+                      // reliable mode: an alarm-clock alarm — strict phones (vivo) freeze apps but still let the user's alarms through
+                      if (exact && prefs(c).getBoolean("keep", false) && Build.VERSION.SDK_INT >= 21) am.setAlarmClock(new AlarmManager.AlarmClockInfo(t, openApp(c)), pi);
+                      else if (Build.VERSION.SDK_INT >= 23 && exact) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      else if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, t, pi);
+                      else am.setExact(AlarmManager.RTC_WAKEUP, t, pi);
+                  } catch (Exception e) { err = e.toString(); try { am.set(AlarmManager.RTC_WAKEUP, t, pi); } catch (Exception e2) { err += " / " + e2; } }
+                  prefs(c).edit().putBoolean("exactUsed", exact).putString("schedErr", err).putLong("schedAt", System.currentTimeMillis()).apply();
               }
+
 
               static void channel(Context c) {
                   if (Build.VERSION.SDK_INT >= 26) {
@@ -727,31 +566,55 @@ jobs:
                   return PendingIntent.getActivity(c, 2, open, FLAGS);
               }
 
-              static final int[] SMALL = {R.id.s0, R.id.s1, R.id.s2, R.id.s3, R.id.s4};
-              static final int[] SMALL_PICK = {0, 1, 2, 5, 9};
+              static final int[] SMALL = {R.id.s0, R.id.s1, R.id.s2, R.id.s3, R.id.s4, R.id.s5, R.id.s6, R.id.s7, R.id.s8, R.id.s9};
+              static final int[] SMALL_PICK = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};   // all ten smileys even when the notification is folded
               static final int[] CELL = {R.id.c0, R.id.c1, R.id.c2, R.id.c3, R.id.c4, R.id.c5, R.id.c6, R.id.c7, R.id.c8, R.id.c9};
               static final int[] EMO = {R.id.e0, R.id.e1, R.id.e2, R.id.e3, R.id.e4, R.id.e5, R.id.e6, R.id.e7, R.id.e8, R.id.e9};
               static final int[] LAB = {R.id.l0, R.id.l1, R.id.l2, R.id.l3, R.id.l4, R.id.l5, R.id.l6, R.id.l7, R.id.l8, R.id.l9};
 
               static void post(Context c) {
                   channel(c);
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  prefs(c).edit().putLong("askPending", System.currentTimeMillis()).apply();
+                  // reliable mode: the quiet line itself turns into the question, so there is one notification, not two
+                  if (MoodKeep.live != null) { try { nm.cancel(NID); } catch (Exception e) { } MoodKeep.refresh(c, true); }
+                  else try { nm.notify(NID, question(c, CH).build()); } catch (SecurityException e) { /* notifications not allowed */ }
+                  badge(c, 1);
+              }
+
+              // the face of a mark in thin lines (kf_<kind>, written by widget/faces.py at build time)
+              static int face(Context c, String k) {
+                  int id = dark(c) ? c.getResources().getIdentifier("kf_" + k + "_w", "drawable", c.getPackageName()) : 0;
+                  if (id == 0) id = c.getResources().getIdentifier("kf_" + k, "drawable", c.getPackageName());
+                  return id != 0 ? id : c.getResources().getIdentifier("kf_good", "drawable", c.getPackageName());
+              }
+
+              // the phone is in dark mode: white faces (the shade is dark then)
+              static boolean dark(Context c) {
+                  if ((c.getApplicationContext().getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                      == android.content.res.Configuration.UI_MODE_NIGHT_YES) return true;
+                  try { return ((android.app.UiModeManager) c.getSystemService(Context.UI_MODE_SERVICE)).getNightMode() == android.app.UiModeManager.MODE_NIGHT_YES; }
+                  catch (Exception e) { return false; }
+              }
+
+              static NotificationCompat.Builder question(Context c, String channel) {
                   JSONArray a = kinds(c);
                   RemoteViews small = new RemoteViews(c.getPackageName(), R.layout.mood_small);
                   for (int i = 0; i < SMALL.length; i++) {
                       JSONObject o = a.optJSONObject(SMALL_PICK[i]);
                       if (o == null) { small.setViewVisibility(SMALL[i], View.GONE); continue; }
-                      small.setTextViewText(SMALL[i], o.optString("e"));
+                      small.setImageViewResource(SMALL[i], face(c, o.optString("k")));
                       small.setOnClickPendingIntent(SMALL[i], markIntent(c, o.optString("k"), i));
                   }
                   RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
-                  for (int i = 0; i < CELL.length; i++) {
+                  for (int i = 0; i < CELL.length; i++) {           // one row: the cells without a smiley are left out
                       JSONObject o = a.optJSONObject(i);
-                      if (o == null) { big.setViewVisibility(CELL[i], View.INVISIBLE); continue; }
-                      big.setTextViewText(EMO[i], o.optString("e"));
+                      if (o == null) { big.setViewVisibility(CELL[i], View.GONE); continue; }
+                      big.setImageViewResource(EMO[i], face(c, o.optString("k")));
                       big.setTextViewText(LAB[i], o.optString("l"));
                       big.setOnClickPendingIntent(CELL[i], markIntent(c, o.optString("k"), 20 + i));
                   }
-                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                  return new NotificationCompat.Builder(c, channel)
                       .setSmallIcon(R.drawable.ic_stat_barometr)
                       .setColor(0xFFFFB04A)
                       .setContentTitle("Как себя чувствуешь?")
@@ -762,15 +625,80 @@ jobs:
                       .setCustomBigContentView(big)
                       .setContentIntent(openApp(c))
                       .setAutoCancel(true)
+                      .setNumber(1)
+                      .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
                       .setPriority(NotificationCompat.PRIORITY_HIGH)
                       .setCategory(NotificationCompat.CATEGORY_REMINDER);
+              }
+
+              // a number on the app icon: Android shows a dot by itself; vivo's launcher takes the number by this broadcast
+              static void badge(Context c, int n) {
+                  try {
+                      Intent l = c.getPackageManager().getLaunchIntentForPackage(c.getPackageName());
+                      Intent i = new Intent("launcher.action.CHANGE_APPLICATION_NOTIFICATION_NUM");
+                      i.putExtra("packageName", c.getPackageName());
+                      i.putExtra("className", l != null && l.getComponent() != null ? l.getComponent().getClassName() : MainActivity.class.getName());
+                      i.putExtra("notificationNum", n);
+                      i.addFlags(0x01000000);   // FLAG_RECEIVER_INCLUDE_BACKGROUND
+                      c.sendBroadcast(i);
+                  } catch (Exception e) { }
+              }
+
+              static JSONArray syms(Context c) {
+                  try { return new JSONArray(prefs(c).getString("syms", "[]")); } catch (Exception e) { return new JSONArray(); }
+              }
+
+              static PendingIntent symIntent(Context c, String k, int rc) {
+                  Intent i = new Intent(c, MoodMarkReceiver.class);
+                  i.putExtra("k", k);
+                  i.putExtra("w", true);
+                  return PendingIntent.getBroadcast(c, 300 + rc, i, FLAGS);
+              }
+
+              // after "Нормально" or "Плохо": "<state> — записано. Что не так?" with the symptoms; one tap adds one,
+              // or nothing — the mark is already saved and the question goes away by itself
+              static void askSym(Context c, String state) {
+                  JSONArray a = syms(c);
+                  if (a.length() == 0) { confirm(c, state); return; }
+                  RemoteViews small = new RemoteViews(c.getPackageName(), R.layout.mood_small);
+                  for (int i = 0; i < SMALL.length; i++) {
+                      JSONObject o = a.optJSONObject(i);
+                      if (o == null) { small.setViewVisibility(SMALL[i], View.GONE); continue; }
+                      small.setImageViewResource(SMALL[i], face(c, o.optString("k")));
+                      small.setOnClickPendingIntent(SMALL[i], symIntent(c, o.optString("k"), i));
+                  }
+                  RemoteViews big = new RemoteViews(c.getPackageName(), R.layout.mood_big);
+                  big.setTextViewText(R.id.mood_q, "Что не так?");
+                  for (int i = 0; i < CELL.length; i++) {
+                      JSONObject o = a.optJSONObject(i);
+                      if (o == null) { big.setViewVisibility(CELL[i], View.GONE); continue; }
+                      big.setImageViewResource(EMO[i], face(c, o.optString("k")));
+                      big.setTextViewText(LAB[i], o.optString("l"));
+                      big.setOnClickPendingIntent(CELL[i], symIntent(c, o.optString("k"), 20 + i));
+                  }
+                  JSONObject so = kind(c, state);
+                  String title = (so != null ? so.optString("l") : "Отметка") + " — записано. Что не так?";
+                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle(title)
+                      .setContentText("Нажмите, если что-то беспокоит")
+                      .setSubText(title)
+                      .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+                      .setCustomContentView(small)
+                      .setCustomBigContentView(big)
+                      .setContentIntent(openApp(c))
+                      .setOnlyAlertOnce(true)
+                      .setAutoCancel(true)
+                      .setTimeoutAfter(10 * 60 * 1000)
+                      .setPriority(NotificationCompat.PRIORITY_LOW);
                   NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-                  try { nm.notify(NID, b.build()); } catch (SecurityException e) { /* notifications not allowed */ }
+                  try { nm.notify(NID, b.build()); } catch (SecurityException e) { }
               }
 
               static void confirm(Context c, String k) {
                   JSONObject o = kind(c, k);
-                  String title = (o != null ? o.optString("e") + " " + o.optString("l") : "Отметка") + " — записано";
+                  String title = (o != null ? o.optString("l") : "Отметка") + " — записано";
                   NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
                       .setSmallIcon(R.drawable.ic_stat_barometr)
                       .setColor(0xFFFFB04A)
@@ -818,6 +746,8 @@ jobs:
                   e.putInt("to", call.getInt("to", 1320));
                   JSArray k = call.getArray("kinds");
                   if (k != null && k.length() > 0) e.putString("kinds", k.toString());
+                  JSArray sy = call.getArray("syms");
+                  if (sy != null) e.putString("syms", sy.toString());
                   e.apply();
                   MoodNotify.channel(getContext());
                   MoodNotify.schedule(getContext());
@@ -829,6 +759,10 @@ jobs:
               @PluginMethod
               public void noteMark(PluginCall call) {
                   MoodNotify.prefs(getContext()).edit().putLong("lastMark", System.currentTimeMillis()).apply();
+                  // answered in the app: the question in the shade and the number on the icon go away
+                  try { ((android.app.NotificationManager) getContext().getSystemService(android.content.Context.NOTIFICATION_SERVICE)).cancel(MoodNotify.NID); } catch (Exception e) { }
+                  MoodNotify.badge(getContext(), 0);
+                  MoodKeep.refresh(getContext());
                   call.resolve();
               }
 
@@ -836,6 +770,92 @@ jobs:
               public void test(PluginCall call) {
                   MoodNotify.post(getContext());
                   call.resolve();
+              }
+
+              // what can keep the questions from coming: notifications off, the channel off, battery saving, no exact alarms
+              @PluginMethod
+              public void status(PluginCall call) {
+                  android.content.Context c = getContext();
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  JSObject r = new JSObject();
+                  r.put("notif", androidx.core.app.NotificationManagerCompat.from(c).areNotificationsEnabled());
+                  boolean ch = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 26) {
+                      android.app.NotificationManager nm = (android.app.NotificationManager) c.getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+                      android.app.NotificationChannel x = nm.getNotificationChannel(MoodNotify.CH);
+                      ch = x == null || x.getImportance() != android.app.NotificationManager.IMPORTANCE_NONE;
+                  }
+                  r.put("channel", ch);
+                  boolean battery = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 23) {
+                      android.os.PowerManager pm = (android.os.PowerManager) c.getSystemService(android.content.Context.POWER_SERVICE);
+                      battery = pm.isIgnoringBatteryOptimizations(c.getPackageName());
+                  }
+                  r.put("battery", battery);
+                  boolean exact = true;
+                  if (android.os.Build.VERSION.SDK_INT >= 31) exact = ((android.app.AlarmManager) c.getSystemService(android.content.Context.ALARM_SERVICE)).canScheduleExactAlarms();
+                  r.put("exact", exact);
+                  r.put("next", s.getLong("next", 0));
+                  r.put("lastFire", s.getLong("lastFire", 0));
+                  r.put("lastPosted", s.getLong("lastPosted", 0));
+                  r.put("maker", android.os.Build.MANUFACTURER);
+                  r.put("schedErr", s.getString("schedErr", ""));
+                  r.put("exactUsed", s.getBoolean("exactUsed", false));
+                  r.put("every", s.getInt("every", 0));
+                  r.put("pending", android.app.PendingIntent.getBroadcast(c, 1, new android.content.Intent(c, MoodAlarmReceiver.class), android.app.PendingIntent.FLAG_NO_CREATE | android.app.PendingIntent.FLAG_IMMUTABLE) != null);
+                  r.put("keep", s.getBoolean("keep", false));
+                  r.put("keepErr", s.getString("keepErr", ""));
+                  boolean running = false;
+                  try { for (android.app.ActivityManager.RunningServiceInfo x : ((android.app.ActivityManager) c.getSystemService(android.content.Context.ACTIVITY_SERVICE)).getRunningServices(50)) if (x.service.getClassName().endsWith("MoodKeep")) running = true; } catch (Exception ex) { }
+                  r.put("keepOn", running);
+                  call.resolve(r);
+              }
+
+              @PluginMethod
+              public void keep(PluginCall call) {
+                  SharedPreferences.Editor e = MoodNotify.prefs(getContext()).edit();
+                  if (call.hasOption("on")) e.putBoolean("keep", Boolean.TRUE.equals(call.getBoolean("on", false)));
+                  if (call.hasOption("text")) e.putString("keepText", call.getString("text", ""));
+                  e.apply();
+                  MoodKeep.sync(getContext());
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void openSettings(PluginCall call) {
+                  android.content.Context c = getContext();
+                  String what = call.getString("what", "notif");
+                  android.content.Intent i;
+                  if ("battery".equals(what) && android.os.Build.VERSION.SDK_INT >= 23) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("exact".equals(what) && android.os.Build.VERSION.SDK_INT >= 31) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("vendor".equals(what)) {
+                      String[][] cands = {
+                          {"com.vivo.permissionmanager", "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"},
+                          {"com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager"},
+                          {"com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity"},
+                          {"com.vivo.abe", "com.vivo.applicationbehaviorengine.ui.ExcessivePowerManagerActivity"},
+                          {"com.miui.securitycenter", "com.miui.permcenter.autostart.AutoStartManagementActivity"},
+                          {"com.huawei.systemmanager", "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"},
+                          {"com.coloros.safecenter", "com.coloros.safecenter.permission.startup.StartupAppListActivity"}};
+                      for (String[] x : cands) {
+                          try { c.startActivity(new android.content.Intent().setClassName(x[0], x[1]).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)); call.resolve(); return; } catch (Exception e) { }
+                      }
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if ("app".equals(what)) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  } else if (android.os.Build.VERSION.SDK_INT >= 26) {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, c.getPackageName());
+                  } else {
+                      i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()));
+                  }
+                  i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                  try { c.startActivity(i); call.resolve(); }
+                  catch (Exception e) {
+                      try { c.startActivity(new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName())).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)); call.resolve(); }
+                      catch (Exception e2) { call.reject("no settings screen"); }
+                  }
               }
 
               @PluginMethod
@@ -873,8 +893,11 @@ jobs:
                   } else {
                       recent = now - last < every * 60000L / 2;
                   }
-                  if (every > 0 && !recent) MoodNotify.post(c);
+                  SharedPreferences.Editor ed = s.edit().putLong("lastFire", now);
+                  if (every > 0 && !recent) { MoodNotify.post(c); ed.putLong("lastPosted", now); }
+                  ed.apply();
                   MoodNotify.schedule(c);
+                  if (MoodKeep.wanted(c)) MoodKeep.sync(c);
               }
           }
           JAVA
@@ -894,6 +917,7 @@ jobs:
               public void onReceive(Context c, Intent intent) {
                   String k = intent.getStringExtra("k");
                   if (k == null) return;
+                  boolean sym = intent.getBooleanExtra("w", false);
                   long now = System.currentTimeMillis();
                   SharedPreferences s = MoodNotify.prefs(c);
                   try {
@@ -901,12 +925,128 @@ jobs:
                       JSONObject o = new JSONObject();
                       o.put("k", k);
                       o.put("t", now);
+                      if (sym) o.put("w", 1);
                       a.put(o);
                       s.edit().putString("pending", a.toString()).putLong("lastMark", now).apply();
                   } catch (Exception e) { }
-                  MoodNotify.confirm(c, k);
+                  if (!sym && ("meh".equals(k) || "bad".equals(k))) MoodNotify.askSym(c, k);
+                  else MoodNotify.confirm(c, k);
+                  s.edit().remove("askPending").apply();
+                  MoodNotify.badge(c, 0);
+                  MoodKeep.refresh(c);
                   MoodNotifyPlugin.emit();
               }
+          }
+          JAVA
+          cat > $J/MoodKeep.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.Notification;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.app.Service;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.content.pm.ServiceInfo;
+          import android.os.Build;
+          import android.os.Handler;
+          import android.os.IBinder;
+          import android.os.Looper;
+          import androidx.core.app.NotificationCompat;
+          import java.text.SimpleDateFormat;
+          import java.util.Date;
+          import java.util.Locale;
+
+          // "Reliable mode": a quiet line in the shade keeps the app from being frozen by strict phones (vivo, Xiaomi…),
+          // so the mood questions come on time. It also asks by itself when the next time comes, as a second path.
+          public class MoodKeep extends Service {
+              static final String CH = "keep_quiet";
+              static final int NID = 7310;
+              static MoodKeep live;
+              final Handler h = new Handler(Looper.getMainLooper());
+              static void refresh(Context c) { refresh(c, false); }
+              static void refresh(Context c, boolean alert) {       // alert: ring once, the question has just come
+                  MoodKeep k = live; if (k == null) return;
+                  try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NID, k.build(alert)); } catch (Exception e) { }
+              }
+              static boolean asking(Context c) {      // a question waits for an answer: until a smiley is pressed or the next question is due
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  long ask = s.getLong("askPending", 0), now = System.currentTimeMillis();
+                  int every = Math.max(30, Math.min(180, s.getInt("every", 60)));
+                  return ask > 0 && ask > s.getLong("lastMark", 0) && now - ask < every * 60000L;
+              }
+              final Runnable tick = new Runnable() { public void run() { check(); } };
+
+              static boolean wanted(Context c) {
+                  SharedPreferences s = MoodNotify.prefs(c);
+                  return s.getBoolean("keep", false) && s.getInt("every", 0) > 0;
+              }
+              static void sync(Context c) {           // start or stop, as the settings say
+                  Intent i = new Intent(c, MoodKeep.class);
+                  try {
+                      if (wanted(c)) { if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i); else c.startService(i); }
+                      else c.stopService(i);
+                  } catch (Exception e) { MoodNotify.prefs(c).edit().putString("keepErr", e.toString()).apply(); }
+              }
+
+              Notification build() { return build(false); }
+              Notification build(boolean alert) {
+                  NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                  if (Build.VERSION.SDK_INT >= 26) {
+                      NotificationChannel ch = new NotificationChannel(CH, "Надёжные напоминания", NotificationManager.IMPORTANCE_MIN);
+                      ch.setDescription("Тихая строка, чтобы телефон не усыплял приложение и вопросы приходили вовремя");
+                      ch.setShowBadge(false);
+                      nm.createNotificationChannel(ch);
+                  }
+                  SharedPreferences s = MoodNotify.prefs(this);
+                  if (asking(this)) {
+                      MoodNotify.channel(this);
+                      return MoodNotify.question(this, MoodNotify.CH).setOngoing(true).setOnlyAlertOnce(!alert).setAutoCancel(false).build();
+                  }
+                  long next = MoodNotify.nextAt(this, System.currentTimeMillis());
+                  String wx = s.getString("keepText", "");
+                  String when = next > 0 ? "Следующий вопрос о самочувствии в " + new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date(next)) : "Вопросы о самочувствии";
+                  Intent open = getPackageManager().getLaunchIntentForPackage(getPackageName());
+                  PendingIntent pi = PendingIntent.getActivity(this, 5, open != null ? open : new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                  return new NotificationCompat.Builder(this, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle(wx.isEmpty() ? "Не18мнеуже" : wx)
+                      .setContentText(when)
+                      .setContentIntent(pi)
+                      .setOngoing(true)
+                      .setOnlyAlertOnce(true)
+                      .setShowWhen(false)
+                      .setPriority(NotificationCompat.PRIORITY_MIN)
+                      .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                      .build();
+              }
+
+              // the time has come and the alarm has not answered: ask the same way it would
+              void check() {
+                  SharedPreferences s = MoodNotify.prefs(this);
+                  long due = s.getLong("next", 0), fired = s.getLong("lastFire", 0), now = System.currentTimeMillis();
+                  if (due > 0 && now >= due + 45000 && fired < due) new MoodAlarmReceiver().onReceive(this, new Intent());
+                  try { ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NID, build()); } catch (Exception e) { }
+                  h.removeCallbacks(tick); h.postDelayed(tick, 30000);
+              }
+
+              @Override public int onStartCommand(Intent intent, int flags, int startId) {
+                  if (!wanted(this)) { stopSelf(); return START_NOT_STICKY; }
+                  try {
+                      if (Build.VERSION.SDK_INT >= 34) startForeground(NID, build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+                      else startForeground(NID, build());
+                  } catch (Exception e) { MoodNotify.prefs(this).edit().putString("keepErr", e.toString()).apply(); stopSelf(); return START_NOT_STICKY; }
+                  live = this;
+                  MoodNotify.prefs(this).edit().putLong("keepSince", System.currentTimeMillis()).putString("keepErr", "").apply();
+                  MoodNotify.schedule(this);
+                  h.removeCallbacks(tick); h.postDelayed(tick, 30000);
+                  return START_STICKY;
+              }
+              @Override public void onDestroy() { h.removeCallbacks(tick); if (live == this) live = null; super.onDestroy(); }
+              @Override public IBinder onBind(Intent i) { return null; }
           }
           JAVA
           cat > $J/MoodBootReceiver.java <<'JAVA'
@@ -921,10 +1061,12 @@ jobs:
               @Override
               public void onReceive(Context c, Intent intent) {
                   MoodNotify.schedule(c);
+                  MoodKeep.sync(c);
                   UpdateCheck.reschedule(c);
-                  ChatWatch.schedule(c);
                   IconSwitch.schedule(c);
                   IconSwitch.apply(c, IconSwitch.levelNow(c));
+                  FcNotify.schedule(c);
+                  PhoneSteps.schedule(c);
               }
           }
           JAVA
@@ -965,17 +1107,23 @@ jobs:
           cat > $J/MainActivity.java <<'JAVA'
           package ru.barometr.neba;
 
+          import android.os.Build;
           import android.os.Bundle;
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
               @Override
               public void onCreate(Bundle savedInstanceState) {
+                  // lets an off-screen WebView draw the whole page, for the PDF report; must come before any WebView exists
+                  android.webkit.WebView.enableSlowWholeDocumentDraw();
                   registerPlugin(ApkUpdatePlugin.class);
                   registerPlugin(MoodNotifyPlugin.class);
-                  registerPlugin(ChatWatchPlugin.class);
                   registerPlugin(IconSwitchPlugin.class);
                   registerPlugin(ThemeBarsPlugin.class);
+                  registerPlugin(WxWidgetPlugin.class);
+                  registerPlugin(FcNotifyPlugin.class);
+                  registerPlugin(PhoneStepsPlugin.class);
+                  registerPlugin(PdfReportPlugin.class);
                   super.onCreate(savedInstanceState);
               }
           }
@@ -985,110 +1133,679 @@ jobs:
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent" android:layout_height="wrap_content"
               android:orientation="horizontal" android:gravity="center_vertical">
-              <TextView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
-              <TextView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp"
-                  android:gravity="center" android:textSize="26sp" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
+              <ImageView android:id="@+id/s9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="40dp"
+                  android:padding="6dp" android:scaleType="fitCenter" android:background="?android:attr/selectableItemBackground" />
           </LinearLayout>
           XML
           cat > $L/mood_big.xml <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-              <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Как себя чувствуешь?"
+              <TextView android:id="@+id/mood_q" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Как себя чувствуешь?"
                   android:textAppearance="@style/TextAppearance.Compat.Notification.Title" android:paddingBottom="6dp" />
               <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                   <LinearLayout android:id="@+id/c0" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e0" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e0" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l0" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e1" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l1" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e2" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l2" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e3" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l3" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e4" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l4" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
-              </LinearLayout>
-              <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                   <LinearLayout android:id="@+id/c5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e5" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l5" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e6" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l6" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e7" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l7" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e8" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l8" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
                   <LinearLayout android:id="@+id/c9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                       android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="4dp" android:paddingBottom="4dp"
                       android:background="?android:attr/selectableItemBackground">
-                      <TextView android:id="@+id/e9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="26sp" />
+                      <ImageView android:id="@+id/e9" android:layout_width="28dp" android:layout_height="28dp" android:scaleType="fitCenter" />
                       <TextView android:id="@+id/l9" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                          android:textSize="10sp" android:maxLines="1" android:ellipsize="end"
+                          android:textSize="8.5sp" android:maxLines="1" android:ellipsize="end"
                           android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
                   </LinearLayout>
               </LinearLayout>
           </LinearLayout>
           XML
+          # the evening warning about a hard day tomorrow: the app leaves the texts, we show them on time
+          cat > $J/FcNotify.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.AlarmManager;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Build;
+          import androidx.core.app.NotificationCompat;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          // items: [{t: ms, title, text}] for the next two evenings; one alarm for the nearest, then the next one
+          public class FcNotify extends BroadcastReceiver {
+              static final String PREFS = "fc_notify";
+              static final String CH = "forecast";
+              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+
+              static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              static JSONObject next(Context c, long after) {
+                  try {
+                      JSONArray a = new JSONArray(prefs(c).getString("items", "[]"));
+                      JSONObject best = null;
+                      for (int i = 0; i < a.length(); i++) {
+                          JSONObject o = a.optJSONObject(i);
+                          if (o == null || o.optLong("t") <= after) continue;
+                          if (best == null || o.optLong("t") < best.optLong("t")) best = o;
+                      }
+                      return best;
+                  } catch (Exception e) { return null; }
+              }
+
+              static void schedule(Context c) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 40, new Intent(c, FcNotify.class), FLAGS);
+                  am.cancel(pi);
+                  JSONObject o = next(c, System.currentTimeMillis());
+                  if (o == null) return;
+                  if (Build.VERSION.SDK_INT >= 23) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, o.optLong("t"), pi);
+                  else am.set(AlarmManager.RTC_WAKEUP, o.optLong("t"), pi);
+              }
+
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  // the alarm may come a few minutes late: show the item whose time has just passed
+                  JSONObject o = next(c, System.currentTimeMillis() - 30 * 60 * 1000L);
+                  if (o != null && o.optLong("t") <= System.currentTimeMillis() + 60 * 1000L) show(c, o.optString("title"), o.optString("text"));
+                  schedule(c);
+              }
+
+              static void show(Context c, String title, String text) {
+                  NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+                  if (Build.VERSION.SDK_INT >= 26) {
+                      NotificationChannel ch = new NotificationChannel(CH, "Прогноз самочувствия на завтра", NotificationManager.IMPORTANCE_DEFAULT);
+                      ch.setDescription("Предупреждение накануне тяжёлого дня");
+                      nm.createNotificationChannel(ch);
+                  }
+                  Intent i = new Intent(c, MainActivity.class);
+                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  NotificationCompat.Builder b = new NotificationCompat.Builder(c, CH)
+                      .setSmallIcon(R.drawable.ic_stat_barometr)
+                      .setColor(0xFFFFB04A)
+                      .setContentTitle(title)
+                      .setContentText(text)
+                      .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
+                      .setContentIntent(PendingIntent.getActivity(c, 41, i, FLAGS))
+                      .setAutoCancel(true);
+                  try { nm.notify(7400, b.build()); } catch (SecurityException e) { }
+              }
+          }
+          JAVA
+          cat > $J/FcNotifyPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import com.getcapacitor.JSArray;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          @CapacitorPlugin(name = "FcNotify")
+          public class FcNotifyPlugin extends Plugin {
+              // items: [{t: ms, title, text}]; an empty list switches the warnings off
+              @PluginMethod
+              public void schedule(PluginCall call) {
+                  JSArray items = call.getArray("items");
+                  FcNotify.prefs(getContext()).edit().putString("items", items == null ? "[]" : items.toString()).apply();
+                  FcNotify.schedule(getContext());
+                  call.resolve();
+              }
+          }
+          JAVA
+          # when the app closes on an error, keep the reason: Settings shows it so it can be copied and sent
+          # the doctor's report: the app gives the pages as HTML, we draw them into a PDF and share or save it
+          cat > $J/PdfReportPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.content.ContentValues;
+          import android.content.Intent;
+          import android.graphics.pdf.PdfDocument;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.provider.MediaStore;
+          import android.view.View;
+          import android.view.ViewGroup;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.FrameLayout;
+          import androidx.core.content.FileProvider;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.io.File;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.io.InputStream;
+          import java.io.OutputStream;
+
+          @CapacitorPlugin(name = "PdfReport")
+          public class PdfReportPlugin extends Plugin {
+              static final int PW = 595, PH = 842;          // A4 in points
+              static final int WPX = 1190;                   // drawing width in pixels (2x), scaled back onto the page
+
+              // html: pages of A4 height (width 100vw); pages: how many; name: file name; mode: share | save
+              @PluginMethod
+              public void make(final PluginCall call) {
+                  final String html = call.getString("html", "");
+                  final int pages = Math.max(1, call.getInt("pages", 1));
+                  final String name = call.getString("name", "report");
+                  final String mode = call.getString("mode", "share");
+                  getActivity().runOnUiThread(new Runnable() { public void run() {
+                      try {
+                          final int hPx = Math.round(WPX * (float) PH / PW);
+                          final WebView wv = new WebView(getContext());
+                          wv.getSettings().setJavaScriptEnabled(false);
+                          wv.setBackgroundColor(0xFFFFFFFF);
+                          // attached but out of sight: some WebViews draw nothing while detached
+                          final ViewGroup root = (ViewGroup) getActivity().getWindow().getDecorView();
+                          FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(WPX, hPx * pages);
+                          wv.setLayoutParams(lp);
+                          wv.setTranslationX(-10 * WPX);
+                          root.addView(wv);
+                          wv.measure(View.MeasureSpec.makeMeasureSpec(WPX, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(hPx * pages, View.MeasureSpec.EXACTLY));
+                          wv.layout(0, 0, WPX, hPx * pages);
+                          wv.setWebViewClient(new WebViewClient() {
+                              boolean done = false;
+                              @Override public void onPageFinished(WebView v, String url) {
+                                  if (done) return; done = true;
+                                  new Handler(Looper.getMainLooper()).postDelayed(new Runnable() { public void run() {
+                                      try {
+                                          PdfDocument doc = new PdfDocument();
+                                          float k = (float) PW / WPX;
+                                          for (int i = 0; i < pages; i++) {
+                                              PdfDocument.Page p = doc.startPage(new PdfDocument.PageInfo.Builder(PW, PH, i + 1).create());
+                                              android.graphics.Canvas c = p.getCanvas();
+                                              c.scale(k, k);
+                                              c.translate(0, -i * hPx);
+                                              wv.draw(c);
+                                              doc.finishPage(p);
+                                          }
+                                          File dir = new File(getContext().getCacheDir(), "reports");
+                                          dir.mkdirs();
+                                          File f = new File(dir, name + ".pdf");
+                                          FileOutputStream out = new FileOutputStream(f);
+                                          doc.writeTo(out); out.close(); doc.close();
+                                          root.removeView(wv); wv.destroy();
+                                          deliver(call, f, mode);
+                                      } catch (Throwable e) { root.removeView(wv); call.reject(e.toString()); }
+                                  }}, 600);
+                              }
+                          });
+                          wv.loadDataWithBaseURL("https://localhost/", html, "text/html", "utf-8", null);
+                      } catch (Throwable e) { call.reject(e.toString()); }
+                  }});
+              }
+
+              private void deliver(PluginCall call, File f, String mode) throws Exception {
+                  JSObject r = new JSObject();
+                  if ("save".equals(mode) && Build.VERSION.SDK_INT >= 29) {
+                      ContentValues cv = new ContentValues();
+                      cv.put(MediaStore.Downloads.DISPLAY_NAME, f.getName());
+                      cv.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+                      cv.put(MediaStore.Downloads.RELATIVE_PATH, "Download/");
+                      Uri uri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv);
+                      if (uri == null) throw new Exception("no place in Downloads");
+                      OutputStream os = getContext().getContentResolver().openOutputStream(uri);
+                      InputStream is = new FileInputStream(f);
+                      byte[] buf = new byte[16384]; int n;
+                      while ((n = is.read(buf)) > 0) os.write(buf, 0, n);
+                      is.close(); os.close();
+                      r.put("where", "Загрузки/" + f.getName());
+                      call.resolve(r);
+                      return;
+                  }
+                  // share (and "save" on Android 9 and older, where the share sheet offers saving)
+                  Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", f);
+                  Intent i = new Intent(Intent.ACTION_SEND);
+                  i.setType("application/pdf");
+                  i.putExtra(Intent.EXTRA_STREAM, uri);
+                  i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                  Intent ch = Intent.createChooser(i, "Дневник самонаблюдения");
+                  ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                  getContext().startActivity(ch);
+                  r.put("shared", true);
+                  call.resolve(r);
+              }
+          }
+          JAVA
+          # steps from the phone's own step sensor (like VK does it)
+          cat > $J/PhoneSteps.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.AlarmManager;
+          import android.app.PendingIntent;
+          import android.content.BroadcastReceiver;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.hardware.Sensor;
+          import android.hardware.SensorEvent;
+          import android.hardware.SensorEventListener;
+          import android.hardware.SensorManager;
+          import android.os.Handler;
+          import android.os.HandlerThread;
+          import java.text.SimpleDateFormat;
+          import java.util.Calendar;
+          import java.util.Date;
+          import java.util.Iterator;
+          import java.util.Locale;
+          import org.json.JSONObject;
+
+          // The sensor counts steps since the phone was switched on. Every hour, and when the app asks, we read it
+          // and add the difference to the day it happened in; a smaller number than last time means a reboot.
+          public class PhoneSteps extends BroadcastReceiver {
+              static final String PREFS = "phone_steps";
+              static final int FLAGS = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+
+              static SharedPreferences prefs(Context c) { return c.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              static boolean hasSensor(Context c) {
+                  SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
+                  return sm != null && sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null;
+              }
+
+              static void schedule(Context c) {
+                  AlarmManager am = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                  PendingIntent pi = PendingIntent.getBroadcast(c, 50, new Intent(c, PhoneSteps.class), FLAGS);
+                  am.cancel(pi);
+                  if (!prefs(c).getBoolean("on", false)) return;
+                  am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + AlarmManager.INTERVAL_HOUR, AlarmManager.INTERVAL_HOUR, pi);
+              }
+
+              static String day(long t) { return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(t)); }
+
+              // one reading of the sensor; done runs on a background thread with the days map, or null
+              static void sample(final Context c, final Runnable done) {
+                  final SensorManager sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
+                  final Sensor s = sm == null ? null : sm.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+                  if (s == null) { done.run(); return; }
+                  final HandlerThread th = new HandlerThread("steps");
+                  th.start();
+                  final Handler h = new Handler(th.getLooper());
+                  final boolean[] fin = {false};
+                  final SensorEventListener l = new SensorEventListener() {
+                      public void onSensorChanged(SensorEvent e) {
+                          synchronized (fin) { if (fin[0]) return; fin[0] = true; }
+                          sm.unregisterListener(this);
+                          try { add(c, (long) e.values[0], System.currentTimeMillis()); } catch (Throwable x) { }
+                          done.run(); th.quitSafely();
+                      }
+                      public void onAccuracyChanged(Sensor sensor, int a) { }
+                  };
+                  sm.registerListener(l, s, SensorManager.SENSOR_DELAY_NORMAL, 0, h);
+                  // no event within 10 s (some phones answer only after a step): give up for now
+                  h.postDelayed(new Runnable() { public void run() {
+                      synchronized (fin) { if (fin[0]) return; fin[0] = true; }
+                      sm.unregisterListener(l); done.run(); th.quitSafely();
+                  }}, 10000);
+              }
+
+              static synchronized void add(Context c, long count, long now) throws Exception {
+                  SharedPreferences p = prefs(c);
+                  // build 80 counted the whole first reading as today's, which is wrong on phones whose sensor does not
+                  // start from zero at power-on (vivo): start over once, without the steps it added
+                  if (!p.getBoolean("v3", false)) p.edit().remove("last").remove("lastT").remove("days").putBoolean("v3", true).commit();
+                  JSONObject days = new JSONObject(p.getString("days", "{}"));
+                  long last = p.getLong("last", -1), lastT = p.getLong("lastT", 0);
+                  String today = day(now);
+                  if (last >= 0) {                       // the very first reading is only the starting point: what it includes differs by phone
+                      long delta = count >= last ? count - last : count;      // smaller: the phone was restarted
+                      if (delta > 0 && delta < 100000) {
+                          String d0 = day(lastT), d1 = day(now);
+                          if (d0.equals(d1) || now - lastT > 36 * 3600 * 1000L) days.put(d1, days.optLong(d1) + delta);
+                          else {
+                              // the interval crosses midnight: split it by time
+                              Calendar mid = Calendar.getInstance(); mid.setTimeInMillis(now);
+                              mid.set(Calendar.HOUR_OF_DAY, 0); mid.set(Calendar.MINUTE, 0); mid.set(Calendar.SECOND, 0); mid.set(Calendar.MILLISECOND, 0);
+                              long before = Math.round(delta * (double) (mid.getTimeInMillis() - lastT) / (now - lastT));
+                              days.put(d0, days.optLong(d0) + before);
+                              days.put(d1, days.optLong(d1) + delta - before);
+                          }
+                      }
+                  }
+                  if (!days.has(today)) days.put(today, 0);    // today shows up even before the first step
+                  // keep about four months
+                  String old = day(now - 120L * 24 * 3600 * 1000);
+                  for (Iterator<String> it = days.keys(); it.hasNext(); ) if (it.next().compareTo(old) < 0) it.remove();
+                  p.edit().putLong("last", count).putLong("lastT", now).putString("days", days.toString()).apply();
+              }
+
+              @Override
+              public void onReceive(Context c, Intent intent) {
+                  final PendingResult res = goAsync();
+                  sample(c, new Runnable() { public void run() { res.finish(); } });
+              }
+          }
+          JAVA
+          cat > $J/PhoneStepsPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.Manifest;
+          import android.os.Build;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.PermissionState;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.getcapacitor.annotation.Permission;
+          import com.getcapacitor.annotation.PermissionCallback;
+          import org.json.JSONObject;
+
+          @CapacitorPlugin(name = "PhoneSteps", permissions = { @Permission(strings = { Manifest.permission.ACTIVITY_RECOGNITION }, alias = "activity") })
+          public class PhoneStepsPlugin extends Plugin {
+              private boolean granted() { return Build.VERSION.SDK_INT < 29 || getPermissionState("activity") == PermissionState.GRANTED; }
+
+              @PluginMethod
+              public void status(PluginCall call) {
+                  JSObject r = new JSObject();
+                  r.put("sensor", PhoneSteps.hasSensor(getContext()));
+                  r.put("granted", granted());
+                  r.put("on", PhoneSteps.prefs(getContext()).getBoolean("on", false));
+                  r.put("since", PhoneSteps.prefs(getContext()).getLong("since", 0));
+                  call.resolve(r);
+              }
+
+              // switch counting on (asks for "physical activity" first) or off
+              @PluginMethod
+              public void start(PluginCall call) {
+                  if (!call.getBoolean("on", true)) { PhoneSteps.prefs(getContext()).edit().putBoolean("on", false).apply(); PhoneSteps.schedule(getContext()); call.resolve(); return; }
+                  if (!granted()) { requestPermissionForAlias("activity", call, "onPermission"); return; }
+                  begin(call);
+              }
+
+              @PermissionCallback
+              private void onPermission(PluginCall call) {
+                  if (!granted()) { JSObject r = new JSObject(); r.put("granted", false); call.resolve(r); return; }
+                  begin(call);
+              }
+
+              private void begin(final PluginCall call) {
+                  if (PhoneSteps.prefs(getContext()).getLong("since", 0) == 0) PhoneSteps.prefs(getContext()).edit().putLong("since", System.currentTimeMillis()).apply();
+                  PhoneSteps.prefs(getContext()).edit().putBoolean("on", true).apply();
+                  PhoneSteps.schedule(getContext());
+                  PhoneSteps.sample(getContext(), new Runnable() { public void run() {
+                      JSObject r = new JSObject(); r.put("granted", true); call.resolve(r);
+                  }});
+              }
+
+              // days: {"yyyy-mm-dd": steps}, after a fresh reading
+              @PluginMethod
+              public void read(final PluginCall call) {
+                  if (!granted() || !PhoneSteps.prefs(getContext()).getBoolean("on", false)) { JSObject r = new JSObject(); r.put("days", new JSObject()); call.resolve(r); return; }
+                  PhoneSteps.sample(getContext(), new Runnable() { public void run() {
+                      JSObject r = new JSObject();
+                      try { r.put("days", new JSObject(PhoneSteps.prefs(getContext()).getString("days", "{}"))); } catch (Exception e) { r.put("days", new JSObject()); }
+                      call.resolve(r);
+                  }});
+              }
+          }
+          JAVA
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />\n</manifest>|' $M
+          sed -i 's|</application>|    <receiver android:name=".PhoneSteps" android:exported="false" />\n    </application>|' $M
+          # home-screen widget 2x1: weather, pressure and the Kp index
+          cat > $J/WxWidget.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import android.app.PendingIntent;
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.ComponentName;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.widget.RemoteViews;
+          import java.text.SimpleDateFormat;
+          import java.util.Date;
+          import java.util.Locale;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          // Home-screen widget 2x1 on a background that shows the weather of the current hour (drawn by
+          // widget/frames.py; with animation on, the launcher flips its 20 frames 10 times a second while it is on screen).
+          // Text: city, the day's high and low, temperature, pressure with its change over the last 3 hours, and Kp.
+          // The app leaves an hourly plan for two days; each update picks the current hour.
+          public class WxWidget extends AppWidgetProvider {
+              static final String PREFS = "wx_widget";
+              static final long HOUR = 3600 * 1000L;
+              static final int FRAMES = 20;
+              static int GREEN, YELLOW, RED, DIM;      // set for the phone's light or dark theme in build()
+
+              static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
+
+              @Override
+              public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
+                  for (int id : ids) m.updateAppWidget(id, build(c));
+              }
+
+              static void refresh(Context c) {
+                  AppWidgetManager m = AppWidgetManager.getInstance(c);
+                  int[] ids = m.getAppWidgetIds(new ComponentName(c, WxWidget.class));
+                  if (ids == null) return;
+                  for (int id : ids) m.updateAppWidget(id, build(c));
+              }
+
+              static String scene(String k, boolean night) {
+                  if ("clear".equals(k)) return night ? "clear_n" : "clear_d";
+                  if ("fair".equals(k) || "partly".equals(k)) return night ? "fair_n" : "fair_d";
+                  if ("rain".equals(k) || "snow".equals(k) || "thunder".equals(k) || "fog".equals(k)) return k;
+                  return "cloud";
+              }
+
+              static String deg(int t) { return (t > 0 ? "+" : "") + t + "°"; }
+
+              static JSONObject nearest(JSONArray s, long at) {
+                  JSONObject best = null;
+                  long bd = Long.MAX_VALUE;
+                  for (int i = 0; i < s.length(); i++) {
+                      JSONObject o = s.optJSONObject(i);
+                      if (o == null) continue;
+                      long d = Math.abs(o.optLong("t") - at);
+                      if (d < bd) { bd = d; best = o; }
+                  }
+                  return bd <= 2 * HOUR ? best : null;
+              }
+
+              static void frames(Context c, RemoteViews v, String scene, boolean anim) {
+                  String pkg = c.getPackageName();
+                  for (int f = 0; f < (anim ? FRAMES : 1); f++) {
+                      int img = c.getResources().getIdentifier("wxf_" + scene + "_" + (f < 10 ? "0" : "") + f, "drawable", pkg);
+                      int view = c.getResources().getIdentifier("wx_f" + f, "id", pkg);
+                      if (img != 0 && view != 0) v.setImageViewResource(view, img);
+                  }
+              }
+
+              static RemoteViews build(Context c) {
+                  SharedPreferences p = prefs(c);
+                  boolean anim = p.getBoolean("anim", true);
+                  RemoteViews v = new RemoteViews(c.getPackageName(), anim ? R.layout.wx_widget_anim : R.layout.wx_widget);
+                  boolean night = (c.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                      == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+                  GREEN = night ? 0xFF8BE38F : 0xFF1F9D55; YELLOW = night ? 0xFFF2C94C : 0xFFC98500;
+                  RED = night ? 0xFFFF7A6B : 0xFFD9463A; DIM = night ? 0xFFA3A7AE : 0xFF557D73;
+                  Intent open = new Intent(c, MainActivity.class);
+                  open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                  v.setOnClickPendingIntent(android.R.id.background, PendingIntent.getActivity(c, 30, open,
+                      PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+                  try {
+                      JSONObject d = new JSONObject(p.getString("data", "{}"));
+                      JSONArray s = d.optJSONArray("slots");
+                      long now = System.currentTimeMillis();
+                      JSONObject o = s == null ? null : nearest(s, now);
+                      if (o == null) throw new Exception("no data for now");
+                      frames(c, v, scene(o.optString("k"), o.optBoolean("n")), anim);
+                      v.setTextViewText(R.id.wx_city, d.optString("city", ""));
+                      v.setTextViewText(R.id.wx_temp, deg(o.optInt("tp")));
+                      JSONObject days = d.optJSONObject("days");
+                      JSONArray hl = days == null ? null : days.optJSONArray(new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(now)));
+                      v.setTextViewText(R.id.wx_hilo, hl == null ? "" : deg(hl.optInt(0)) + " " + deg(hl.optInt(1)));
+                      // pressure now, and how it changed over the last 3 hours: the arrow shows where it went,
+                      // green when slowly (under 2 mm in 3 h), red when fast
+                      if (o.has("p")) {
+                          double pr = o.optDouble("p");
+                          JSONObject before = nearest(s, o.optLong("t") - 3 * HOUR);
+                          double dp = before != null && before.has("p") && before != o ? pr - before.optDouble("p") : 0;
+                          v.setTextViewText(R.id.wx_press, Math.round(pr) + " ");
+                          if (Math.abs(dp) < 0.5) {
+                              v.setTextViewText(R.id.wx_parr, "→");
+                              v.setTextColor(R.id.wx_parr, DIM);
+                          } else {
+                              long n = Math.max(1, Math.round(Math.abs(dp)));
+                              v.setTextViewText(R.id.wx_parr, (dp > 0 ? "↑" : "↓") + n);
+                              v.setTextColor(R.id.wx_parr, Math.abs(dp) >= 2 ? RED : GREEN);
+                          }
+                      } else {
+                          v.setTextViewText(R.id.wx_press, "—");
+                          v.setTextViewText(R.id.wx_parr, "");
+                      }
+                      if (o.has("kp")) {
+                          double kp = o.optDouble("kp");
+                          v.setTextColor(R.id.wx_kpdot, kp >= 5 ? RED : kp >= 4 ? YELLOW : GREEN);
+                          v.setTextViewText(R.id.wx_kp, "Kp " + Math.round(kp) + (kp >= 5 ? " буря" : ""));
+                      } else {
+                          v.setTextColor(R.id.wx_kpdot, DIM);
+                          v.setTextViewText(R.id.wx_kp, "Kp —");
+                      }
+                  } catch (Exception e) {
+                      frames(c, v, "cloud", anim);
+                      v.setTextViewText(R.id.wx_city, "Не18мнеуже");
+                      v.setTextViewText(R.id.wx_hilo, "");
+                      v.setTextViewText(R.id.wx_temp, "");
+                      v.setTextViewText(R.id.wx_press, "Откройте");
+                      v.setTextViewText(R.id.wx_parr, "");
+                      v.setTextColor(R.id.wx_kpdot, 0x00000000);
+                      v.setTextViewText(R.id.wx_kp, "приложение");
+                  }
+                  return v;
+              }
+          }
+          JAVA
+          cat > $J/WxWidgetPlugin.java <<'JAVA'
+          package ru.barometr.neba;
+
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          @CapacitorPlugin(name = "WxWidget")
+          public class WxWidgetPlugin extends Plugin {
+              // data: {city, slots: [{t, tp, k, n, p, kp}], days: {"yyyy-mm-dd": [high, low]}}; anim: flip the background frames
+              @PluginMethod
+              public void set(PluginCall call) {
+                  JSObject d = call.getObject("data");
+                  WxWidget.prefs(getContext()).edit()
+                      .putString("data", d == null ? "{}" : d.toString())
+                      .putBoolean("anim", Boolean.TRUE.equals(call.getBoolean("anim", true))).apply();
+                  WxWidget.refresh(getContext());
+                  call.resolve();
+              }
+          }
+          JAVA
+          mkdir -p android/app/src/main/res/xml
+          # weather backgrounds (20 frames per scene) and the two widget layouts: animated and still
+          python3 widget/frames.py android/app/src/main/res
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"\n    android:minWidth="110dp" android:minHeight="40dp" android:targetCellWidth="2" android:targetCellHeight="1"\n    android:minResizeWidth="110dp" android:minResizeHeight="40dp" android:resizeMode="horizontal|vertical"\n    android:updatePeriodMillis="1800000" android:initialLayout="@layout/wx_widget" android:previewLayout="@layout/wx_widget"\n    android:description="@string/wx_widget_desc" android:widgetCategory="home_screen" />\n' > android/app/src/main/res/xml/wx_widget_info.xml
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n  <string name="wx_widget_label">Погода и давление</string>\n  <string name="wx_widget_desc">Температура, давление и магнитные бури</string>\n</resources>\n' > android/app/src/main/res/values/wx_widget_strings.xml
+          sed -i 's|</application>|    <receiver android:name=".WxWidget" android:exported="false" android:label="@string/wx_widget_label">\n            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>\n            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wx_widget_info" />\n        </receiver>\n    </application>|' $M
+          grep -q 'WxWidget' $M || { echo "widget receiver missing in the manifest"; exit 1; }
+          sed -i 's|</application>|    <receiver android:name=".FcNotify" android:exported="false" />\n    </application>|' $M
           # the launcher entry moves from MainActivity to three aliases (calm / middle / hard weather icon)
           perl -0pi -e 's{<intent-filter>\s*<action android:name="android.intent.action.MAIN"\s*/>\s*<category android:name="android.intent.category.LAUNCHER"\s*/>\s*</intent-filter>}{}s' $M
           grep -q 'category.LAUNCHER' $M && { echo "LAUNCHER filter still in MainActivity"; exit 1; } || true
@@ -1096,7 +1813,7 @@ jobs:
             N=${A%%:*}; R=${A#*:}; I=${R%%:*}; E=${R#*:}
             sed -i "s|</application>|    <activity-alias android:name=\".$N\" android:targetActivity=\".MainActivity\" android:icon=\"@mipmap/$I\" android:roundIcon=\"@mipmap/$I\" android:label=\"@string/app_name\" android:enabled=\"$E\" android:exported=\"true\">\n            <intent-filter>\n                <action android:name=\"android.intent.action.MAIN\" />\n                <category android:name=\"android.intent.category.LAUNCHER\" />\n            </intent-filter>\n        </activity-alias>\n    </application>|" $M
           done
-          sed -i 's|</application>|    <receiver android:name=".MoodAlarmReceiver" android:exported="false" />\n        <receiver android:name=".MoodMarkReceiver" android:exported="false" />\n        <receiver android:name=".UpdateCheckReceiver" android:exported="false" />\n        <receiver android:name=".ChatWatchReceiver" android:exported="false" />\n        <receiver android:name=".IconSwitchReceiver" android:exported="false" />\n        <receiver android:name=".MoodBootReceiver" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED" />\n                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n            </intent-filter>\n        </receiver>\n    </application>|' $M
+          sed -i 's|</application>|    <service android:name=".MoodKeep" android:exported="false" android:foregroundServiceType="specialUse">\n            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Keeps wellbeing reminders on time on phones that freeze background apps" />\n        </service>\n        <receiver android:name=".MoodAlarmReceiver" android:exported="false" />\n        <receiver android:name=".MoodMarkReceiver" android:exported="false" />\n        <receiver android:name=".UpdateCheckReceiver" android:exported="false" />\n        <receiver android:name=".IconSwitchReceiver" android:exported="false" />\n        <receiver android:name=".MoodBootReceiver" android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED" />\n                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />\n            </intent-filter>\n        </receiver>\n    </application>|' $M
           mkdir -p android/app/src/main/res/xml
           printf '<?xml version="1.0" encoding="utf-8"?>\n<paths xmlns:android="http://schemas.android.com/apk/res/android">\n  <external-path name="my_images" path="." />\n  <cache-path name="my_cache_images" path="." />\n</paths>\n' > android/app/src/main/res/xml/file_paths.xml
           grep -q "fileprovider" $M || sed -i 's|</application>|    <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">\n            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />\n        </provider>\n    </application>|' $M
@@ -1136,10 +1853,25 @@ jobs:
           name: barometr-apk
           path: barometr.apk
 
+      - name: Что нового (для описания сборки)
+        run: |
+          # the newest «Что нового» entry of index.html becomes the release description
+          python3 - <<'PY'
+          import re, html
+          s = open("index.html", encoding="utf-8").read()
+          i = s.index("const WHATS_NEW=[")
+          block = s[i:s.index("]}", i)]
+          items = re.findall(r'\["[^"]*","(.*?)"\]', block)
+          lines = ["- " + html.unescape(re.sub(r"<[^>]+>", "", t)) for t in items]
+          open("notes.md", "w", encoding="utf-8").write("Что нового:\n\n" + "\n".join(lines) + "\n")
+          PY
+          cat notes.md
+
       - name: Публикация в Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Не18мнеуже, сборка ${{ github.run_number }}
+          body_path: notes.md
           files: barometr.apk
           make_latest: true
