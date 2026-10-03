@@ -1059,7 +1059,11 @@ header{position:relative}
 .cywarn{border-left:2px solid var(--kp-mid);padding:2px 0 2px 10px;font-size:13px;font-weight:300;margin-top:10px}
 .wnew{display:flex;flex-direction:column}.wnew div{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--glass-line);font-size:14.5px;font-weight:300;line-height:1.4}
 .wnew div:first-child{border-top:0}.wnew .li{width:20px;height:20px;flex:none;margin-top:1px}.wnew b{font-weight:500}
-.isex{display:flex;gap:10px;margin-top:6px}.isex .btn{flex:1}
+.isex{display:flex;gap:10px;margin-top:6px}
+.kgrid.sym5{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+#symGrid .kbtn{border:1px solid transparent;background:none;padding:6px 0}#symGrid .kbtn[aria-pressed="true"]{border-color:var(--ink)}
+#symSheet .ibtns{display:flex;gap:10px;margin-top:4px}#symSheet .ibtns .btn{flex:1}
+.kgrid.k3{grid-template-columns:repeat(3,minmax(0,1fr))}.kgrid.k3 .kbtn .e .kf{width:46px;height:46px}.isex .btn{flex:1}
 #iCyc{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 #pgRep .sc{font-weight:300}
 #pgRep .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
@@ -1294,7 +1298,7 @@ header{position:relative}
 
   <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
     <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
-    <div class="kgrid" id="kgMain"></div>
+    <div class="kgrid k3" id="kgMain"></div>
     <div class="mtoday" id="mtMain"></div>
     <div class="fcprog" id="fcProg" hidden></div>
   </section>
@@ -1399,7 +1403,7 @@ header{position:relative}
 <div class="mpop" id="moodPop" hidden>
   <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
     <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете?</div></div>
-    <div class="kgrid" id="mbtns"></div>
+    <div class="kgrid k3" id="mbtns"></div>
     <div class="mtoday" id="mtoday"></div>
     <div class="mfoot"><button class="mlink" id="moodLater">Позже</button><span class="mnote" id="mstreak"></span><button class="mlink" id="moodOpen">Самочувствие и погода ›</button></div>
   </div>
@@ -1557,7 +1561,7 @@ header{position:relative}
     <div class="istep" data-is="4" hidden>
       <div class="iq">Как вы себя чувствуете сейчас?</div>
       <div class="src" id="iMarked">Нажмите на смайлик — это первая отметка в дневнике.</div>
-      <div class="kgrid" id="kgIntro"></div>
+      <div class="kgrid k3" id="kgIntro"></div>
       <button class="btn inext" data-inext="5" id="iNext2" hidden>Далее</button>
     </div>
     <div class="istep" data-is="5" hidden>
@@ -1579,6 +1583,11 @@ header{position:relative}
   </div>
 </section>
 
+<section class="sheet" id="symSheet" role="dialog" aria-modal="true" aria-labelledby="symT" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="symT">Что не так?</h2><div class="sc" id="symSub"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody"><div class="kgrid sym5" id="symGrid"></div><div class="ibtns"><button class="btn ghost" id="symSkip">Пропустить</button><button class="btn" id="symOk">Готово</button></div></div>
+</section>
 <section class="sheet" id="newSheet" role="dialog" aria-modal="true" aria-labelledby="newT" hidden>
   <div class="grab"></div>
   <div class="shead"><div><h2 id="newT">Что нового</h2><div class="sc">в обновлении приложения</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
@@ -3058,30 +3067,31 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ const f
 /* ---------- marks: any number per day, each with time and kind ---------- */
 const KINDS=[
   {k:"great",   e:"😄", l:"Отлично",          sl:"Отлично",  s:3},
-  {k:"meh",     e:"😐", l:"Так себе",         sl:"Так себе", s:2},
+  {k:"meh",     e:"😐", l:"Нормально",        sl:"Нормально", s:2},
   {k:"bad",     e:"😣", l:"Плохо",            sl:"Плохо",    s:1},
-  {k:"weak",    e:"🥴", l:"Слабость",         sl:"Слабость", s:1.5, sym:true},
-  {k:"head",    e:"🤕", l:"Мигрень",          sl:"Мигрень",  s:1,   sym:true},
-  {k:"dizzy",   e:"😵‍💫", l:"Головокружение",   sl:"Кружится", s:1,   sym:true},
+  {k:"head",    e:"🤕", l:"Головная боль",    sl:"Голова",   s:1,   sym:true},
   {k:"heart",   e:"💓", l:"Давление, сердце", sl:"Сердце",   s:1,   sym:true},
-  {k:"joints",  e:"🦴", l:"Ломит суставы",    sl:"Суставы",  s:1.5, sym:true},
+  {k:"weak",    e:"🥴", l:"Упадок сил",       sl:"Нет сил",  s:1.5, sym:true},
+  {k:"joints",  e:"🦴", l:"Суставы",          sl:"Суставы",  s:1.5, sym:true},
+  {k:"dizzy",   e:"😵‍💫", l:"Головокружение",   sl:"Кружится", s:1,   sym:true},
   // no longer offered; kept so that earlier marks still show and count
-  {k:"good",    e:"🙂", l:"Нормально",        sl:"Норм",     s:3,   hide:true},
+  {k:"good",    e:"🙂", l:"Хорошо",           sl:"Хорошо",   s:3,   hide:true},
   {k:"sleepy",  e:"😴", l:"Сонливость",       sl:"Сонный",   s:2,   sym:true, hide:true}
 ];
-const KPICK=KINDS.filter(x=>!x.hide);     // the smileys to choose from, everywhere
+const KPICK=KINDS.filter(x=>!x.hide&&!x.sym);   // step one, everywhere: Отлично / Нормально / Плохо
+const SYMS=KINDS.filter(x=>!x.hide&&x.sym);      // step two after «Нормально» or «Плохо»: what is wrong
 const KIND=Object.fromEntries(KINDS.map(x=>[x.k,x]));
 /* the marks drawn in thin lines (the emoji stay for notifications and charts) */
-const KFACE={great:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14 23.5q6 5 12 0"/>',
+const KFACE={great:'<circle cx="18" cy="21.5" r="13"/><g class="eyes"><path d="M11.3 19.6q2.3-2.7 4.6 0M20.1 19.6q2.3-2.7 4.6 0"/></g><path d="M12 24.6q6 6.4 12 0"/><g class="spark"><path d="M31.5 3.9Q32.508 6.492 35.1 7.5Q32.508 8.508000000000001 31.5 11.1Q30.492 8.508000000000001 27.9 7.5Q30.492 6.492 31.5 3.9z"/><path d="M35.6 12.1Q36.188 13.611999999999998 37.7 14.2Q36.188 14.788 35.6 16.3Q35.012 14.788 33.5 14.2Q35.012 13.611999999999998 35.6 12.1z"/></g>',
+  meh:'<circle cx="20" cy="20" r="14"/><g class="eyes"><circle cx="15" cy="18" r=".95"/><circle cx="25" cy="18" r=".95"/></g><path d="M15.6 25.2q4.4 1.4 8.8 0"/>',
+  bad:'<circle cx="20" cy="20" r="14"/><g class="brows"><path d="M12.4 15.4q2.4-2.4 4.8-2.2M27.6 15.4q-2.4-2.4-4.8-2.2"/></g><g class="eyes"><circle cx="15.4" cy="19" r=".95"/><circle cx="24.6" cy="19" r=".95"/></g><path class="mouth" d="M14.6 28q5.4-5.2 10.8 0"/>',
+  head:'<circle cx="20" cy="23.5" r="12.5"/><path d="M12.8 20.2l3.8 1.9-3.8 1.9M27.2 20.2l-3.8 1.9 3.8 1.9M16.6 28h6.8"/><g class="bolt"><path d="M20.8 1.8l-2.2 4.6h3.2l-2.2 4.8"/><path d="M9.2 5l.9 3.4 1.8-1.2.9 3.2"/><path d="M30.8 5l-.9 3.4-1.8-1.2-.9 3.2"/></g>',
+  heart:'<path d="M20 34S5.5 25.5 5.5 15.5a7.2 7.2 0 0 1 14.5-2.3 7.2 7.2 0 0 1 14.5 2.3C34.5 25.5 20 34 20 34z"/><path class="ecg" d="M6.5 20.5h6.5l1.8-3.6 2.6 9.4 2.8-12.6 2.6 6.8h11.2"/><g class="beat"><path d="M32.6 6.2q2 1.5 2.4 3.8M35.4 4q2.9 2.1 3.3 5.4"/></g>',
+  weak:'<circle cx="17" cy="19.5" r="12.5"/><path d="M10.6 18.4h5M18.6 18.4h5"/><path d="M14.4 25.2a2.6 1.6 0 1 0 5.2 0a2.6 1.6 0 1 0-5.2 0"/><path class="drop" d="M30.5 4.2c-1.8 2.6-2.5 3.8-2.5 4.9a2.5 2.5 0 0 0 5 0c0-1.1-.7-2.3-2.5-4.9z"/><path d="M29 29.2h7.2a1 1 0 0 1 1 1v3.3a1 1 0 0 1-1 1H29a1 1 0 0 1-1-1v-3.3a1 1 0 0 1 1-1zM38.6 30.8v2.1"/><path class="bat" d="M29.9 30.7v2.3"/>',
+  joints:'<path d="M7.5 3.5l11.2 11.8M12.8 1.6l10.8 11.2"/><path d="M18.7 15.3a4.4 4.4 0 0 0 7.6 3.6a4.2 4.2 0 0 0-2.7-6.4"/><circle cx="28.1" cy="13.4" r="1.6"/><path d="M18.8 20.2q3.8-1.8 7.6-.4M19.6 20.4q.9 2 .6 5.2l-.4 12.6M25.6 20q-.8 2.2-.2 5.6l.6 12.4"/><g class="tick"><path d="M31.8 10.8l2.9-1.8M32.4 15.8h3.5M31.8 20.6l2.9 1.8"/></g>',
+  dizzy:'<circle cx="20" cy="23.8" r="12.2"/><g class="sp"><path class="spl" d="M15.65 22.30L15.72 22.39L15.75 22.52L15.74 22.67L15.66 22.82L15.53 22.95L15.34 23.04L15.11 23.08L14.87 23.04L14.62 22.91L14.41 22.71L14.25 22.44L14.18 22.11L14.20 21.75L14.33 21.39L14.57 21.06L14.91 20.81L15.34 20.65L15.81 20.61L16.29 20.71L16.74 20.96L17.13 21.33L17.41 21.82L17.55 22.38L17.52 22.99L17.32 23.58L16.96 24.12L16.44 24.55L15.80 24.83L15.09 24.92L14.36 24.82L13.66 24.50L13.06 24.00L12.61 23.33L12.35 22.54L12.32 21.69L12.53 20.84L12.97 20.06L13.63 19.41L14.46 18.96L15.40 18.75"/><path class="spr" d="M24.85 22.30L24.92 22.21L24.95 22.08L24.94 21.93L24.86 21.78L24.73 21.65L24.54 21.56L24.31 21.52L24.07 21.56L23.82 21.69L23.61 21.89L23.45 22.16L23.38 22.49L23.40 22.85L23.53 23.21L23.77 23.54L24.11 23.79L24.54 23.95L25.01 23.99L25.49 23.89L25.94 23.64L26.33 23.27L26.61 22.78L26.75 22.22L26.72 21.61L26.52 21.02L26.16 20.48L25.64 20.05L25.00 19.77L24.29 19.68L23.56 19.78L22.86 20.10L22.26 20.60L21.81 21.27L21.55 22.06L21.52 22.91L21.73 23.76L22.17 24.54L22.83 25.19L23.66 25.64L24.60 25.85"/></g><path d="M14.2 29.6q1.45-1.3 2.9 0t2.9 0t2.9 0t2.9 0"/><g class="orb"><path d="M6.6 7.6q13.4-6.4 26.8 0"/><path d="M9.60 3.70L10.42 5.67L12.55 5.84L10.93 7.23L11.42 9.31L9.60 8.20L7.78 9.31L8.27 7.23L6.65 5.84L8.78 5.67z"/><path d="M30.80 5.60L31.54 7.38L33.46 7.53L32.00 8.79L32.45 10.67L30.80 9.66L29.15 10.67L29.60 8.79L28.14 7.53L30.06 7.38z"/></g>',
   good:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14 23.5q6 5 12 0"/>',
-  meh:'<circle cx="20" cy="20" r="14"/><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/><path d="M14.5 25h11"/>',
-  sleepy:'<circle cx="20" cy="20" r="14"/><path d="M13 17.5q2.5 1.8 5 0M22 17.5q2.5 1.8 5 0"/><circle cx="20" cy="25.5" r="1.6"/><path d="M29 5h4l-4 4h4"/>',
-  weak:'<circle cx="20" cy="20" r="14"/><path d="M13 17h5M22 17h5M14.5 24h11M18 24v2.5a2 2 0 0 0 4 0V24"/>',
-  head:'<circle cx="20" cy="20" r="14"/><g class="eyes"><circle cx="15" cy="17" r=".9"/><circle cx="25" cy="17" r=".9"/></g><g class="shut" opacity="0"><path d="M13 17.5q2 1.2 4 0M23 17.5q2 1.2 4 0"/></g><path d="M14.5 25h11"/><g class="pain"><path d="M4 11.5q7-5 12-2.5M24 9q7-2.5 12 2.5"/><path d="M8 7.5q2 1.5 1 3.5M32 7.5q-2 1.5-1 3.5"/></g>',
-  dizzy:'<circle cx="20" cy="20" r="14"/><path d="M13 17a2 2 0 1 0 4 0M23 17a2 2 0 1 0 4 0M14 25.5q1.5-2 3 0t3 0t3 0t3 0M6 8a5 5 0 0 1 6-2M34 32a5 5 0 0 1-6 2"/>',
-  heart:'<path d="M19 13.5A6 6 0 0 0 8 17c0 7.5 11 14 11 14M21.5 13A6 6 0 0 1 32 17c0 7.5-11 14-11 14M19 13.5l2 4-2.5 3.5 2.5 3.5-1.5 3"/>',
-  joints:'<path d="M13 11a3 3 0 1 1 3.5 3.5L25.5 23.5A3 3 0 1 1 29 29a3 3 0 1 1-3.5-3.5L14.5 16.5A3 3 0 1 1 11 11"/>',
-  bad:'<circle cx="20" cy="20" r="14"/><g class="xl"><path d="M13 15.5l3.5 3.5M16.5 15.5L13 19"/></g><g class="xr"><path d="M23.5 15.5l3.5 3.5M27 15.5L23.5 19"/></g><path class="mouth" d="M14 27q6-5 12 0"/>'};
+  sleepy:'<circle cx="20" cy="20" r="14"/><path d="M13 17.5q2.5 1.8 5 0M22 17.5q2.5 1.8 5 0"/><circle cx="20" cy="25.5" r="1.6"/><path d="M29 5h4l-4 4h4"/>'};
 /* line icons that stand in for the emoji on the screens (the emoji stay in notifications, toasts and texts) */
 const GLI={"🌸":'<path d="M12 3.5a8.5 8.5 0 1 1-6 2.5"/><path d="M6 3.2V6h2.8"/><path d="M12 8.6c1.6 2 2.5 3.3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.3.9-2.6 2.5-4.6z"/>',"⏳":'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',"🧭":'<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="M12 16l4-5"/>',"🧲":'<path d="M7 4v8.5a5 5 0 0 0 10 0V4"/><path d="M4.8 4h4.4M14.8 4h4.4"/>',
   "🌡":'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 11v6"/>',"💨":'<path d="M3 8.5h11a2.6 2.6 0 1 0-2.6-2.6M3 12.5h15a2.8 2.8 0 1 1-2.8 2.8M3 16.5h7"/>',
@@ -3102,35 +3112,38 @@ const KF_NS="http://www.w3.org/2000/svg", KF_D=1000, KF_E="cubic-bezier(.3,.7,.3
 function kfEl(p,tag,attrs){ const e=document.createElementNS(KF_NS,tag); for(const a in attrs) e.setAttribute(a,attrs[a]); p.appendChild(e); return e; }
 const kfOrg=(e,x,y)=>{ e.style.transformOrigin=`${x}px ${y}px`; e.style.transformBox="view-box"; };
 const KF_ANIM={
- great(f,fx){ f.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(-6px) scale(1.06,.96)",offset:.3},{transform:"translateY(1px) scale(1.08,.9)",offset:.55},{transform:"translateY(0) scale(1)"}],{duration:KF_D,easing:KF_E});
-   for(let i=0;i<8;i++){ const a=i*Math.PI/4, x=20+Math.cos(a)*17, y=20+Math.sin(a)*17, l=kfEl(fx,"line",{x1:x,y1:y,x2:x+Math.cos(a)*4,y2:y+Math.sin(a)*4,stroke:"var(--press)"});
-     l.animate([{transform:"translate(0,0)",opacity:0},{opacity:1,offset:.25},{transform:`translate(${Math.cos(a)*6}px,${Math.sin(a)*6}px)`,opacity:0}],{duration:800,delay:150,easing:"ease-out",fill:"forwards"}); } },
- good(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(-12deg)",offset:.25},{transform:"rotate(9deg)",offset:.55},{transform:"rotate(-3deg)",offset:.8},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
-   for(const [x,y,d] of [[5,10,100],[35,8,300],[34,31,500]]){ const p=kfEl(fx,"path",{d:`M${x-2} ${y}h4M${x} ${y-2}v4`,stroke:"var(--press)"}); kfOrg(p,x,y);
-     p.animate([{opacity:0,transform:"scale(.3)"},{opacity:1,transform:"scale(1.2)",offset:.4},{opacity:0,transform:"scale(1)"}],{duration:600,delay:d,fill:"forwards"}); } },
- meh(f,fx){ f.animate([{transform:"translateX(0) rotate(0)"},{transform:"translateX(-2px) rotate(-6deg)",offset:.25},{transform:"translateX(2px) rotate(6deg)",offset:.55},{transform:"translateX(0) rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
-   [0,1,2].forEach(i=>{ const c=kfEl(fx,"circle",{cx:31+i*3.2,cy:6,r:.6,fill:"currentColor"}); c.animate([{opacity:0},{opacity:1,offset:.3},{opacity:1,offset:.8},{opacity:0}],{duration:800,delay:120+i*140,fill:"forwards"}); }); },
- sleepy(f,fx){ f.animate([{transform:"rotate(0) translateY(0)"},{transform:"rotate(14deg) translateY(2px)",offset:.45},{transform:"rotate(10deg) translateY(1px)",offset:.7},{transform:"rotate(0) translateY(0)"}],{duration:KF_D,easing:"ease-in-out"});
-   [0,1,2].forEach(i=>{ const s=3-i*.6, t=kfEl(fx,"path",{d:`M30 10h${s}l-${s} ${s}h${s}`}); t.animate([{transform:"translate(0,0)",opacity:0},{opacity:1,offset:.3},{transform:`translate(${4+i*2}px,${-8-i*3}px)`,opacity:0}],{duration:800,delay:i*180,fill:"forwards",easing:"ease-out"}); }); },
- weak(f,fx){ kfOrg(f,20,34); f.animate([{transform:"scale(1,1)"},{transform:"scale(1.1,.82)",offset:.4},{transform:"scale(1.06,.88)",offset:.7},{transform:"scale(1,1)"}],{duration:KF_D,easing:"ease-in-out"});
-   const d=kfEl(fx,"path",{d:"M28 9c-1 1.6-1.6 2.4-1.6 3.2a1.6 1.6 0 0 0 3.2 0c0-.8-.6-1.6-1.6-3.2z",stroke:"var(--press)"}); d.animate([{transform:"translateY(0)",opacity:0},{opacity:1,offset:.2},{transform:"translateY(12px)",opacity:0}],{duration:900,delay:100,easing:"ease-in",fill:"forwards"}); },
- head(f,fx){ const p=f.querySelector(".pain"); if(p) p.animate([{opacity:1},{opacity:0,offset:.1},{opacity:0,offset:.9},{opacity:1}],{duration:KF_D});
-   [0,1,2].forEach(i=>{ const a=kfEl(fx,"path",{d:"M12 7q8-6 16 0",stroke:i?"currentColor":"var(--kp-hi)"}); kfOrg(a,20,7);
-     a.animate([{opacity:0,transform:"translateY(0) scale(.6)"},{opacity:1,offset:.25},{opacity:0,transform:"translateY(-7px) scale(1.5)"}],{duration:650,delay:i*200,easing:"ease-out",fill:"forwards"}); });
-   f.animate([{transform:"rotate(0)"},{transform:"rotate(-5deg)",offset:.25},{transform:"rotate(5deg)",offset:.5},{transform:"rotate(-3deg)",offset:.75},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
-   const e=f.querySelector(".eyes"), s=f.querySelector(".shut");
-   if(e&&s){ e.animate([{opacity:1},{opacity:0,offset:.08},{opacity:0,offset:.8},{opacity:1}],{duration:KF_D}); s.animate([{opacity:0},{opacity:1,offset:.08},{opacity:1,offset:.8},{opacity:0}],{duration:KF_D}); } },
- dizzy(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(360deg)"}],{duration:KF_D,easing:"cubic-bezier(.5,0,.3,1)"});
-   const g=kfEl(fx,"g",{}); kfOrg(g,20,20); [0,120,240].forEach(a=>{ const r=a*Math.PI/180; kfEl(g,"circle",{cx:20+Math.cos(r)*19,cy:20+Math.sin(r)*19,r:.9,fill:"currentColor"}); });
-   g.animate([{transform:"rotate(0)",opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.8},{transform:"rotate(-540deg)",opacity:0}],{duration:KF_D,fill:"forwards",easing:"ease-out"}); },
- heart(f,fx){ f.animate([{transform:"scale(1)"},{transform:"scale(1.22)",offset:.12},{transform:"scale(1)",offset:.28},{transform:"scale(1.16)",offset:.42},{transform:"scale(1)",offset:.6},{transform:"scale(1)"}],{duration:KF_D,easing:"ease-out"});
-   const p=kfEl(fx,"path",{d:"M3 22h6l2-4 3 8 2-4h3",stroke:"var(--kp-hi)","stroke-dasharray":"30"}); p.animate([{strokeDashoffset:30,opacity:1},{strokeDashoffset:0,opacity:1,offset:.6},{strokeDashoffset:0,opacity:0}],{duration:900,fill:"forwards"}); },
- joints(f,fx){ f.animate([{transform:"rotate(0)"},{transform:"rotate(-18deg)",offset:.25},{transform:"rotate(14deg)",offset:.55},{transform:"rotate(-5deg)",offset:.8},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
-   for(const [x,y,a] of [[8,22,200],[32,18,-20],[20,34,90]]){ const r=a*Math.PI/180, l=kfEl(fx,"line",{x1:x,y1:y,x2:x+Math.cos(r)*3,y2:y+Math.sin(r)*3,stroke:"var(--kp-hi)"}); l.animate([{opacity:0},{opacity:1,offset:.3},{opacity:0,offset:.5},{opacity:1,offset:.7},{opacity:0}],{duration:900,fill:"forwards"}); } },
- bad(f,fx){ const l=f.querySelector(".xl"), r=f.querySelector(".xr"), m=f.querySelector(".mouth"); if(!l||!r||!m) return; kfOrg(l,14.75,17.25); kfOrg(r,25.25,17.25); kfOrg(m,20,25.5);
-   for(const [e,dir] of [[l,1],[r,-1]]) e.animate([{transform:"rotate(0) scale(1)"},{transform:`rotate(${dir*90}deg) scale(1.35)`,offset:.3},{transform:`rotate(${dir*180}deg) scale(1)`,offset:.55},{transform:`rotate(${dir*225}deg) scale(1.2)`,offset:.75},{transform:`rotate(${dir*180}deg) scale(1)`}],{duration:KF_D,easing:"ease-in-out"});
-   m.animate([{transform:"scale(1,1)"},{transform:"scale(1.15,1.5)",offset:.3},{transform:"scale(.9,.8)",offset:.55},{transform:"scale(1.08,1.25)",offset:.75},{transform:"scale(1,1)"}],{duration:KF_D,easing:"ease-in-out"});
-   f.animate([{transform:"translateY(0)"},{transform:"translateY(1.5px)",offset:.3},{transform:"translateY(0)"}],{duration:KF_D}); }
+ // Отлично: a happy hop, the sparkles twinkle
+ great(f){ f.animate([{transform:"translateY(0)"},{transform:"translateY(-5px) scale(1.05,.96)",offset:.3},{transform:"translateY(1px) scale(.98,1.03)",offset:.55},{transform:"translateY(0)"}],{duration:KF_D,easing:KF_E});
+   const sp=f.querySelector(".spark"); if(sp){ kfOrg(sp,33,10); sp.animate([{transform:"scale(1) rotate(0)",opacity:1},{transform:"scale(1.5) rotate(45deg)",opacity:.6,offset:.35},{transform:"scale(.8) rotate(80deg)",opacity:1,offset:.65},{transform:"scale(1) rotate(90deg)",opacity:1}],{duration:KF_D,easing:"ease-in-out"}); }
+   const ey=f.querySelector(".eyes"); if(ey){ kfOrg(ey,18,19); ey.animate([{transform:"scaleY(1)"},{transform:"scaleY(.5)",offset:.4},{transform:"scaleY(1)"}],{duration:KF_D}); } },
+ // Нормально: a calm blink and a small nod
+ meh(f){ const ey=f.querySelector(".eyes"); if(ey){ kfOrg(ey,20,18); ey.animate([{transform:"scaleY(1)"},{transform:"scaleY(.1)",offset:.15},{transform:"scaleY(1)",offset:.3},{transform:"scaleY(1)",offset:.6},{transform:"scaleY(.1)",offset:.72},{transform:"scaleY(1)",offset:.85},{transform:"scaleY(1)"}],{duration:KF_D}); }
+   kfOrg(f,20,32); f.animate([{transform:"rotate(0)"},{transform:"rotate(-4deg)",offset:.35},{transform:"rotate(3deg)",offset:.7},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"}); },
+ // Плохо: the brows rise in worry, the face sags a little
+ bad(f){ const br=f.querySelector(".brows"), m=f.querySelector(".mouth");
+   if(br) br.animate([{transform:"translateY(0)"},{transform:"translateY(-1.6px)",offset:.3},{transform:"translateY(0)",offset:.7},{transform:"translateY(-1px)",offset:.85},{transform:"translateY(0)"}],{duration:KF_D});
+   if(m){ kfOrg(m,20,26); m.animate([{transform:"scale(1)"},{transform:"scale(1.1,1.3)",offset:.4},{transform:"scale(1)"}],{duration:KF_D}); }
+   f.animate([{transform:"translateY(0)"},{transform:"translateY(2px)",offset:.45},{transform:"translateY(0)"}],{duration:KF_D,easing:"ease-in-out"}); },
+ // Голова: the bolts flash, the head shakes
+ head(f){ const b=f.querySelector(".bolt"); if(b){ kfOrg(b,20,7); b.animate([{opacity:1,transform:"scale(1)"},{opacity:.15,transform:"scale(1.15)",offset:.2},{opacity:1,transform:"scale(1)",offset:.4},{opacity:.15,transform:"scale(1.15)",offset:.6},{opacity:1,transform:"scale(1)"}],{duration:KF_D}); }
+   f.animate([{transform:"translateX(0)"},{transform:"translateX(-1.4px)",offset:.15},{transform:"translateX(1.4px)",offset:.3},{transform:"translateX(-1px)",offset:.45},{transform:"translateX(.8px)",offset:.6},{transform:"translateX(0)"}],{duration:KF_D}); },
+ // Сердце: two heartbeats, the pulse line runs through
+ heart(f){ kfOrg(f,20,22); f.animate([{transform:"scale(1)"},{transform:"scale(1.12)",offset:.12},{transform:"scale(1)",offset:.26},{transform:"scale(1.1)",offset:.4},{transform:"scale(1)",offset:.56},{transform:"scale(1)"}],{duration:KF_D});
+   const e=f.querySelector(".ecg"); if(e){ e.style.strokeDasharray="60"; e.animate([{strokeDashoffset:60},{strokeDashoffset:0}],{duration:KF_D*.8,easing:"ease-out"}).onfinish=()=>{ e.style.strokeDasharray=""; }; }
+   const w=f.querySelector(".beat"); if(w) w.animate([{opacity:1},{opacity:0,offset:.2},{opacity:1,offset:.4},{opacity:0,offset:.6},{opacity:1}],{duration:KF_D}); },
+ // Упадок сил: the drop slides down, the battery blinks, the face sags
+ weak(f){ const d=f.querySelector(".drop"); if(d) d.animate([{transform:"translateY(0)",opacity:1},{transform:"translateY(5px)",opacity:0,offset:.6},{transform:"translateY(0)",opacity:0,offset:.7},{transform:"translateY(0)",opacity:1}],{duration:KF_D,easing:"ease-in"});
+   const b=f.querySelector(".bat"); if(b) b.animate([{opacity:1},{opacity:0,offset:.25},{opacity:1,offset:.5},{opacity:0,offset:.75},{opacity:1}],{duration:KF_D});
+   kfOrg(f,17,32); f.animate([{transform:"rotate(0) translateY(0)"},{transform:"rotate(-5deg) translateY(1.5px)",offset:.5},{transform:"rotate(0) translateY(0)"}],{duration:KF_D,easing:"ease-in-out"}); },
+ // Суставы: a wince at the knee, the pain marks flash
+ joints(f){ kfOrg(f,22,17); f.animate([{transform:"rotate(0)"},{transform:"rotate(-6deg)",offset:.25},{transform:"rotate(3deg)",offset:.5},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"});
+   const t=f.querySelector(".tick"); if(t) t.animate([{opacity:1,transform:"translateX(0)"},{opacity:.1,transform:"translateX(2px)",offset:.25},{opacity:1,transform:"translateX(0)",offset:.5},{opacity:.1,transform:"translateX(2px)",offset:.75},{opacity:1,transform:"translateX(0)"}],{duration:KF_D}); },
+ // Головокружение: the spiral eyes turn, the stars go round, the head wobbles
+ dizzy(f){ const l=f.querySelector(".spl"), r=f.querySelector(".spr");
+   if(l){ kfOrg(l,15.4,22.3); l.animate([{transform:"rotate(0)"},{transform:"rotate(-360deg)"}],{duration:KF_D,easing:"ease-in-out"}); }
+   if(r){ kfOrg(r,24.6,22.3); r.animate([{transform:"rotate(0)"},{transform:"rotate(360deg)"}],{duration:KF_D,easing:"ease-in-out"}); }
+   const o=f.querySelector(".orb"); if(o){ kfOrg(o,20,7); o.animate([{transform:"translateX(0) rotate(0)"},{transform:"translateX(-2px) rotate(-6deg)",offset:.25},{transform:"translateX(2px) rotate(6deg)",offset:.75},{transform:"translateX(0) rotate(0)"}],{duration:KF_D,easing:"ease-in-out"}); }
+   kfOrg(f,20,34); f.animate([{transform:"rotate(0)"},{transform:"rotate(5deg)",offset:.25},{transform:"rotate(-5deg)",offset:.6},{transform:"rotate(0)"}],{duration:KF_D,easing:"ease-in-out"}); }
 };
 function kfPlay(btn){
   const svg=btn&&btn.querySelector("svg.kf"); if(!svg||!svg.animate||reduce) return;
@@ -3158,7 +3171,8 @@ function rebuildMood(){
   S.mood={};
   for(const [d,list] of Object.entries(by)){
     list.sort((a,b)=>a.t<b.t?-1:1);
-    const sc=list.reduce((x,m)=>x+KIND[m.k].s,0)/list.length;
+    const base=list.filter(m=>!m.with), sl=base.length?base:list;    // symptoms named with a state do not count twice
+    const sc=sl.reduce((x,m)=>x+KIND[m.k].s,0)/sl.length;
     const worst=list.reduce((a,m)=>KIND[m.k].s<=KIND[a.k].s?m:a);
     S.mood[d]={v:sc, e:KIND[worst.k].e, l:KIND[worst.k].l, kinds:list.map(m=>m.k), marks:list, city:list[list.length-1].city, at:list[list.length-1].t};
   }
@@ -3171,9 +3185,9 @@ function saveMarks(){
   renderMood(); if(moodShown()) renderMoodSheet();
   if(typeof TAB!=="undefined"&&TAB==="rep") drawReport();
 }
-function addMark(k, when){
+function addMark(k, when, extra){
   const t=(when||new Date()).toISOString();
-  S.marks.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), t, k, city:S.slug});
+  S.marks.push({id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6), t, k, city:S.slug, ...(extra||{})});
   saveMarks(); try{ window.__MN?.noteMark(); }catch(e){}
 }
 function removeMark(id){ S.marksDel[id]=new Date().toISOString(); S.marks=S.marks.filter(m=>m.id!==id); saveMarks(); }
@@ -3225,8 +3239,8 @@ function foldMoodPop(){
 $("mbtns").addEventListener("click",e=>{
   const b=e.target.closest(".kbtn"); if(!b) return;
   b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); kfPlay(b);
-  addMark(b.dataset.k);
-  toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
+  const now=new Date(); addMark(b.dataset.k, now);
+  const two=askSym(b.dataset.k, now); if(!two) toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(now)}`);
   setTimeout(()=>{ b.classList.remove("pop"); foldMoodPop(); }, 420);
 });
 $("mtoday").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b) removeMark(b.dataset.rm); });
@@ -3234,10 +3248,30 @@ $("mtMain").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]");
 $("kgMain").addEventListener("click",e=>{
   const b=e.target.closest(".kbtn"); if(!b) return;
   b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); kfPlay(b);
-  addMark(b.dataset.k);
-  toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(new Date())}`);
+  const now=new Date(); addMark(b.dataset.k, now);
+  if(!askSym(b.dataset.k, now)) toast(`${KIND[b.dataset.k].e} ${KIND[b.dataset.k].l} — записано в ${fmtHM(now)}`);
   setTimeout(()=>b.classList.remove("pop"), 600);
 });
+/* step two: after «Нормально» or «Плохо» — what is wrong? The state is already saved; symptoms are added with it.
+   Closes by itself after 10 s without a touch, keeping what was chosen. */
+const SYM={t:null, timer:0, sel:new Set()};
+function askSym(k, when){
+  if(k!=="meh"&&k!=="bad") return false;
+  SYM.t=when||new Date(); SYM.sel=new Set();
+  $("symGrid").innerHTML=SYMS.map(x=>`<button class="kbtn" data-k="${x.k}" aria-pressed="false" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("");
+  $("symSub").textContent=`«${KIND[k].l}» уже записано. Отметьте, если что-то беспокоит`;
+  setTimeout(()=>{ if(openSheet) hideSheet(true); showSheet("symSheet"); symArm(); }, 520);
+  return true;
+}
+function symArm(){ clearTimeout(SYM.timer); SYM.timer=setTimeout(()=>{ if(openSheet&&openSheet.id==="symSheet") symDone(); }, 10000); }
+function symDone(){ clearTimeout(SYM.timer);
+  const ks=[...SYM.sel]; for(const k of ks) addMark(k, SYM.t, {with:1}); SYM.sel=new Set();
+  if(openSheet&&openSheet.id==="symSheet") hideSheet();
+  toast(ks.length?`Записано: ${ks.map(k=>KIND[k].l.toLowerCase()).join(", ")}`:"Записано"); }
+$("symGrid").addEventListener("click",e=>{ const b=e.target.closest(".kbtn"); if(!b) return; const k=b.dataset.k, on=!SYM.sel.has(k);
+  if(on){ SYM.sel.add(k); kfPlay(b); } else SYM.sel.delete(k); b.setAttribute("aria-pressed",on); symArm(); });
+$("symOk").addEventListener("click",symDone);
+$("symSkip").addEventListener("click",()=>{ SYM.sel=new Set(); symDone(); });
 $("cmOpen").addEventListener("click",()=>openMoodSheet());
 $("moodLater").addEventListener("click",()=>{ store.set("moodLater", isoDay(new Date())); foldMoodPop(); });
 $("moodPop").addEventListener("click",e=>{ if(e.target.id==="moodPop") foldMoodPop(); });
@@ -3398,7 +3432,7 @@ function renderMoodSheet(){
       <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 10`:a<.1?"не влияет":`${FAC_W[L]} · ${o.cyc?(o.r<0?"хуже в эти дни":"в эти дни лучше"):`хуже при ${o.r<0?"росте":"падении"}`}`}</span></button>`;
   }).join("");
   // symptoms: weather on days with the symptom vs. days without it, as tiles like the factors above
-  const sout=KPICK.filter(x=>x.sym).map(x=>{
+  const sout=SYMS.map(x=>{
     const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
     const diffs=[];
     if(withS.length>=3) for(const [k,name,unit,dg] of facList()){
@@ -3772,7 +3806,7 @@ function wxAnalysis(from,to){
   const gen=wxFind(B,b=>b.bad), all=[...gen.found];
   // each symptom on its own: joints may follow humidity while the head follows pressure; for each kind of weather the
   // surest of the findings stays (a symptom of its own is usually clearer than "bad" in general)
-  for(const K of KPICK.filter(x=>x.sym)){ if(B.filter(b=>b.all.includes(K.k)).length<4) continue;
+  for(const K of SYMS){ if(B.filter(b=>b.all.includes(K.k)).length<4) continue;
     for(const o of wxFind(B,b=>b.all.includes(K.k)).found) all.push({...o, top:K, sym:true}); }
   all.sort((a,b)=>b.conf-a.conf||a.pa-b.pa);
   const pick=[]; for(const o of all) if(!pick.some(q=>q.F.name===o.F.name||(q.with||[]).includes(o.F.name)||(q.not||[]).includes(o.F.name))) pick.push(o);
@@ -4036,7 +4070,7 @@ function renderHealthPage(){
   if(HSEG==="steps"){ box.innerHTML=hcTiles()||`<div class="card hempty"><div class="hei">${lic("👣")}</div><div>Телефон считает шаги сам, когда он с вами. Первая цифра появится после того, как вы походите с ним.</div></div>`; $("hFab")?.remove(); return; }
   if(HSEG==="mood"){
     const rec=S.mood[isoDay(new Date())];
-    h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid" id="kgHealth" style="margin-top:10px">${KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("")}</div>
+    h+=`<div class="card"><div class="label">Как вы себя чувствуете сейчас?</div><div class="kgrid k3" id="kgHealth" style="margin-top:10px">${KPICK.map(x=>`<button class="kbtn" data-k="${x.k}" aria-label="${x.l}"><span class="e">${kf(x.k)}</span><span class="l${x.sl.length>10?" long":""}">${x.sl}</span></button>`).join("")}</div>
       <div class="mtoday" style="margin-top:8px">${(rec?.marks||[]).map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить">×</button></span>`).join("")}</div></div>`;
     box.innerHTML=h; $("hFab")?.remove(); return;
   }
@@ -4059,7 +4093,7 @@ function renderHealthPage(){
 $("hSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-hs]"); if(!b) return; HSEG=b.dataset.hs; store.set("hseg",HSEG);
   try{ renderHealthPage(); }catch(err){ toast("Ошибка: "+(err&&err.message||err)+" · "+String(err&&err.stack||"").split("\n")[1]?.trim()); throw err; } });
 $("hBody").addEventListener("click",e=>{
-  const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); kfPlay(k); addMark(k.dataset.k); toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(new Date())}`); setTimeout(()=>renderHealthPage(),1100); return; }
+  const k=e.target.closest(".kbtn"); if(k){ k.classList.remove("pop"); void k.offsetWidth; k.classList.add("pop"); kfPlay(k); const now=new Date(); addMark(k.dataset.k, now); if(!askSym(k.dataset.k, now)) toast(`${KIND[k.dataset.k].e} ${KIND[k.dataset.k].l} — записано в ${fmtHM(now)}`); setTimeout(()=>renderHealthPage(),1100); return; }
   const rm=e.target.closest("[data-rm]"); if(rm){ removeMark(rm.dataset.rm); renderHealthPage(); return; }
   const d=e.target.closest("[data-mdel]"); if(d){ HM.del[d.dataset.mdel]=new Date().toISOString(); saveHM(); renderHealthPage(); renderHealth(); return; }
   const a=e.target.closest("[data-hact]"); if(!a) return;
@@ -5399,7 +5433,7 @@ async function scheduleReminders(){
   const r=loadRemind();
   if(MN){
     try{ const pend=await LN?.getPending(); if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))}); }catch(e){}   // old-style ones
-    try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KPICK.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
+    try{ await MN.configure({every:r.every, from:hm2m(r.from), to:hm2m(r.to), kinds:KPICK.map(x=>({k:x.k,e:x.e,l:x.sl})), syms:SYMS.map(x=>({k:x.k,e:x.e,l:x.sl}))}); }catch(e){}
     try{ if(MN.keep) await MN.keep({on:!!r.every&&store.get("remKeep")!=="0", text:window.KEEP_TXT||""}); }catch(e){}
     return;
   }
@@ -5424,7 +5458,7 @@ async function pullShadeMarks(){
   if(!MN) return;
   try{
     const r=await MN.takePending(); const ms=(r&&r.marks)||[];
-    for(const m of ms) if(KIND[m.k]) addMark(m.k, new Date(+m.t||Date.now()));
+    for(const m of ms) if(KIND[m.k]) addMark(m.k, new Date(+m.t||Date.now()), m.w?{with:1}:null);
     if(ms.length){ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); const k=ms[ms.length-1].k; toast(`${KIND[k]?.e||""} ${KIND[k]?.l||""} — записано из шторки`); }
   }catch(e){}
 }
@@ -5702,6 +5736,9 @@ cyNav();
    Every build that changes something people notice adds an entry at the top (newest first, a new unique id).
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
+  {id:"2026-10-04", t:[
+    ["🔔","<b>Новые смайлики и проще отметка.</b> Теперь три лица: Отлично, Нормально, Плохо — одно касание. После «Нормально» или «Плохо» можно отметить, что не так: голова, сердце, упадок сил, суставы, головокружение. Можно и пропустить — оценка уже записана."],
+    ["📊","<b>В шторке так же:</b> нажали «Плохо» — уведомление само спросит, что беспокоит. Все прежние отметки сохранились и учитываются в анализе."]]},
   {id:"2026-10-03c", t:[
     ["💓","<b>Нейросеть стала точнее.</b> Учитывает резкое падение давления за 3 часа и магнитный фон за 1–2 дня до плохого дня, отличает выходные, учится в фоне и не тормозит. Проверяет себя на будущих днях и выбирает самый точный способ счёта."],
     ["📊","<b>Выводы не повторяются.</b> Если тепло, влажность и дождь идут вместе, «Что связано» покажет главное, а не всё сразу."]]},

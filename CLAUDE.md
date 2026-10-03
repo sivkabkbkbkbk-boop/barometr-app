@@ -26,7 +26,11 @@
 - Thin line style everywhere: hairline borders, no fills, light type, one ink colour. No extra colours in
   icons or smileys; colour only to mean something (norm / raised, strength of a link).
 - Line icons: `lic(emoji)` with the `GLI` table; mood faces: `kf(k)` with `KFACE`, `KPICK` = faces in pickers.
-  Smileys: great, meh, bad, weak, head («Мигрень»), dizzy («Кружится»), heart, joints (good, sleepy hidden).
+  Marking is two steps: `KPICK` = great «Отлично» / meh «Нормально» / bad «Плохо» (one tap); after meh or bad `askSym`
+  opens «Что не так?» with `SYMS` = head, heart, weak «Упадок сил», joints, dizzy; symptom marks carry `with:1` and do not
+  lower the day's score twice (`rebuildMood`). Shade does the same natively (`MoodNotify.askSym`, extra `w`). Faces are the
+  owner's line set redrawn in `KFACE` (parts: .spark .eyes .brows .bolt .ecg .drop .bat .tick .spl/.spr .orb for `KF_ANIM`).
+  good, sleepy hidden (old marks).
 - Sheets: `showSheet(id)` / `hideSheet()`; toasts: `toast(text)`; storage: `store.get/set`.
 
 ## How things work (short)
