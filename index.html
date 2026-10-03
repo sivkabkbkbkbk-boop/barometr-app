@@ -581,6 +581,14 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .ginv .ibtns{display:flex;gap:8px;align-self:stretch}.ginv .ibtns .btn{flex:1;text-align:center}
 .gleave{align-self:center;margin:14px 0 4px;font-size:12.5px}
 .cl .pv.inv{color:var(--press)}
+.nnb{text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted);margin-left:6px}
+#nnB{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+.nnt{display:flex;align-items:baseline;gap:10px}.nnt b{font-size:34px;font-weight:200;font-family:var(--f-disp)}.nnt span{font-size:14px;line-height:1.3}
+.nnf{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:6px 10px;align-items:center;font-size:13.5px}
+.nnf i{display:block;height:4px;border-radius:2px;background:var(--ink);opacity:.75}
+.nnf small{grid-column:1/-1;color:var(--muted);font-size:12px;margin-top:-4px}
+.nnq{font-size:12.5px;color:var(--muted);line-height:1.4}
+.nnp{height:3px;background:var(--glass-line);border-radius:2px;overflow:hidden}.nnp i{display:block;height:100%;background:var(--ink)}
 .cday{align-self:center;font-size:11px;color:var(--muted);background:var(--sheet-2);border-radius:99px;padding:2px 10px;margin:6px 0 2px}
 .msg .tx{white-space:pre-wrap}
 .msg{max-width:80%;align-self:flex-start;background:var(--sheet-2);border-radius:16px 16px 16px 4px;padding:7px 11px 5px;display:flex;flex-direction:column;gap:2px;font-size:14.5px;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere}
@@ -870,7 +878,7 @@ header{position:relative}
   .app>.ptitle,.app>.src,.app>.seg3,#repData,#hBody,#fcCard,#moodDaysC{grid-column:1/-1}
   #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:stretch}
   #repData>*{min-width:0}
-  #repPer,#repRange,#repSelC,#repPanels,#repKpi,#repData>.src,#repInsC,#moodFacC,#moodSymC{grid-column:1/-1}
+  #repPer,#repRange,#repSelC,#repPanels,#repKpi,#repData>.src,#repInsC,#nnC,#moodFacC,#moodSymC{grid-column:1/-1}
   #mfacs,#msymp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:stretch}   /* long lists: two columns inside a full-width card */
   #hBody{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
   #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
@@ -1294,6 +1302,7 @@ header{position:relative}
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
   <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="facs" id="mfacs"></div><div class="fhm" style="margin-top:10px">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div></div>
+  <div class="card" id="nnC"><div class="label">Нейросеть <span class="nnb">учится на ваших отметках</span></div><div id="nnB"></div></div>
   <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
@@ -3138,7 +3147,7 @@ let RSEG="data";   // reports have one part now: everything is in "Показа�
 const moodShown=()=>TAB==="rep"||(TAB==="health"&&HSEG==="mood");
 function openMoodSheet(){ if(openSheet) hideSheet(true); HSEG="mood"; store.set("hseg",HSEG); showTab("health"); setTimeout(()=>$("moodDaysC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
 function openMoodAnalysis(){ if(openSheet) hideSheet(true); showTab("rep"); setTimeout(()=>$("moodFacC")?.scrollIntoView({block:"start",behavior:"smooth"}),250); }
-function renderRepSeg(){ $("repData").hidden=false; drawReport(); MS.sel=null; renderMoodSheet(); }
+function renderRepSeg(){ $("repData").hidden=false; drawReport(); MS.sel=null; renderMoodSheet(); if(window.NN_READY) nnRender(); }
 $("moodOpen").addEventListener("click",()=>{ $("moodPop").hidden=true; $("moodPop").classList.remove("open"); renderMood(); openMoodSheet(); });
 
 /* per-day weather features for a date (Moscow day) */
@@ -3922,7 +3931,7 @@ const DRAG_ON=true;
 // every place where blocks can be rearranged: the main screen and both parts of the reports
 const ZONES=[
   {tab:"today", box:"pgToday", ids:ORDER_DEF, key:"order", before:()=>$("pgToday").querySelector("footer")},
-  {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
+  {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","nnC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
 ];
 const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0,zone:null};
 function orderGet(z){ z=z||ZONES[0]; const o=(loadJSON(z.key,null)||[]).filter(id=>z.ids.includes(id)); for(const id of z.ids) if(!o.includes(id)) o.splice(Math.min(o.length,z.ids.indexOf(id)),0,id); return o; }
@@ -5529,6 +5538,90 @@ function hcTiles(){
     <div class="hctile"><div class="k">Вчера</div>${st!=null?`<div class="v">${st.toLocaleString("ru-RU")}</div>`:`<div class="s fhm" style="margin-top:6px">нет данных</div>`}<div class="s fhm">считает телефон, когда он с вами</div></div>
   </div></div>`;
 }
+
+/* ---------- a small neural network in Reports ----------
+   Learns on this phone only, from the person's own days: the weather and magnetic field of each marked day
+   (and the day before) -> was it a bad day. 11 inputs, 6 hidden neurons, 1 output; retrained when the data
+   changes, checked on days it has not seen (5-fold), nothing is sent anywhere. */
+const NN_IN=[["press","давление"],["dpress","перепад давления"],["chp","изменение давления к прошлому дню"],["temp","температура"],["dtemp","перепад температуры"],["cht","изменение температуры к прошлому дню"],["hum","влажность"],["wind","ветер"],["wet","осадки"],["kp","магнитный фон"],["prev","самочувствие накануне"]];
+const NN_NEED=21, NN_H=6;
+function nnRow(d, prevF, prevR, F){
+  if(!F||F.press==null&&F.temp==null&&F.kp==null) return null;
+  const x={...F};
+  x.chp=F.press!=null&&prevF?.press!=null?F.press-prevF.press:null;
+  x.cht=F.temp!=null&&prevF?.temp!=null?F.temp-prevF.temp:null;
+  x.prev=prevR?prevR.v:null;
+  return NN_IN.map(([k])=>x[k]==null||!isFinite(x[k])?null:+x[k]);
+}
+function nnData(){
+  const ds=Object.keys(S.mood).filter(d=>d<isoDay(new Date())).sort(), X=[], Y=[];
+  for(const d of ds){ const pd=isoDay(new Date(new Date(d+"T12:00:00")-DAY));
+    const r=nnRow(d, dayFeatures(pd,S.slug), S.mood[pd], dayFeatures(d,S.slug)); if(!r) continue;
+    X.push(r); Y.push(fcBad(S.mood[d])?1:0); }
+  return {X,Y,n:ds.length};
+}
+function nnRand(seed){ let a=seed>>>0; return ()=>{ a=(a*1664525+1013904223)>>>0; return a/4294967296-.5; }; }
+function nnTrain(X,Y,seed=7){
+  const m=X[0].length, mu=[], sd=[];
+  for(let j=0;j<m;j++){ const v=X.map(r=>r[j]).filter(x=>x!=null); const a=v.length?v.reduce((p,q)=>p+q,0)/v.length:0;
+    mu[j]=a; sd[j]=v.length>1?Math.sqrt(v.reduce((p,q)=>p+(q-a)**2,0)/v.length)||1:1; }
+  const Z=X.map(r=>r.map((x,j)=>x==null?0:(x-mu[j])/sd[j])), R=nnRand(seed);
+  const W1=Array.from({length:NN_H},()=>Array.from({length:m},()=>R()*.6)), b1=Array(NN_H).fill(0), W2=Array.from({length:NN_H},()=>R()*.6); let b2=0;
+  const pos=Y.reduce((a,b)=>a+b,0)/Y.length; b2=Math.log((pos+.05)/(1.05-pos));
+  const lr=.05, l2=.02, E=600, n=Z.length;
+  for(let e=0;e<E;e++){
+    const gW1=W1.map(r=>r.map(()=>0)), gb1=Array(NN_H).fill(0), gW2=Array(NN_H).fill(0); let gb2=0;
+    for(let i=0;i<n;i++){ const z=Z[i], h=W1.map((w,k)=>Math.tanh(w.reduce((a,wj,j)=>a+wj*z[j],b1[k])));
+      const p=1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*W2[k],b2)))), d=p-Y[i];
+      gb2+=d; for(let k=0;k<NN_H;k++){ gW2[k]+=d*h[k]; const dh=d*W2[k]*(1-h[k]*h[k]); gb1[k]+=dh; for(let j=0;j<m;j++) gW1[k][j]+=dh*z[j]; } }
+    for(let k=0;k<NN_H;k++){ W2[k]-=lr*(gW2[k]/n+l2*W2[k]); b1[k]-=lr*gb1[k]/n; for(let j=0;j<m;j++) W1[k][j]-=lr*(gW1[k][j]/n+l2*W1[k][j]); }
+    b2-=lr*gb2/n;
+  }
+  return {mu,sd,W1,b1,W2,b2};
+}
+function nnPredict(M,x){ const z=x.map((v,j)=>v==null?0:(v-M.mu[j])/M.sd[j]);
+  const h=M.W1.map((w,k)=>Math.tanh(w.reduce((a,wj,j)=>a+wj*z[j],M.b1[k]))); return 1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*M.W2[k],M.b2)))); }
+// how often it is right on days it did not learn from, and how often "always the usual day" would be right
+function nnCheck(X,Y){ const K=5; let ok=0, base=0;
+  for(let f=0;f<K;f++){ const tr=[],ty=[],te=[]; X.forEach((x,i)=>{ if(i%K===f) te.push(i); else { tr.push(x); ty.push(Y[i]); } });
+    if(!te.length||ty.every(v=>v===ty[0])) continue;
+    const M=nnTrain(tr,ty,11+f), maj=ty.reduce((a,b)=>a+b,0)/ty.length>=.5?1:0;
+    for(const i of te){ ok+=(nnPredict(M,X[i])>=.5?1:0)===Y[i]?1:0; base+=maj===Y[i]?1:0; } }
+  return {ok, base, n:X.length};
+}
+// what the network leans on: how much worse it gets when one input is taken away
+function nnWeight(M,X,Y){
+  const loss=Xs=>Xs.reduce((a,x,i)=>{ const p=Math.min(.999,Math.max(.001,nnPredict(M,x))); return a-(Y[i]?Math.log(p):Math.log(1-p)); },0)/Xs.length;
+  const L0=loss(X);
+  return NN_IN.map(([k,l],j)=>{ const imp=loss(X.map(x=>{ const y=x.slice(); y[j]=null; return y; }))-L0;
+    const hi=X.map(x=>x.slice()), lo=X.map(x=>x.slice()); hi.forEach(x=>x[j]=M.mu[j]+M.sd[j]); lo.forEach(x=>x[j]=M.mu[j]-M.sd[j]);
+    const dir=hi.reduce((a,x)=>a+nnPredict(M,x),0)-lo.reduce((a,x)=>a+nnPredict(M,x),0);
+    return {k,l,imp,dir}; }).filter(o=>o.imp>.002).sort((a,b)=>b.imp-a.imp);
+}
+let NN_CACHE=null;
+function nnRender(){
+  const box=$("nnB"); if(!box) return;
+  const D=nnData(), N=D.X.length, bad=D.Y.reduce((a,b)=>a+b,0);
+  if(N<NN_NEED||bad<3||N-bad<3){
+    const left=Math.max(NN_NEED-N,0);
+    box.innerHTML=`<div class="nnq">Нейросеть ищет, какая погода влияет именно на вас, и учится на каждой отметке. ${left?`Ей нужно ещё <b>${left} ${fcDays(left)}</b> с отметками и погодой.`:"Нужны и хорошие, и плохие дни — хотя бы по три."}</div><div class="nnp"><i style="width:${Math.min(100,Math.round(N/NN_NEED*100))}%"></i></div><div class="nnq">${N} из ${NN_NEED}</div>`;
+    return; }
+  const key=JSON.stringify([D.X,D.Y]).length+":"+N+":"+bad+":"+D.X.flat().reduce((a,v)=>a+(v||0),0).toFixed(2);
+  if(!NN_CACHE||NN_CACHE.key!==key){ const M=nnTrain(D.X,D.Y); NN_CACHE={key, M, chk:nnCheck(D.X,D.Y), imp:nnWeight(M,D.X,D.Y)}; }
+  const {M,chk,imp}=NN_CACHE, tm=isoDay(new Date(Date.now()+DAY)), w=fcDayWx(tm);
+  let tom="";
+  if(w){ const f=S.feed[S.slug], hs=(f?.hours||[]).filter(h=>isoDay(new Date(h.t))===tm), avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+    const F={...w, temp:avg(hs.map(h=>h.temp).filter(v=>v!=null)), hum:avg(hs.map(h=>h.hum).filter(v=>v!=null)), wind:avg(hs.map(h=>h.wind).filter(v=>v!=null)), wet:hs.filter(h=>(h.pr||0)>=.1).length};
+    const x=nnRow(tm, fcDayWx(isoDay(new Date())), S.mood[isoDay(new Date())], F);
+    if(x){ const p=Math.round(nnPredict(M,x)*100); tom=`<div class="nnt"><b>${p}%</b><span>вероятность плохого дня завтра<br><span class="fhm">${p>=60?"стоит поберечься":p>=35?"возможно недомогание":"скорее всего, всё будет хорошо"}</span></span></div>`; } }
+  const better=chk.ok>chk.base, r10=v=>Math.round(v/chk.n*10);
+  const top=imp.slice(0,3), mx=top[0]?.imp||1;
+  box.innerHTML=tom+
+    (top.length&&better?`<div class="nnf">${top.map(o=>`<span>${o.l[0].toUpperCase()+o.l.slice(1)} <span class="fhm">· ${o.dir>0?"хуже, когда выше":"хуже, когда ниже"}</span></span><i style="width:${Math.max(12,Math.round(o.imp/mx*90))}px"></i>`).join("")}<small>на что нейросеть опирается сильнее всего</small></div>`
+      :`<div class="nnq">Пока нейросеть не нашла в погоде ничего, что заметно влияло бы на ваше самочувствие. Чем больше отметок, тем точнее выводы.</div>`)+
+    `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
+}
+window.NN_READY=true;
 
 /* ---------- personal forecast for tomorrow ----------
    Past days with mood marks are compared with the weather of those days (the same test as "what affects
