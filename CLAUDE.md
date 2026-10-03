@@ -33,10 +33,13 @@
 
 - Marks: `addMark(k)` → `S.marks` (saved) → `rebuildMood()` → `S.mood[day] = {v, kinds, city…}`.
 - Weather of past days: `dayFeatures(day, city)`; personal forecast: `fcFor()`, needs 14 marked days.
-- Reports: «Нейросеть» card — small on-device MLP (`nnTrain`, 11 inputs → 6 → 1), needs 21 days, 5-fold
-  check, canvas `#nnCv`: a personal shape (`nnShape`: seed = hash of the first mark, outline from the marks, a bump per
+- Reports: «Нейросеть» card — on-device models (`nnTrain`: 5 small MLPs 15 inputs → 6 → 1 averaged, or a plain
+  logistic regression `lrTrain`, whichever guesses later days better in `nnCheck`, a time-ordered check); inputs include the
+  sharpest 3-hour pressure fall `drop3`, Kp 1–2 days before, day off; columns missing on >40% of days are left out;
+  trained in a Blob worker (`nnLearn`); needs 21 days; canvas `#nnCv`: a personal shape (`nnShape`: seed = hash of the first mark, outline from the marks, a bump per
   marked day) that grows from a small round seed over 14 marked days; points drift, react to touch and scroll. «Что связано…» = tiles with a
-  5-step scale (`facLevel`), details in `#facSheet`.
+  5-step scale (`facLevel`), details in `#facSheet`; marks adjusted for day off and cycle phase, other weather signs judged
+  by partial correlation beyond the strongest one, strength = cautious end of the 95% range, FDR > 20% capped low.
   «Симптомы и погода» = the same tiles (`symLevel`, `symOpen`), same `#facSheet`.
 - First run: `introSheet`, steps 0–6 (greeting, «Вы… женщина/мужчина», for women «Самочувствие и цикл» + last period date, location,
   first mark, reminders, «Приятного пользования» + «Начать»); live smiley scenes `masGo(n)` (`masWho`: bow / moustache).

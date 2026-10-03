@@ -3257,6 +3257,10 @@ function dayFeatures(date, slug){
   if(obs.length>=4){
     const po=obs.map(o=>o.Po!=null?o.Po*HPA2MM:null).filter(v=>v!=null);
     if(po.length>=4){ f.press=avg(po); f.dpress=Math.max(...po)-Math.min(...po); }
+    { const tt=obs.map(o=>+new Date(o.t)); let dr=null;
+      for(let i=0;i<obs.length;i++){ if(obs[i].Po==null) continue; for(let j=i+1;j<obs.length&&tt[j]-tt[i]<=3.5*H;j++)
+        if(obs[j].Po!=null&&tt[j]-tt[i]>=2.5*H){ const v=(obs[i].Po-obs[j].Po)*HPA2MM; if(dr==null||v>dr) dr=v; } }
+      if(dr!=null) f.drop3=Math.max(0,dr); }
     const T=obs.map(o=>o.T).filter(v=>v!=null); if(T.length>=4){ f.temp=avg(T); f.dtemp=Math.max(...T)-Math.min(...T); }
     const hu=obs.map(o=>o.f).filter(v=>v!=null); if(hu.length>=4) f.hum=avg(hu);
     const w=obs.map(o=>o.w).filter(v=>v!=null); if(w.length>=4) f.wind=avg(w);
@@ -3315,6 +3319,7 @@ const FACTORS=[
 ];
 const CY_FACTORS=[["mens","Дни месячных","%",0,"в дни месячных","в остальные дни"],["pms","Дни перед месячными","%",0,"перед месячными","в остальные дни"]];
 const facList=()=>cycOn()&&CY.list.length?[...CY_FACTORS,...FACTORS]:FACTORS;
+function nnPhi(z){ const t=1/(1+.2316419*Math.abs(z)), d=.3989423*Math.exp(-z*z/2), p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274)))); return z>0?1-p:p; }
 function pearson(xs,ys){ const n=xs.length, mx=xs.reduce((a,b)=>a+b,0)/n, my=ys.reduce((a,b)=>a+b,0)/n; let sxy=0,sxx=0,syy=0; for(let i=0;i<n;i++){const dx=xs[i]-mx,dy=ys[i]-my;sxy+=dx*dy;sxx+=dx*dx;syy+=dy*dy;} return sxx&&syy?sxy/Math.sqrt(sxx*syy):0; }
 const MS={sel:null};
 function renderMoodSheet(){
@@ -3347,12 +3352,17 @@ function renderMoodSheet(){
   }
   // analysis
   const rows=Object.entries(S.mood).map(([d,r])=>({d,v:r.v,f:{...dayFeatures(d, r.city||S.slug), ...cycFeat(d)}}));
-  // for women: what the cycle does is taken out of the marks before they are compared with the weather,
-  // so a period headache is not blamed on the pressure (each phase's own average is subtracted)
-  let adj=false;
-  if(cycOn()){ const cr=rows.filter(r=>r.f.mens!=null), g={}; for(const r of cr){ const k=r.f.mens?"m":r.f.pms?"p":"o"; (g[k]=g[k]||[]).push(r.v); }
-    if(cr.length>=10&&Object.values(g).filter(a=>a.length>=3).length>=2){ const all=cr.reduce((a,r)=>a+r.v,0)/cr.length, mu={}; for(const [k,a] of Object.entries(g)) mu[k]=a.length>=3?a.reduce((x,y)=>x+y,0)/a.length:all;
-      for(const r of cr) r.va=r.v-mu[r.f.mens?"m":r.f.pms?"p":"o"]+all; adj=true; } }
+  // before the marks are compared with the weather, what is not the weather is taken out of them: days off (many feel
+  // better then) and, for women, the cycle phase (so a period headache is not blamed on the pressure). Each group's own
+  // average is subtracted.
+  let adj=false; const cyOn=cycOn();
+  { const key=r=>(cyOn&&r.f.mens!=null?(r.f.mens?"m":r.f.pms?"p":"o"):"")+([0,6].includes(new Date(r.d+"T12:00:00").getDay())?"w":"d");
+    const g={}; for(const r of rows){ (g[key(r)]=g[key(r)]||[]).push(r.v); }
+    const big=Object.values(g).filter(a=>a.length>=3);
+    if(rows.length>=10&&big.length>=2){ const all=rows.reduce((a,r)=>a+r.v,0)/rows.length, mu={};
+      for(const [k,a] of Object.entries(g)) mu[k]=a.length>=3?a.reduce((x,y)=>x+y,0)/a.length:all;
+      for(const r of rows) r.va=r.v-mu[key(r)]+all; adj=cyOn&&rows.some(r=>r.f.mens!=null); } }
+  const yv=p=>p.va==null?p.v:p.va;
   const out=facList().map(([k,name,unit,dg,hiTxt,loTxt])=>{
     const cyc=k==="mens"||k==="pms", other=k==="mens"?"pms":"mens";
     const pts=rows.filter(r=>r.f[k]!=null&&(!cyc||!r.f[other]));   // a cycle phase is compared with ordinary days, not with the other phase
@@ -3361,12 +3371,24 @@ function renderMoodSheet(){
     const mg=mean(good), mb=mean(bad);
     const fmt=v=>v==null?"—":v.toFixed(dg).replace(".",",")+(unit?(unit==="%"?"":" ")+unit:"");
     const enough=pts.length>=10 && new Set(pts.map(p=>Math.round(p.v*2))).size>1 && (!cyc||new Set(pts.map(p=>p.f[k])).size>1);
-    const r0=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>cyc||p.va==null?p.v:p.va)):0;
-    // the strength shown is the cautious end of the likely range (95%): with few days even a big r is mostly chance
-    const z=Math.atanh(Math.max(-.999,Math.min(.999,r0))), lo=Math.max(0,Math.abs(z)-1.645/Math.sqrt(Math.max(1,pts.length-3)));
-    const r=Math.sign(r0)*Math.tanh(lo);
-    return {k,name,pts,mg,mb,fmt,enough,r,r0,hiTxt,loTxt,adj:adj&&!cyc,cyc};
+    const r0=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>cyc?p.v:yv(p))):0;
+    return {k,name,pts,mg,mb,fmt,enough,r0,r:0,hiTxt,loTxt,adj:adj&&!cyc,cyc};
   });
+  // weather signs often move together (warm, damp, rainy): the strongest one is found first, and every other is
+  // judged by what it adds beyond it (partial correlation), so one cause does not show up as three
+  const wx=out.filter(o=>o.enough&&!o.cyc), top=wx.reduce((a,o)=>!a||Math.abs(o.r0)>Math.abs(a.r0)?o:a,null);
+  if(top) for(const o of wx){ if(o===top) continue;
+    const both=o.pts.filter(p=>p.f[top.k]!=null); if(both.length<10) continue;
+    const X=both.map(p=>p.f[o.k]), T=both.map(p=>p.f[top.k]), Yv=both.map(yv), rxy=pearson(X,Yv), rxt=pearson(X,T), ryt=pearson(Yv,T);
+    const dn=Math.sqrt(Math.max(1e-6,(1-rxt*rxt)*(1-ryt*ryt))); o.r0=Math.max(-.999,Math.min(.999,(rxy-rxt*ryt)/dn)); o.with=top.k; }
+  // the strength shown is the cautious end of the likely range (95%): with few days even a big r is mostly chance;
+  // and as many signs are checked at once, the weaker ones that may be luck (false discovery rate over 20%) stay low
+  const pv=o=>{ const z=Math.abs(Math.atanh(Math.max(-.999,Math.min(.999,o.r0))))*Math.sqrt(Math.max(1,o.pts.length-3)); return 2*(1-nnPhi(z)); };
+  const tested=out.filter(o=>o.enough).sort((a,b)=>pv(a)-pv(b)); let qmin=1;
+  for(let i=tested.length-1;i>=0;i--){ qmin=Math.min(qmin,pv(tested[i])*tested.length/(i+1)); tested[i].q=qmin; }
+  for(const o of out){ if(!o.enough) continue;
+    const z=Math.atanh(Math.max(-.999,Math.min(.999,o.r0))), lo=Math.max(0,Math.abs(z)-1.645/Math.sqrt(Math.max(1,o.pts.length-3)));
+    o.r=Math.sign(o.r0)*Math.tanh(lo); if(o.q>.2) o.r=Math.sign(o.r0)*Math.min(Math.abs(o.r),.19); }
   out.sort((a,b)=>(b.enough-a.enough)||Math.abs(b.r)-Math.abs(a.r));
   window.FAC_OUT=out;
   $("mfacs").innerHTML = out.map((o,i)=>{
@@ -5680,6 +5702,9 @@ cyNav();
    Every build that changes something people notice adds an entry at the top (newest first, a new unique id).
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
+  {id:"2026-10-03c", t:[
+    ["💓","<b>Нейросеть стала точнее.</b> Учитывает резкое падение давления за 3 часа и магнитный фон за 1–2 дня до плохого дня, отличает выходные, учится в фоне и не тормозит. Проверяет себя на будущих днях и выбирает самый точный способ счёта."],
+    ["📊","<b>Выводы не повторяются.</b> Если тепло, влажность и дождь идут вместе, «Что связано» покажет главное, а не всё сразу."]]},
   {id:"2026-10-03b", t:[
     ["📊","<b>Анализ стал осторожнее.</b> «Что связано с самочувствием» и «Симптомы и погода» больше не показывают сильную связь, пока дней с отметками мало: случайные совпадения отсеиваются. Первые выводы — после 10 дней, чем больше дней, тем увереннее оценка."]]},
   {id:"2026-10-03", t:[
@@ -5907,62 +5932,103 @@ function hcTiles(){
    Learns on this phone only, from the person's own days: the weather and magnetic field of each marked day
    (and the day before) -> was it a bad day. 11 inputs, 6 hidden neurons, 1 output; retrained when the data
    changes, checked on days it has not seen (5-fold), nothing is sent anywhere. */
-const NN_IN0=[["press","давление"],["dpress","перепад давления"],["chp","изменение давления к прошлому дню"],["temp","температура"],["dtemp","перепад температуры"],["cht","изменение температуры к прошлому дню"],["hum","влажность"],["wind","ветер"],["wet","осадки"],["kp","магнитный фон"],["prev","самочувствие накануне"]];
+const NN_IN0=[["press","давление"],["dpress","перепад давления"],["drop3","резкое падение давления за 3 часа"],["chp","изменение давления к прошлому дню"],["temp","температура"],["dtemp","перепад температуры"],["cht","изменение температуры к прошлому дню"],["hum","влажность"],["wind","ветер"],["wet","осадки"],["kp","магнитный фон"],["kp1","магнитный фон накануне"],["kp2","магнитный фон за два дня"],["prev","самочувствие накануне"],["wkend","выходной день"]];
 let NN_IN=NN_IN0;   // for women with a cycle: also "a period day" and "the days before one"
 const NN_NEED=21, NN_H=6;
-function nnRow(d, prevF, prevR, F){
+// one day as numbers; prevF and prev2F are the weather of the day before and of two days before: many people feel a
+// change ahead, and a magnetic storm often a day or two later
+function nnRow(d, prevF, prevR, F, prev2F){
   if(!F||F.press==null&&F.temp==null&&F.kp==null) return null;
   const x={...F};
   x.chp=F.press!=null&&prevF?.press!=null?F.press-prevF.press:null;
   x.cht=F.temp!=null&&prevF?.temp!=null?F.temp-prevF.temp:null;
+  x.kp1=prevF?.kp!=null?prevF.kp:null; x.kp2=prev2F?.kp!=null?prev2F.kp:null;
   x.prev=prevR?prevR.v:null;
+  const wd=new Date(d+"T12:00:00").getDay(); x.wkend=wd===0||wd===6?1:0;   // on days off many feel better: not the weather's doing
   return NN_IN.map(([k])=>x[k]==null||!isFinite(x[k])?null:+x[k]);
 }
 function nnData(){
   NN_IN=cycOn()&&CY.list.length?[...NN_IN0,["mens","дни месячных"],["pms","дни перед месячными"]]:NN_IN0;
-  const ds=Object.keys(S.mood).filter(d=>d<isoDay(new Date())).sort(), X=[], Y=[];
-  for(const d of ds){ const pd=isoDay(new Date(new Date(d+"T12:00:00")-DAY)), city=S.mood[d].city||S.slug;   // the city of that day, as in "what is linked"
-    const r=nnRow(d, dayFeatures(pd,city), S.mood[pd], {...dayFeatures(d,city), ...cycFeat(d)}); if(!r) continue;
-    X.push(r); Y.push(fcBad(S.mood[d])?1:0); }
-  return {X,Y,n:ds.length};
+  const ds=Object.keys(S.mood).filter(d=>d<isoDay(new Date())).sort().slice(-365), X=[], Y=[], D=[];
+  for(const d of ds){ const t=new Date(d+"T12:00:00"), pd=isoDay(new Date(t-DAY)), p2=isoDay(new Date(t-2*DAY)), city=S.mood[d].city||S.slug;   // the city of that day, as in "what is linked"
+    const r=nnRow(d, dayFeatures(pd,city), S.mood[pd], {...dayFeatures(d,city), ...cycFeat(d)}, dayFeatures(p2,city)); if(!r) continue;
+    X.push(r); Y.push(fcBad(S.mood[d])?1:0); D.push(d); }
+  return {X,Y,D,n:ds.length};
 }
 function nnRand(seed){ let a=seed>>>0; return ()=>{ a=(a*1664525+1013904223)>>>0; return a/4294967296-.5; }; }
-function nnTrain(X,Y,seed=7){
-  const m=X[0].length, mu=[], sd=[];
+// scaling: a column that is missing on more than 40% of the days is left out instead of being filled with made-up values
+function nnStd(X){ const m=X[0].length, mu=[], sd=[], use=[];
   for(let j=0;j<m;j++){ const v=X.map(r=>r[j]).filter(x=>x!=null); const a=v.length?v.reduce((p,q)=>p+q,0)/v.length:0;
-    mu[j]=a; sd[j]=v.length>1?Math.sqrt(v.reduce((p,q)=>p+(q-a)**2,0)/v.length)||1:1; }
-  const Z=X.map(r=>r.map((x,j)=>x==null?0:(x-mu[j])/sd[j])), R=nnRand(seed);
-  const W1=Array.from({length:NN_H},()=>Array.from({length:m},()=>R()*.6)), b1=Array(NN_H).fill(0), W2=Array.from({length:NN_H},()=>R()*.6); let b2=0;
-  const pos=Y.reduce((a,b)=>a+b,0)/Y.length; b2=Math.log((pos+.05)/(1.05-pos));
-  const lr=.05, l2=.02, E=600, n=Z.length;
+    mu[j]=a; sd[j]=v.length>1?Math.sqrt(v.reduce((p,q)=>p+(q-a)**2,0)/v.length)||1:1; use[j]=v.length>=X.length*.6&&v.length>1; }
+  return {mu,sd,use}; }
+const nnZ=(S0,x)=>x.map((v,j)=>!S0.use[j]||v==null?0:(v-S0.mu[j])/S0.sd[j]);
+// rare bad days weigh more, so the model does not learn "every day is fine"
+function nnW(Y){ const p=Y.reduce((a,b)=>a+b,0), n=Y.length; return Y.map(y=>y?n/(2*Math.max(1,p)):n/(2*Math.max(1,n-p))); }
+function nnTrain1(Z,Y,W,seed){
+  const m=Z[0].length, R=nnRand(seed);
+  const W1=Array.from({length:NN_H},()=>Array.from({length:m},()=>R()*.6)), b1=Array(NN_H).fill(0), W2=Array.from({length:NN_H},()=>R()*.6);
+  let b2=0; const lr=.05, l2=.03, E=400, n=Z.length, sw=W.reduce((a,b)=>a+b,0);
   for(let e=0;e<E;e++){
     const gW1=W1.map(r=>r.map(()=>0)), gb1=Array(NN_H).fill(0), gW2=Array(NN_H).fill(0); let gb2=0;
     for(let i=0;i<n;i++){ const z=Z[i], h=W1.map((w,k)=>Math.tanh(w.reduce((a,wj,j)=>a+wj*z[j],b1[k])));
-      const p=1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*W2[k],b2)))), d=p-Y[i];
+      const p=1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*W2[k],b2)))), d=(p-Y[i])*W[i];
       gb2+=d; for(let k=0;k<NN_H;k++){ gW2[k]+=d*h[k]; const dh=d*W2[k]*(1-h[k]*h[k]); gb1[k]+=dh; for(let j=0;j<m;j++) gW1[k][j]+=dh*z[j]; } }
-    for(let k=0;k<NN_H;k++){ W2[k]-=lr*(gW2[k]/n+l2*W2[k]); b1[k]-=lr*gb1[k]/n; for(let j=0;j<m;j++) W1[k][j]-=lr*(gW1[k][j]/n+l2*W1[k][j]); }
-    b2-=lr*gb2/n;
+    for(let k=0;k<NN_H;k++){ W2[k]-=lr*(gW2[k]/sw+l2*W2[k]); b1[k]-=lr*gb1[k]/sw; for(let j=0;j<m;j++) W1[k][j]-=lr*(gW1[k][j]/sw+l2*W1[k][j]); }
+    b2-=lr*gb2/sw;
   }
-  return {mu,sd,W1,b1,W2,b2};
+  return {W1,b1,W2,b2};
 }
-function nnPredict(M,x){ const z=x.map((v,j)=>v==null?0:(v-M.mu[j])/M.sd[j]);
-  const h=M.W1.map((w,k)=>Math.tanh(w.reduce((a,wj,j)=>a+wj*z[j],M.b1[k]))); return 1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*M.W2[k],M.b2)))); }
-// how often it is right on days it did not learn from, and how often "always the usual day" would be right
-function nnCheck(X,Y){ const K=5; let ok=0, base=0;
-  for(let f=0;f<K;f++){ const tr=[],ty=[],te=[]; X.forEach((x,i)=>{ if(i%K===f) te.push(i); else { tr.push(x); ty.push(Y[i]); } });
-    if(!te.length||ty.every(v=>v===ty[0])) continue;
-    const M=nnTrain(tr,ty,11+f), maj=ty.reduce((a,b)=>a+b,0)/ty.length>=.5?1:0;
-    for(const i of te){ ok+=(nnPredict(M,X[i])>=.5?1:0)===Y[i]?1:0; base+=maj===Y[i]?1:0; } }
-  return {ok, base, n:X.length};
+// a plain weighted logistic regression: with 20–60 days it is often steadier than the network
+function lrTrain(Z,Y,W){ const m=Z[0].length, w=Array(m).fill(0); let b=0; const lr=.1, l2=.05, sw=W.reduce((a,c)=>a+c,0);
+  for(let e=0;e<500;e++){ const g=Array(m).fill(0); let gb=0;
+    for(let i=0;i<Z.length;i++){ const p=1/(1+Math.exp(-(w.reduce((a,wj,j)=>a+wj*Z[i][j],b)))), d=(p-Y[i])*W[i]; gb+=d; for(let j=0;j<m;j++) g[j]+=d*Z[i][j]; }
+    for(let j=0;j<m;j++) w[j]-=lr*(g[j]/sw+l2*w[j]); b-=lr*gb/sw; }
+  return {w,b}; }
+// kind "mlp": five small networks with different starts, their answers averaged; kind "lr": the plain model
+function nnTrain(X,Y,kind="mlp",seed=7,k=5){ const S0=nnStd(X), Z=X.map(x=>nnZ(S0,x)), W=nnW(Y);
+  if(kind==="lr") return {kind, S0, L:lrTrain(Z,Y,W)};
+  return {kind, S0, nets:Array.from({length:k},(_,i)=>nnTrain1(Z,Y,W,seed+i*101))}; }
+// the learning runs in a background worker, so the screen never freezes (on a phone it can take several seconds);
+// where a worker cannot start, it runs here as before
+let NN_WK=null, NN_JOB=null;
+function nnLearn(X,Y,key,done){
+  if(NN_JOB===key) return; NN_JOB=key;
+  const run=()=>{ const chk=nnCheck(X,Y), M=nnTrain(X,Y,chk.kind); return {chk,M,imp:nnWeight(M,X,Y)}; };
+  try{
+    if(!NN_WK){ const src=`const NN_H=${NN_H};let NN_IN;\n${[nnRand,nnStd,nnTrain1,lrTrain,nnTrain,nnPredict,nnCheck,nnWeight].map(f=>f.toString()).join("\n")}
+const nnZ=${nnZ};const nnW=${nnW};
+onmessage=e=>{ NN_IN=e.data.IN; const {X,Y,key}=e.data; const chk=nnCheck(X,Y), M=nnTrain(X,Y,chk.kind); postMessage({key,chk,M,imp:nnWeight(M,X,Y)}); };`;
+      NN_WK=new Worker(URL.createObjectURL(new Blob([src],{type:"text/javascript"}))); }
+    NN_WK.onmessage=e=>{ if(e.data.key!==NN_JOB) return; NN_JOB=null; done(e.data); };
+    NN_WK.onerror=()=>{ NN_WK=null; NN_JOB=null; setTimeout(()=>done(run()),50); };
+    NN_WK.postMessage({X,Y,key,IN:NN_IN});
+  }catch(e){ NN_WK=null; setTimeout(()=>{ NN_JOB=null; done(run()); },50); }
 }
-// what the network leans on: how much worse it gets when one input is taken away
+function nnPredict(M,x){ const z=nnZ(M.S0,x);
+  if(M.kind==="lr") return 1/(1+Math.exp(-(M.L.w.reduce((a,wj,j)=>a+wj*z[j],M.L.b))));
+  let s=0; for(const N of M.nets){ const h=N.W1.map((w,k)=>Math.tanh(w.reduce((a,wj,j)=>a+wj*z[j],N.b1[k]))); s+=1/(1+Math.exp(-(h.reduce((a,hk,k)=>a+hk*N.W2[k],N.b2)))); }
+  return s/M.nets.length; }
+// the check is done the way the forecast is used: learn on the earlier days, guess the later ones (at three points in
+// time); "always an ordinary day" is the bar to beat. Both models are checked, the better one is kept.
+function nnCheck(X,Y){
+  const n=X.length, cuts=[.7,.8,.9].map(f=>Math.floor(n*f)), res={mlp:{ok:0,ll:0},lr:{ok:0,ll:0}}; let base=0, cnt=0;
+  for(let c=0;c<cuts.length;c++){ const a=cuts[c], b=c+1<cuts.length?cuts[c+1]:n, ty=Y.slice(0,a);
+    if(b<=a||ty.every(v=>v===ty[0])) continue;
+    const maj=ty.reduce((s,v)=>s+v,0)/ty.length>=.5?1:0;
+    for(const kind of ["mlp","lr"]){ const M=nnTrain(X.slice(0,a),ty,kind,11+c,3);
+      for(let i=a;i<b;i++){ const p=Math.min(.98,Math.max(.02,nnPredict(M,X[i]))); res[kind].ok+=(p>=.5?1:0)===Y[i]?1:0; res[kind].ll-=Y[i]?Math.log(p):Math.log(1-p); } }
+    for(let i=a;i<b;i++){ base+=maj===Y[i]?1:0; cnt++; } }
+  const kind=res.lr.ll<res.mlp.ll?"lr":"mlp";
+  return {ok:res[kind].ok, base, n:cnt||1, kind};
+}
+// what the model leans on: how much worse it gets when one input is taken away
 function nnWeight(M,X,Y){
   const loss=Xs=>Xs.reduce((a,x,i)=>{ const p=Math.min(.999,Math.max(.001,nnPredict(M,x))); return a-(Y[i]?Math.log(p):Math.log(1-p)); },0)/Xs.length;
   const L0=loss(X);
-  return NN_IN.map(([k,l],j)=>{ const imp=loss(X.map(x=>{ const y=x.slice(); y[j]=null; return y; }))-L0;
-    const hi=X.map(x=>x.slice()), lo=X.map(x=>x.slice()); hi.forEach(x=>x[j]=M.mu[j]+M.sd[j]); lo.forEach(x=>x[j]=M.mu[j]-M.sd[j]);
+  return NN_IN.map(([k,l],j)=>{ if(!M.S0.use[j]) return null; const imp=loss(X.map(x=>{ const y=x.slice(); y[j]=null; return y; }))-L0;
+    const hi=X.map(x=>x.slice()), lo=X.map(x=>x.slice()); hi.forEach(x=>x[j]=M.S0.mu[j]+M.S0.sd[j]); lo.forEach(x=>x[j]=M.S0.mu[j]-M.S0.sd[j]);
     const dir=hi.reduce((a,x)=>a+nnPredict(M,x),0)-lo.reduce((a,x)=>a+nnPredict(M,x),0);
-    return {k,l,imp,dir}; }).filter(o=>o.imp>.002).sort((a,b)=>b.imp-a.imp);
+    return {k,l,imp,dir}; }).filter(o=>o&&o.imp>.002).sort((a,b)=>b.imp-a.imp);
 }
 let NN_CACHE=null;
 function nnRender(){
@@ -5974,20 +6040,24 @@ function nnRender(){
     box.innerHTML=`<div class="nnq">Нейросеть ищет, какая погода влияет именно на вас, и учится на каждой отметке. ${left?`Ей нужно ещё <b>${left} ${fcDays(left)}</b> с отметками и погодой.`:"Нужны и хорошие, и плохие дни — хотя бы по три."}</div><div class="nnp"><i style="width:${Math.min(100,Math.round(N/NN_NEED*100))}%"></i></div><div class="nnq">${N} из ${NN_NEED}</div>`;
     return; }
   const key=JSON.stringify([D.X,D.Y]).length+":"+N+":"+bad+":"+D.X.flat().reduce((a,v)=>a+(v||0),0).toFixed(2);
-  if(!NN_CACHE||NN_CACHE.key!==key){ const M=nnTrain(D.X,D.Y); NN_CACHE={key, M, chk:nnCheck(D.X,D.Y), imp:nnWeight(M,D.X,D.Y)}; }
+  if(!NN_CACHE||NN_CACHE.key!==key){
+    nnLearn(D.X,D.Y,key,r=>{ NN_CACHE={key, M:r.M, chk:r.chk, imp:r.imp}; if(TAB==="rep") nnRender(); });
+    if(!NN_CACHE){ box.innerHTML=`<div class="nnq">Нейросеть учится на ваших днях…</div>`; return; } }   // meanwhile the previous result stays
   nnVizSet(N, Math.max(0,(NN_CACHE.chk.ok-NN_CACHE.chk.base)/Math.max(1,NN_CACHE.chk.n))*4);
   const {M,chk,imp}=NN_CACHE, tm=isoDay(new Date(Date.now()+DAY)), w=fcDayWx(tm);
   let tom="";
   if(w){ const f=S.feed[S.slug], hs=(f?.hours||[]).filter(h=>isoDay(new Date(h.t))===tm), avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
     const F={...w, ...cycFeat(tm,true), temp:avg(hs.map(h=>h.temp).filter(v=>v!=null)), hum:avg(hs.map(h=>h.hum).filter(v=>v!=null)), wind:avg(hs.map(h=>h.wind).filter(v=>v!=null)), wet:hs.filter(h=>(h.pr||0)>=.1).length};
-    const x=nnRow(tm, fcDayWx(isoDay(new Date())), S.mood[isoDay(new Date())], F);
+    const pp=hs.map(h=>h.p!=null?h.p*HPA2MM:null); let dr=0; for(let i=0;i+3<pp.length;i++) if(pp[i]!=null&&pp[i+3]!=null) dr=Math.max(dr,pp[i]-pp[i+3]); F.drop3=dr;
+    const td=isoDay(new Date()), yd=isoDay(new Date(Date.now()-DAY)), tw={...dayFeatures(td,S.slug), ...(fcDayWx(td)||{})};
+    const x=nnRow(tm, tw, S.mood[td], F, dayFeatures(yd,S.slug));
     if(x){ const p=Math.round(nnPredict(M,x)*100); tom=`<div class="nnt"><b>${p}%</b><span>вероятность плохого дня завтра<br><span class="fhm">${p>=60?"стоит поберечься":p>=35?"возможно недомогание":"скорее всего, всё будет хорошо"}</span></span></div>`; } }
   const better=chk.ok>chk.base, r10=v=>Math.round(v/chk.n*10);
   const top=imp.slice(0,3), mx=top[0]?.imp||1;
   box.innerHTML=tom+
     (top.length&&better?`<div class="nnf">${top.map(o=>`<span>${o.l[0].toUpperCase()+o.l.slice(1)} <span class="fhm">· ${o.dir>0?"хуже, когда выше":"хуже, когда ниже"}</span></span><i style="width:${Math.max(12,Math.round(o.imp/mx*90))}px"></i>`).join("")}<small>на что нейросеть опирается сильнее всего</small></div>`
       :`<div class="nnq">Пока нейросеть не нашла в погоде ничего, что заметно влияло бы на ваше самочувствие. Чем больше отметок, тем точнее выводы.</div>`)+
-    `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. ${NN_IN.length>NN_IN0.length?" Учитывает и фазу цикла.":""} Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
+    `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. ${NN_IN.length>NN_IN0.length?"Учитывает и фазу цикла. ":""}Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
 }
 /* the network as a living cloud: points drift at random, link up when close, run from the finger and sway when
    the page scrolls; the more days it has learned from, the denser the cloud */
