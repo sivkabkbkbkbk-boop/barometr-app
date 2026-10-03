@@ -5589,8 +5589,8 @@ function nnRow(d, prevF, prevR, F){
 }
 function nnData(){
   const ds=Object.keys(S.mood).filter(d=>d<isoDay(new Date())).sort(), X=[], Y=[];
-  for(const d of ds){ const pd=isoDay(new Date(new Date(d+"T12:00:00")-DAY));
-    const r=nnRow(d, dayFeatures(pd,S.slug), S.mood[pd], dayFeatures(d,S.slug)); if(!r) continue;
+  for(const d of ds){ const pd=isoDay(new Date(new Date(d+"T12:00:00")-DAY)), city=S.mood[d].city||S.slug;   // the city of that day, as in "what is linked"
+    const r=nnRow(d, dayFeatures(pd,city), S.mood[pd], dayFeatures(d,city)); if(!r) continue;
     X.push(r); Y.push(fcBad(S.mood[d])?1:0); }
   return {X,Y,n:ds.length};
 }
