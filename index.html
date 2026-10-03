@@ -5695,17 +5695,17 @@ function nnVizSize(){ const c=$("nnCv"); if(!c) return; const r=c.getBoundingCli
    are alike and the same person always sees the same shape. */
 const NN_GROW=14;
 function nnHash(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; }
-function nnRand(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+function nnVRand(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
 function nnShape(){
   const marks=(S.marks||[]).filter(m=>!S.marksDel?.[m.id]).slice().sort((x,y)=>+new Date(x.t)-+new Date(y.t));
-  const seed=marks.length?nnHash(String(marks[0].id||"")+"|"+marks[0].t):7, R=nnRand(seed);
+  const seed=marks.length?nnHash(String(marks[0].id||"")+"|"+marks[0].t):7, R=nnVRand(seed);
   const days=Object.keys(S.mood||{}).sort(), n=days.length, grow=Math.min(1,n/NN_GROW);
   const vs=days.map(d=>S.mood[d].v), avg=n?vs.reduce((a,b)=>a+b,0)/n:2.5;
   const sym=n?days.filter(d=>S.mood[d].kinds.some(k=>KIND[k]?.sym)).length/n:0;
   const sh={grow, m:3+Math.floor(R()*5), rot:R()*Math.PI*2,
     n1:.6+R()*.8+(avg-1.5)*.5,            // feeling well more often: rounder; worse: sharper
     n2:.8+R()*1.4+sym*1.2, n3:.8+R()*1.4, // symptoms often: deeper notches
-    bumps:days.map(d=>{ const r=nnRand(nnHash(seed+d)); const v=S.mood[d].v;
+    bumps:days.map(d=>{ const r=nnVRand(nnHash(seed+d)); const v=S.mood[d].v;
       return {a:r()*Math.PI*2, h:(v<=1.5?.16:v>=2.5?.08:.05)*(r()<.5?1:-.6), w:.18+r()*.25}; })};
   sh.seed=seed; return sh;
 }
@@ -5717,7 +5717,7 @@ function nnR(sh,a){
   return Math.max(.35,r);
 }
 // where point i lives inside the shape: most sit near the edge so the outline reads, the rest fill it
-function nnHome(i){ const r=nnRand((NNV.shape?.seed||7)*31+i*7919); const a=r()*Math.PI*2, edge=r()<.55; return {a, k:edge?.82+r()*.18:Math.sqrt(r())*.8}; }
+function nnHome(i){ const r=nnVRand((NNV.shape?.seed||7)*31+i*7919); const a=r()*Math.PI*2, edge=r()<.55; return {a, k:edge?.82+r()*.18:Math.sqrt(r())*.8}; }
 function nnScale(){ const g=NNV.shape?.grow||0; return (.32+.68*g)*Math.min(NNV.w*.42,NNV.h*.40*1.6); }
 function nnTarget(p){ const sh=NNV.shape; const rr=sh?nnR(sh,p.a):1, S0=nnScale(); return {x:NNV.w/2+Math.cos(p.a)*rr*p.k*S0, y:NNV.h/2+Math.sin(p.a)*rr*p.k*S0*.62}; }
 function nnVizPlace(p){ const t=nnTarget(p); p.x=t.x+(Math.random()-.5)*6; p.y=t.y+(Math.random()-.5)*6; return p; }
@@ -5725,7 +5725,7 @@ function nnVizSet(days, acc){
   NNV.shape=nnShape(); const n=Object.keys(S.mood||{}).length;
   NNV.want=Math.round(Math.min(96, 16+n*4)); NNV.acc=acc||0;
   if(NNV.seed!==NNV.shape.seed){ NNV.seed=NNV.shape.seed; NNV.pts=[]; }
-  while(NNV.pts.length<NNV.want){ const i=NNV.pts.length, r=nnRand(i*977+3); NNV.pts.push(nnVizPlace({...nnHome(i), vx:0, vy:0, r:r()<.12?2.6:1.2+r()*.8, ph:r()*6})); }
+  while(NNV.pts.length<NNV.want){ const i=NNV.pts.length, r=nnVRand(i*977+3); NNV.pts.push(nnVizPlace({...nnHome(i), vx:0, vy:0, r:r()<.12?2.6:1.2+r()*.8, ph:r()*6})); }
   NNV.pts.length=Math.min(NNV.pts.length,NNV.want);
 }
 function nnVizFrame(){
