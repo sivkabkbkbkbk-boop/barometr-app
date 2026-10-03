@@ -1057,6 +1057,8 @@ header{position:relative}
 .cyph small{grid-column:1/-1;color:var(--muted);font-size:11.5px}
 .cynums{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}.cynums div{display:flex;flex-direction:column}.cynums b{font-size:24px;font-weight:200}.cynums span{font-size:11.5px;color:var(--muted)}
 .cywarn{border-left:2px solid var(--kp-mid);padding:2px 0 2px 10px;font-size:13px;font-weight:300;margin-top:10px}
+.wnew{display:flex;flex-direction:column}.wnew div{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--glass-line);font-size:14.5px;font-weight:300;line-height:1.4}
+.wnew div:first-child{border-top:0}.wnew .li{width:20px;height:20px;flex:none;margin-top:1px}.wnew b{font-weight:500}
 .isex{display:flex;gap:10px;margin-top:6px}.isex .btn{flex:1}
 #iCyc{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 #pgRep .sc{font-weight:300}
@@ -1577,6 +1579,11 @@ header{position:relative}
   </div>
 </section>
 
+<section class="sheet" id="newSheet" role="dialog" aria-modal="true" aria-labelledby="newT" hidden>
+  <div class="grab"></div>
+  <div class="shead"><div><h2 id="newT">Что нового</h2><div class="sc">в обновлении приложения</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
+  <div class="sbody"><div class="wnew" id="newB"></div><button class="btn" data-close>Понятно</button></div>
+</section>
 <section class="sheet" id="cyDaySheet" role="dialog" aria-modal="true" aria-labelledby="cyDayT" hidden>
   <div class="grab"></div>
   <div class="shead"><div><h2 id="cyDayT"></h2><div class="sc" id="cyDayS"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
@@ -5665,6 +5672,30 @@ $("pgCycle").addEventListener("click",e=>{
 });
 cyNav();
 
+/* ---------- «Что нового»: shown once after an update ----------
+   Every build that changes something people notice adds an entry at the top (newest first, a new unique id).
+   The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
+const WHATS_NEW=[
+  {id:"2026-10-03", t:[
+    ["🌸","<b>Календарь цикла для женщин.</b> Отмечайте начало месячных — календарь сам посчитает фазы и покажет, когда ждать следующие. Включается так: ⚙ Настройки → «Что отслеживать» → Пол: женский. Появится вкладка «Цикл»."],
+    ["📊","<b>Анализ учитывает цикл.</b> «Что связано с самочувствием», «Симптомы и погода», нейросеть и прогноз на завтра больше не путают влияние цикла с погодой."],
+    ["💓","<b>Нейросеть стала своей.</b> Её картинка растёт с каждым днём отметок и у каждого принимает свою форму."],
+    ["🩺","<b>Отчёт для врача</b> — можно добавить даты месячных, длину цикла и самочувствие по фазам."],
+    ["🔔","<b>Смайлики в шторке</b> теперь белые в тёмной теме телефона — их хорошо видно."],
+    ["🌧","<b>Новый значок приложения:</b> котик меняется вместе с погодой — солнце, облака или смерч."]]}
+];
+function whatsNew(){
+  const seen=new Set(loadJSON("newSeen",[])||[]), all=WHATS_NEW.map(x=>x.id);
+  if(!store.get("newSeenV")){ store.set("newSeenV","1");
+    // a fresh install has nothing to catch up on; someone who used the app before sees the newest entry once
+    if(introNeeded()){ store.set("newSeen",JSON.stringify(all)); return; }
+    all.slice(1).forEach(id=>seen.add(id)); }
+  const fresh=WHATS_NEW.filter(x=>!seen.has(x.id)); if(!fresh.length) return;
+  if(openSheet){ setTimeout(whatsNew,4000); return; }   // after the first-run window or any other one
+  $("newB").innerHTML=fresh.flatMap(x=>x.t).map(([i,t])=>`<div>${lic(i)}<span>${t}</span></div>`).join("");
+  store.set("newSeen",JSON.stringify(all)); showSheet("newSheet");
+}
+setTimeout(whatsNew,2500);
 /* ---------- what to track: settings and the welcome step ---------- */
 function trTile(k,e,l,d,lock){ return `<button class="tropt" data-tr="${k}" aria-pressed="${!!(lock||tr(k))}" ${lock?"disabled":""}><span class="e">${e}</span><span class="ck">✓</span><b>${l}</b><small>${lock?"всегда включено":d}</small></button>`; }
 function renderTrack(){

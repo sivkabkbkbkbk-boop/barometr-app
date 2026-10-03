@@ -15,6 +15,9 @@
 - Talk to the owner in Russian.
 - The goal of the work: make the app simpler to use and add features that are useful for weather-sensitive
   people. Stay within that. Now and then suggest ideas of your own in that direction, with pictures or without.
+- Every push that people will notice: add an entry at the top of `WHATS_NEW` in index.html (new unique id, short
+  Russian items `[icon from GLI, text]`, no `"` inside the text). Updated apps show it once in «Что нового»; the
+  newest entry is also the release description on GitHub (the build reads it).
 - Save the owner's usage limit: keep replies short, show pictures only for real visual changes, check
   quietly otherwise.
 
