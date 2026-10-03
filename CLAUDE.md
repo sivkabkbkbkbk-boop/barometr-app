@@ -41,12 +41,13 @@
   table (pressure, sugar, steps), two-week smiley table below. Group chats need «Вступить» (invitation state
   `G.st`, members `G.ms`).
 - Notifications: one line in reliable mode (MoodKeep), faces `kf_<k>` drawables; widget = line-style frames.
+- Launcher icons: the owner's cat by weather, whole rounded pictures on a transparent square: `icon-calm.png`
+  sun, `icon-mid.png` clouds, `icon-192.png`/`icon-512.png` tornado (default, «bad»); switched by `IconSwitch`.
 - Updates: native `ApkUpdate.latest()` reads the releases page (no API limit); «Установить» reopens installer.
 - Anonymous stats: GoatCounter `/install` and daily `/open`, switch in Settings.
 
 ## Not done yet / ideas the owner has not decided on
 
-- Launcher icon in lines (mint version drawn, owner said «пока не меняй»).
 - Automatic friend adding needs a small relay (Yandex Cloud suggested, owner chose the serverless reply).
 - Ideas: alert when a friend suddenly feels worse; evening warning before personal-trigger weather;
   first-run question «На что вы реагируете?».
