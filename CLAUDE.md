@@ -31,7 +31,8 @@
 - Marks: `addMark(k)` → `S.marks` (saved) → `rebuildMood()` → `S.mood[day] = {v, kinds, city…}`.
 - Weather of past days: `dayFeatures(day, city)`; personal forecast: `fcFor()`, needs 14 marked days.
 - Reports: «Нейросеть» card — small on-device MLP (`nnTrain`, 11 inputs → 6 → 1), needs 21 days, 5-fold
-  check, «облако» canvas `#nnCv` (random drift, reacts to touch and scroll). «Что связано…» = tiles with a
+  check, canvas `#nnCv`: a personal shape (`nnShape`: seed = hash of the first mark, outline from the marks, a bump per
+  marked day) that grows from a small round seed over 14 marked days; points drift, react to touch and scroll. «Что связано…» = tiles with a
   5-step scale (`facLevel`), details in `#facSheet`.
   «Симптомы и погода» = the same tiles (`symLevel`, `symOpen`), same `#facSheet`.
 - First run: `introSheet`, steps 0–4 (greeting, location, first mark, reminders, «Приятного пользования» +

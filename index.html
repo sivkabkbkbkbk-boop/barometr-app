@@ -5685,30 +5685,63 @@ function nnRender(){
 const NNV={pts:[], want:24, raf:0, on:false, w:0, h:0, dpr:1, ink:"#fff", touch:null, lastY:scrollY, pulses:[], t:0};
 function nnVizSize(){ const c=$("nnCv"); if(!c) return; const r=c.getBoundingClientRect(); NNV.dpr=Math.min(2,devicePixelRatio||1);
   const ow=NNV.w, oh=NNV.h;
-  if(r.width&&r.height){ if(ow>0&&oh>0){ for(const p of NNV.pts){ p.x*=r.width/ow; p.y*=r.height/oh; } } else NNV.pts.forEach(nnVizPlace); }
-  NNV.w=r.width; NNV.h=r.height; c.width=Math.round(r.width*NNV.dpr); c.height=Math.round(r.height*NNV.dpr);
+  NNV.w=r.width; NNV.h=r.height;
+  if(r.width&&r.height&&!(ow>0&&oh>0)) NNV.pts.forEach(nnVizPlace);   // made while the card was hidden: put them home
+  c.width=Math.round(r.width*NNV.dpr); c.height=Math.round(r.height*NNV.dpr);
   NNV.ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim()||"#ececec"; }
-function nnVizPlace(p){ const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random()); p.x=NNV.w/2+Math.cos(a)*r*NNV.w*.44; p.y=NNV.h/2+Math.sin(a)*r*NNV.h*.42; return p; }
+/* the shape is the person's own: it grows from a small round seed over the first 14 days with marks and keeps
+   changing a little with every new day. Its symmetry and outline come from that person's marks (a hash of the
+   first mark, how they usually feel, which symptoms they note), and each marked day adds its own bump, so no two
+   are alike and the same person always sees the same shape. */
+const NN_GROW=14;
+function nnHash(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; }
+function nnRand(seed){ let a=seed>>>0; return ()=>{ a=(a+0x6D2B79F5)>>>0; let t=a; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+function nnShape(){
+  const marks=(S.marks||[]).filter(m=>!S.marksDel?.[m.id]).slice().sort((x,y)=>+new Date(x.t)-+new Date(y.t));
+  const seed=marks.length?nnHash(String(marks[0].id||"")+"|"+marks[0].t):7, R=nnRand(seed);
+  const days=Object.keys(S.mood||{}).sort(), n=days.length, grow=Math.min(1,n/NN_GROW);
+  const vs=days.map(d=>S.mood[d].v), avg=n?vs.reduce((a,b)=>a+b,0)/n:2.5;
+  const sym=n?days.filter(d=>S.mood[d].kinds.some(k=>KIND[k]?.sym)).length/n:0;
+  const sh={grow, m:3+Math.floor(R()*5), rot:R()*Math.PI*2,
+    n1:.6+R()*.8+(avg-1.5)*.5,            // feeling well more often: rounder; worse: sharper
+    n2:.8+R()*1.4+sym*1.2, n3:.8+R()*1.4, // symptoms often: deeper notches
+    bumps:days.map(d=>{ const r=nnRand(nnHash(seed+d)); const v=S.mood[d].v;
+      return {a:r()*Math.PI*2, h:(v<=1.5?.16:v>=2.5?.08:.05)*(r()<.5?1:-.6), w:.18+r()*.25}; })};
+  sh.seed=seed; return sh;
+}
+// radius of the shape at angle a, 1 ≈ its usual size; while young it is mostly a circle
+function nnR(sh,a){
+  const t=sh.m*(a-sh.rot)/4, f=Math.pow(Math.pow(Math.abs(Math.cos(t)),sh.n2)+Math.pow(Math.abs(Math.sin(t)),sh.n3),-1/Math.max(.3,sh.n1));
+  let r=1+(Math.min(1.6,f)/1.25-1)*sh.grow;
+  for(const b of sh.bumps){ let d=Math.abs(a-b.a)%(Math.PI*2); if(d>Math.PI) d=Math.PI*2-d; r+=b.h*Math.exp(-(d*d)/(b.w*b.w))*Math.min(1,sh.grow*1.4); }
+  return Math.max(.35,r);
+}
+// where point i lives inside the shape: most sit near the edge so the outline reads, the rest fill it
+function nnHome(i){ const r=nnRand((NNV.shape?.seed||7)*31+i*7919); const a=r()*Math.PI*2, edge=r()<.55; return {a, k:edge?.82+r()*.18:Math.sqrt(r())*.8}; }
+function nnScale(){ const g=NNV.shape?.grow||0; return (.32+.68*g)*Math.min(NNV.w*.42,NNV.h*.40*1.6); }
+function nnTarget(p){ const sh=NNV.shape; const rr=sh?nnR(sh,p.a):1, S0=nnScale(); return {x:NNV.w/2+Math.cos(p.a)*rr*p.k*S0, y:NNV.h/2+Math.sin(p.a)*rr*p.k*S0*.62}; }
+function nnVizPlace(p){ const t=nnTarget(p); p.x=t.x+(Math.random()-.5)*6; p.y=t.y+(Math.random()-.5)*6; return p; }
 function nnVizSet(days, acc){
-  NNV.want=Math.round(Math.min(90, 30+days*.9)); NNV.acc=acc||0;
-  while(NNV.pts.length<NNV.want) NNV.pts.push(nnVizPlace({vx:0, vy:0, r:Math.random()<.12?2.6:1.2+Math.random()*.8, ph:Math.random()*6}));
+  NNV.shape=nnShape(); const n=Object.keys(S.mood||{}).length;
+  NNV.want=Math.round(Math.min(96, 16+n*4)); NNV.acc=acc||0;
+  if(NNV.seed!==NNV.shape.seed){ NNV.seed=NNV.shape.seed; NNV.pts=[]; }
+  while(NNV.pts.length<NNV.want){ const i=NNV.pts.length, r=nnRand(i*977+3); NNV.pts.push(nnVizPlace({...nnHome(i), vx:0, vy:0, r:r()<.12?2.6:1.2+r()*.8, ph:r()*6})); }
   NNV.pts.length=Math.min(NNV.pts.length,NNV.want);
 }
 function nnVizFrame(){
   const c=$("nnCv"); if(!c||!NNV.on){ NNV.raf=0; return; }
-  const g=c.getContext("2d"), P=NNV.pts, W=NNV.w, H=NNV.h, cx=W/2, cy=H/2; NNV.t++;
+  const g=c.getContext("2d"), P=NNV.pts, W=NNV.w, H=NNV.h; NNV.t++;
   for(const p of P){
-    p.vx+=(Math.random()-.5)*.09; p.vy+=(Math.random()-.5)*.09;                       // a random walk, never the same twice
-    const dx=(p.x-cx)/(W*.46), dy=(p.y-cy)/(H*.44), d=dx*dx+dy*dy; if(d>1){ p.vx-=dx*.05*(d-1); p.vy-=dy*.05*(d-1); }   // keep the cloud shape
+    p.vx+=(Math.random()-.5)*.07; p.vy+=(Math.random()-.5)*.07;                       // a small random walk keeps it alive
+    const t=nnTarget(p); p.vx+=(t.x-p.x)*.006; p.vy+=(t.y-p.y)*.006;                  // and each point is drawn back home
     if(NNV.touch){ const tx=p.x-NNV.touch.x, ty=p.y-NNV.touch.y, td=Math.hypot(tx,ty); if(td<70&&td>.1){ const f=(70-td)/70*1.2; p.vx+=tx/td*f; p.vy+=ty/td*f; } }
-    p.vx*=.95; p.vy*=.95; }
-  // points keep a little room between them, so the cloud fills its whole shape instead of clumping
-  const R=Math.max(24,Math.sqrt(W*H/Math.max(1,P.length))*.8);
-  for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j], dx=a.x-b.x, dy=a.y-b.y, d=Math.hypot(dx,dy);
-    if(d<R&&d>.1){ const f=(R-d)/R*.03; a.vx+=dx/d*f; a.vy+=dy/d*f; b.vx-=dx/d*f; b.vy-=dy/d*f; } }
-  for(const p of P){ p.x+=p.vx; p.y+=p.vy; }
+    p.vx*=.94; p.vy*=.94; p.x+=p.vx; p.y+=p.vy; }
   g.setTransform(NNV.dpr,0,0,NNV.dpr,0,0); g.clearRect(0,0,W,H); g.strokeStyle=NNV.ink; g.fillStyle=NNV.ink;
-  const L=Math.max(40,Math.min(W,H)*.24)+NNV.acc*14, links=[];
+  // the outline of the shape, breathing slowly
+  if(NNV.shape){ const S0=nnScale()*(1.04+.015*Math.sin(NNV.t*.02)); g.globalAlpha=.16+.3*NNV.shape.grow; g.lineWidth=.7; g.beginPath();
+    for(let i=0;i<=120;i++){ const a=i/120*Math.PI*2, rr=nnR(NNV.shape,a); const x=W/2+Math.cos(a)*rr*S0, y=H/2+Math.sin(a)*rr*S0*.62; i?g.lineTo(x,y):g.moveTo(x,y); }
+    g.closePath(); g.stroke(); }
+  const L=Math.max(34,Math.min(W,H)*.2)+NNV.acc*14, links=[];
   for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j], d=Math.hypot(a.x-b.x,a.y-b.y);
     if(d<L){ g.globalAlpha=(1-d/L)*.45; g.lineWidth=.6; g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke(); links.push([a,b]); } }
   for(const p of P){ const big=p.r>2; g.globalAlpha=big?.95:.55+.35*Math.sin(NNV.t*.03+p.ph);
