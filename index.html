@@ -1117,6 +1117,13 @@ header{position:relative}
 .sheet .xbtn{background:none;border:1px solid rgb(var(--inkc) / .3);font-weight:300;color:var(--ink)}
 .sheet .xbtn:focus{outline:none}.sheet .xbtn:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
 .sheet .ctitle{font-weight:400;letter-spacing:.16em;margin-top:14px}
+/* settings: the rarely needed part folds away under «Дополнительно» */
+.smore{margin-top:0}
+.smore>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 0 4px;font-size:15px;font-weight:300}
+.smore>summary::-webkit-details-marker{display:none}
+.smore>summary::after{content:"›";font-size:22px;font-weight:200;color:var(--muted);transition:transform .2s}
+.smore[open]>summary::after{transform:rotate(90deg)}
+.smb{display:flex;flex-direction:column;gap:12px;padding-top:8px}
 .sheet .src,.sheet .fhm{font-weight:300}
 .sheet .btn{background:none;color:var(--ink);border:1px solid var(--ink);font-weight:400}
 .sheet .btn.ghost{border-color:var(--glass-line);font-weight:300}
@@ -1227,7 +1234,7 @@ header{position:relative}
 
   <div class="notice" id="pendingNote" hidden></div>
 
-  <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Температура: открыть историю">
+  <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Погода: подробный прогноз на сегодня">
     <div>
       <div class="tdate" id="tdate"></div>
       <div class="temp" id="temp">—</div>
@@ -1284,9 +1291,6 @@ header{position:relative}
     <div class="rmap" id="rmapSmall"><button class="mapx" id="mapExpand" aria-label="Открыть карту на весь экран">⤢</button></div>
   </section>
 
-  <section class="card fade" id="cardHours" style="animation-delay:.32s;padding-inline:10px" aria-label="Почасовой прогноз">
-    <div class="hours" id="hours"></div>
-  </section>
 
   <footer><button class="btn ghost" id="installBtn" hidden>Установить приложение</button><div>Погода и архив: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Kp: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA</a>, <a href="https://kp.gfz.de/" target="_blank" rel="noopener">GFZ</a></div></footer>
 </main>
@@ -1407,19 +1411,21 @@ header{position:relative}
     <label class="rsw" id="wxwW" hidden style="justify-content:space-between"><span>Анимация значка погоды на виджете<br><span class="fhm">лучи солнца вращаются, дождь и снег падают, молния вспыхивает; выключите, если бережёте батарею</span></span><input type="checkbox" id="wxwAnim"><span class="knob" aria-hidden="true"></span></label>
     <div class="ctitle">Синхронизация и резервная копия</div>
     <div class="ysync" id="ysync"></div>
-    <div class="ctitle">О приложении</div>
-    <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
-    <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
-    <label class="rsw" id="statW" hidden style="justify-content:space-between"><span>Анонимная статистика<br><span class="fhm">раз в день приложение отмечает «открыто сегодня», а при первом запуске — «установлено». Без имени, номера телефона, города и данных о здоровье. Так разработчик видит, сколько людей пользуются приложением</span></span><input type="checkbox" id="statOn"><span class="knob" aria-hidden="true"></span></label>
-    <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Политика конфиденциальности</a>
-    <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
-    <div id="devBox" hidden><div class="ctitle">Для разработчика</div>
-      <button class="btn ghost" id="devIntro">Показать первый запуск</button>
-      <button class="btn ghost" id="devDrag">Показать подсказку о перетаскивании</button>
-      <button class="btn ghost" id="devHide">Скрыть это меню</button></div>
-    <button class="btn ghost" id="appShare">Поделиться приложением</button>
-    <button class="btn ghost" id="updCheck" hidden>Проверить обновления</button>
-    <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+    <details class="smore" id="setMore"><summary>Дополнительно</summary><div class="smb">
+      <div class="ctitle">О приложении</div>
+      <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
+      <div class="src">Данные о здоровье хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
+      <label class="rsw" id="statW" hidden style="justify-content:space-between"><span>Анонимная статистика<br><span class="fhm">раз в день приложение отмечает «открыто сегодня», а при первом запуске — «установлено». Без имени, номера телефона, города и данных о здоровье. Так разработчик видит, сколько людей пользуются приложением</span></span><input type="checkbox" id="statOn"><span class="knob" aria-hidden="true"></span></label>
+      <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Политика конфиденциальности</a>
+      <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
+      <div id="devBox" hidden><div class="ctitle">Для разработчика</div>
+        <button class="btn ghost" id="devIntro">Показать первый запуск</button>
+        <button class="btn ghost" id="devDrag">Показать подсказку о перетаскивании</button>
+        <button class="btn ghost" id="devHide">Скрыть это меню</button></div>
+      <button class="btn ghost" id="appShare">Поделиться приложением</button>
+      <button class="btn ghost" id="updCheck" hidden>Проверить обновления</button>
+      <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+    </div></details>
   </div>
 </section>
 
@@ -1953,7 +1959,6 @@ function render(){
   const intensity = cur.pr>0 ? 26 : wet.length ? 10 : 0;
   $("drops").innerHTML = reduce?"":Array.from({length:intensity},()=>`<span style="left:${Math.random()*100}%;animation-duration:${(0.7+Math.random()*0.6).toFixed(2)}s;animation-delay:-${(Math.random()*1.3).toFixed(2)}s;opacity:${(.25+Math.random()*.5).toFixed(2)}"></span>`).join("");
 
-  $("hours").innerHTML=hrs.slice(i,i+25).map((x,n)=>`<div class="h${n===0?" now":""}"><div class="t">${n===0?"сейчас":fmtH(new Date(x.t))}</div>${icon(x.sym)}<div class="v">${Math.round(x.temp)}°</div></div>`).join("");
   if(typeof render5==="function") render5();
   if(typeof renderRisk==="function") renderRisk();
   if(typeof iconPlanSoon==="function") iconPlanSoon();
@@ -2918,11 +2923,9 @@ const CARDS=[
   ["card5","Прогноз на 5 дней","температура и осадки по дням"],
   ["cardPress","Давление","стрелочный барометр и тенденция"],
   ["cardKp","Геомагнитный фон","индекс Kp и магнитные бури"],
-  ["cardRain","Карта осадков","движение туч на 12 часов"],
-  ["cardHours","Почасовой прогноз","на сутки вперёд"]
+  ["cardRain","Карта осадков","движение туч на 12 часов"]
 ];
-const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],c[0]!=="cardHours"])), loadJSON("layout",{})||{});   // the hourly forecast starts hidden; turn it on in ⚙
-if(store.get("layoutV")!=="2"){ LAYOUT.cardHours=false; store.set("layout",JSON.stringify(LAYOUT)); store.set("layoutV","2"); }   // once, also for phones that already had it shown
+const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],true])), loadJSON("layout",{})||{});
 function applyLayout(){
   for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
   const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
@@ -3980,7 +3983,7 @@ $("frChat").addEventListener("click",()=>{ const f=FRQ[0]?.[0];
 $("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPop(); });
 
 /* ---------- rearrange the cards on the main screen: long press, then drag ---------- */
-const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain","cardHours"];
+const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain"];
 const DRAG_ON=true;
 // every place where blocks can be rearranged: the main screen and both parts of the reports
 const ZONES=[
@@ -5201,12 +5204,12 @@ addEventListener("touchend",touchEnd); addEventListener("touchcancel",touchEnd);
 /* ---------- wiring ---------- */
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-metric]"); if(t){ e.stopPropagation(); openHistory(t.dataset.metric); return; }
-  if(e.target.closest("#heroTap")) openHistory("temp");
+  if(e.target.closest("#heroTap")) openDay(isoDay(new Date()));
 });
 document.addEventListener("keydown",e=>{
   if(e.key!=="Enter"&&e.key!==" ") return;
   const t=e.target.closest?.("[data-metric],#heroTap"); if(!t||e.target.tagName==="BUTTON") return;
-  e.preventDefault(); openHistory(t.dataset.metric||"temp");
+  e.preventDefault(); if(t.id==="heroTap") openDay(isoDay(new Date())); else openHistory(t.dataset.metric);
 });
 
 /* ---------- "How do you feel?" in the notification shade ----------
