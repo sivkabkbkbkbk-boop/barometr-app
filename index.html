@@ -642,6 +642,20 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .fcc .meter{display:flex;gap:4px;margin:4px 0 10px}.fcc .meter i{flex:1;height:6px;border-radius:3px;background:rgb(var(--inkc) / .1)}
 .fcc .why{display:flex;flex-direction:column;gap:7px;font-size:13.5px}
 .fcc .why>div{display:flex;gap:8px}.fcc .why .i{flex:none;width:22px;text-align:center}
+.fcc .lvl small{display:block;margin-top:2px;color:var(--ink);opacity:.85;font-size:13.5px;line-height:1.35}
+.fcc .lvl small b{display:inline;font:inherit;font-weight:600;color:inherit}
+.fcc .lvl .e .li,.fcc .lvl .e svg{width:34px;height:34px}
+.fcc .fcmore{margin-top:2px}
+.fcc .fcdet{margin-top:8px;padding-top:10px;border-top:1px solid var(--glass-line)}
+.fcc .fcdet .why+.why{margin-top:7px}
+.fcc .fprog{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px;font-size:12.5px;color:var(--muted)}
+.fcc .fprog b{color:var(--ink);font-weight:600}
+.fcc .fprog i{display:block;height:4px;border-radius:2px;background:rgb(var(--inkc) / .1);overflow:hidden}
+.fcc .fprog i b{display:block;height:100%;background:var(--ink);opacity:.7}
+.wxbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:1px solid var(--glass-line);border-radius:14px;padding:11px 14px;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wxbtn .go{color:var(--muted);transition:transform .2s}.wxbtn.open .go{transform:rotate(90deg)}
+.wxmore{display:flex;flex-direction:column;gap:12px}
+.wxmore[hidden]{display:none}
 .fcc .tips{margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-line);font-size:13px;display:flex;flex-direction:column;gap:5px}
 .fcc .tips div::before{content:"• ";color:var(--press)}
 .fcc .prog{height:8px;border-radius:4px;background:rgb(var(--inkc) / .1);overflow:hidden;margin:8px 0 4px}.fcc .prog i{display:block;height:100%;background:var(--press);border-radius:4px}
@@ -887,7 +901,7 @@ header{position:relative}
 @media (min-width:760px){
   .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:stretch}
   .app>*,.app>header{min-width:0}
-  #pgToday>header,#pgToday>.notice,#pgToday>.hero,#pgToday>.fcstrip,#cardRain,#cardHours,#card5,
+  #pgToday>header,#pgToday>.notice,#pgToday>.hero,#wxBtn,#wxMore,#cardRain,#cardHours,#card5,
   .app>.ptitle,.app>.src,.app>.seg3,#repData,#hBody,#fcCard,#moodDaysC{grid-column:1/-1}
   #repData.rsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:stretch}
   #repData>*{min-width:0}
@@ -897,6 +911,8 @@ header{position:relative}
   #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
   #pgFriends{display:flex;max-width:760px}
   #pgToday{grid-auto-flow:row dense}
+  .wxmore{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+  .wxmore[hidden]{display:none}
   #grid2{grid-column:auto}
   #pgToday,#repData.rsec,#hBody{align-items:stretch}   /* cards side by side are the same height */
   #pgToday>.card,#grid2>.card,#repData>.card,#hBody>.card{height:100%;box-sizing:border-box}
@@ -1280,6 +1296,14 @@ header{position:relative}
 
   <div class="notice" id="pendingNote" hidden></div>
 
+  <section class="card fade fcc" id="fcCard" hidden></section>
+
+  <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
+    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
+    <div class="kgrid k3" id="kgMain"></div>
+    <div class="mtoday" id="mtMain"></div>
+  </section>
+
   <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Погода: подробный прогноз на сегодня">
     <div>
       <div class="tdate" id="tdate"></div>
@@ -1289,23 +1313,11 @@ header{position:relative}
     <div class="cond"><div class="icon" id="cicon"></div><div class="txt" id="ctext"></div></div>
   </section>
 
-
-  <button class="fcstrip" id="fcStrip" hidden></button>
+  <button class="wxbtn" id="wxBtn" aria-expanded="false" aria-controls="wxMore"><span>Погода подробнее</span><span class="go">›</span></button>
+  <div class="wxmore" id="wxMore" hidden>
   <section class="card fade risk" id="cardRisk" style="animation-delay:.01s" aria-label="Погода и самочувствие сегодня">
     <div class="mchead"><div class="label">Погода и самочувствие сегодня</div><span class="rpill" id="riskPill"></span></div>
     <div class="rbody"><svg id="riskG" viewBox="0 0 96 58" aria-hidden="true"></svg><div class="rwhy" id="riskWhy"></div></div>
-  </section>
-
-  <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
-    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
-    <div class="kgrid k3" id="kgMain"></div>
-    <div class="mtoday" id="mtMain"></div>
-    <div class="fcprog" id="fcProg" hidden></div>
-  </section>
-
-  <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
-    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">отчёт ›</button></div>
-    <div class="htiles" id="hTiles"></div>
   </section>
 
   <section class="card fade days5" id="card5" style="animation-delay:.04s" aria-label="Прогноз на 5 дней"><div class="d5" id="d5"></div><div class="d5hint">нажмите на день — подробный прогноз</div></section>
@@ -1336,7 +1348,12 @@ header{position:relative}
     <div class="rans"><span class="rsi" id="prico"></span><div><div class="prnote" id="prnote"></div><div class="rat">на карте <b class="jat">сейчас</b></div></div></div>
     <div class="rmap" id="rmapSmall"><button class="mapx" id="mapExpand" aria-label="Открыть карту на весь экран">⤢</button></div>
   </section>
+  </div>
 
+  <section class="card fade" id="cardHealth" style="animation-delay:.03s" aria-label="Давление и сахар">
+    <div class="mchead"><div class="label">Давление и сахар</div><button class="mlink" id="hRep">отчёт ›</button></div>
+    <div class="htiles" id="hTiles"></div>
+  </section>
 
   <footer><button class="btn ghost" id="installBtn" hidden>Установить приложение</button><div>Погода и архив: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Kp: <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA</a>, <a href="https://kp.gfz.de/" target="_blank" rel="noopener">GFZ</a></div></footer>
 </main>
@@ -1344,7 +1361,6 @@ header{position:relative}
 
 <main class="app page" id="pgHealth" hidden>
   <div class="ptitle"><h1>Здоровье</h1></div>
-  <section class="card fcc" id="fcCard" hidden></section>
   <div class="seg3" id="hSeg"></div>
   <div id="hBody" style="display:flex;flex-direction:column;gap:12px"></div>
   <div class="card" id="moodDaysC" hidden><div class="label" style="margin-bottom:10px">Последние 7 дней</div>
@@ -3015,6 +3031,7 @@ const CARDS=[
 const LAYOUT=Object.assign(Object.fromEntries(CARDS.map(c=>[c[0],true])), loadJSON("layout",{})||{});
 function applyLayout(){
   for(const [id] of CARDS) $(id).hidden=!LAYOUT[id];
+  try{ if(!hmRecent()) $("cardHealth").hidden=true; }catch(e){}   // HM is defined further down
   const n=["cardPress","cardKp"].filter(id=>LAYOUT[id]).length;
   $("grid2").hidden=!n; $("grid2").classList.toggle("one", n===1);
   if(LAYOUT.cardMood) $("moodChip").hidden=true; else if($("moodPop").hidden && typeof renderMood==="function" && window.KIND_READY) $("moodChip").hidden=false;
@@ -3205,8 +3222,6 @@ function renderMood(){
   const list=rec?rec.marks:[];
   $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
   $("mtMain").innerHTML = $("mtoday").innerHTML;
-  { const need=window.FC_READY?FC_NEED:14, nd=Object.keys(S.mood).length, pg=$("fcProg");
-    if(pg){ pg.hidden=nd>=need; pg.innerHTML=`<span>Личный прогноз: <b>${nd}</b> из ${need} дней с отметками</span><i><b style="width:${Math.round(nd/need*100)}%"></b></i>`; } }
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
   const chip=$("moodChip"), last=list[list.length-1];
@@ -3509,13 +3524,14 @@ function gluCat(v,ctx){
 const fmtNum=(v,d=1)=>v.toFixed(d).replace(".",",");
 const whenTxt=t=>{ const d=new Date(t), td=isoDay(new Date()), yd=isoDay(new Date(Date.now()-DAY)), dd=isoDay(d); return (dd===td?"сегодня":dd===yd?"вчера":fmtDM(d))+", "+fmtHM(d); };
 function lastOf(type){ for(let i=HM.list.length-1;i>=0;i--) if(HM.list[i].type===type&&!HM.del[HM.list[i].id]) return HM.list[i]; return null; }
+function hmRecent(){ const t0=Date.now()-30*DAY; return HM.list.some(m=>(m.type==="bp"||m.type==="glu")&&!HM.del[m.id]&&m.t>=t0); }
 function renderHealth(){
   const bp=lastOf("bp"), gl=lastOf("glu");
   const tile=(kind,title,val,unit,sub,cat)=>`<button class="htile" data-hopen="${kind}"><span class="ht">${title}</span><span class="hv">${val}<small>${unit}</small></span><span class="hs">${sub}</span>${cat?`<span class="hp" style="--c:${cat.c}">${cat.l}</span>`:""}</button>`;
   $("hTiles").innerHTML =
     (tr("bp")?(bp?tile("bp","А/Д",`${bp.sys}/${bp.dia}`,"",whenTxt(bp.t),bpCat(bp.sys,bp.dia)):tile("bp","А/Д","—","","нажмите, чтобы записать",null)):"") +
     (tr("glu")?(gl?tile("glu","Сахар",fmtNum(gl.v),"ммоль/л",`${GCTX[gl.ctx]||""} · ${whenTxt(gl.t)}`,gluCat(gl.v,gl.ctx)):tile("glu","Сахар","—","","нажмите, чтобы записать",null)):"");
-  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","glu"].some(tr);
+  const ch=$("cardHealth"); if(ch) ch.hidden=!LAYOUT.cardHealth||!["bp","glu"].some(tr)||!hmRecent();
 }
 function openMeas(tab){ HM.tab=tab||HM.tab; renderMeas(); showSheet("measSheet"); }
 function nowLocal(){ const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000); return d.toISOString().slice(0,16); }
@@ -4134,7 +4150,6 @@ const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain"];
 const DRAG_ON=true;
 // every place where blocks can be rearranged: the main screen and both parts of the reports
 const ZONES=[
-  {tab:"today", box:"pgToday", ids:ORDER_DEF, key:"order", before:()=>$("pgToday").querySelector("footer")},
   {tab:"rep", box:"repData", ids:["repSelC","repPanels","repKpi","repInsC","nnC","moodFacC","moodSymC"], key:"order_rep", before:()=>$("repData").querySelector(".src")}
 ];
 const DRAG={on:false,timer:0,el:null,ph:null,y0:0,x0:0,top:0,lastY:0,raf:0,suppress:0,zone:null};
@@ -5735,6 +5750,8 @@ cyNav();
    Every build that changes something people notice adds an entry at the top (newest first, a new unique id).
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
+  {id:"2026-10-04b", t:[
+    ["📊","<b>Главный экран проще.</b> Наверху — прогноз самочувствия на завтра и главная причина, остальное под «подробнее». Карточки погоды свернуты под кнопку «Погода подробнее»."]]},
   {id:"2026-10-04", t:[
     ["🔔","<b>Новые смайлики и проще отметка.</b> Теперь три лица: Отлично, Нормально, Плохо — одно касание. После «Нормально» или «Плохо» можно отметить, что не так: голова, сердце, упадок сил, суставы, головокружение. Можно и пропустить — оценка уже записана."],
     ["📊","<b>В шторке так же:</b> нажали «Плохо» — уведомление само спросит, что беспокоит. Все прежние отметки сохранились и учитываются в анализе."]]},
@@ -6272,34 +6289,38 @@ function fcFor(date){
     :lv==="mid"?["Хорошо бы измерить давление утром","Прогулка без нагрузки, больше воды"]:[];
   return {date, lv, personal:personal2, why:why.slice(0,3), tips:tr("bp")?tips:tips.filter(t=>!/давлени|тонометр/.test(t)), n:st.n};
 }
+let FC_OPEN=false;
 function fcRender(){
   if(!window.FC_READY) return;          // called by render() before this part of the script has run
-  const card=$("fcCard"), strip=$("fcStrip"); if(!card||!strip) return;
+  const card=$("fcCard"); if(!card) return;
   let F=null; try{ F=fcFor(isoDay(new Date(Date.now()+DAY))); }catch(e){}
-  if(!F){ card.hidden=true; strip.hidden=true; return; }
-  const L=FC_L[F.lv];
-  strip.hidden=!(F.personal&&F.lv!=="good");
-  strip.style.setProperty("--fc",L.c);
-  strip.innerHTML=`<span class="e">${lic(L.e)}</span><span>${F.lv==="hard"?"Завтра <b>может быть тяжело</b>":"Завтра <b>возможно недомогание</b>"}</span><span class="go">›</span>`;
+  if(!F){ card.hidden=true; return; }
+  const L=FC_L[F.lv], main=F.why.find(x=>x.w>0)||F.why[0], more=F.why.filter(x=>x!==main);
   card.style.setProperty("--fc",L.c); card.hidden=false;
-  const why=`<div class="why">${F.why.map(x=>`<div><span class="i">${lic(x.i)}</span><span>${x.t}${x.sub?`<br><span class="fhm">${x.sub}</span>`:""}</span></div>`).join("")}</div>`;
-  if(!F.personal){
-    const left=FC_NEED-F.n;
-    card.innerHTML=`<div class="label">Ваш прогноз на завтра</div>
-      <div class="lvl"><span class="e">${lic(L.e)}</span><div><b>${L.t}</b><small>общий прогноз для метеозависимых</small></div></div>${why}
-      <div class="fhm" style="margin-top:12px">Чтобы прогноз стал <b>личным</b>, отмечайте самочувствие ещё <b>${left} ${fcDays(left)}</b></div>
-      <div class="prog"><i style="width:${Math.round(F.n/FC_NEED*100)}%"></i></div><div class="fhm">${F.n} из ${FC_NEED} дней</div>`;
-    fcPlanSoon(); return;
-  }
-  card.innerHTML=`<div class="mhd"><div class="label">Ваш прогноз на завтра</div><button class="mlink" data-fcrep>подробнее ›</button></div>
-    <div class="lvl"><span class="e">${lic(L.e)}</span><div><b>${L.t}</b><small>${F.lv==="good"?"погода спокойная, без ваших триггеров":"для вас, по вашим прошлым отметкам"}</small></div></div>
-    <div class="meter">${[1,2,3].map(i=>`<i style="${i<=L.n?"background:var(--fc)":""}"></i>`).join("")}</div>${why}
-    ${F.tips.length?`<div class="tips">${F.tips.map(t=>`<div>${t}</div>`).join("")}</div>`:""}
-    <div class="src" style="margin-top:10px">Прогноз по вашей статистике за последние месяцы, это не диагноз.</div>`;
+  const line=x=>`<div><span class="i">${lic(x.i)}</span><span>${x.t}${x.sub?`<br><span class="fhm">${x.sub}</span>`:""}</span></div>`;
+  const prog=F.personal?"":`<div class="fprog"><span>Личный прогноз: <b>${F.n} из ${FC_NEED}</b> дней</span><i><b style="width:${Math.round(Math.min(F.n,FC_NEED)/FC_NEED*100)}%"></b></i></div>`;
+  const det=(main&&main.sub?`<div class="why">${line({...main,t:"Почему так"})}</div>`:"")+
+    (more.length?`<div class="why">${more.map(line).join("")}</div>`:"")+
+    (F.tips.length?`<div class="tips">${F.tips.map(t=>`<div>${t}</div>`).join("")}</div>`:"")+
+    (F.personal?`<button class="mlink" data-fcrep style="margin-top:10px">Ваши триггеры — в отчётах ›</button>`
+      :`<div class="fhm" style="margin-top:10px">Пока прогноз общий. Отмечайте самочувствие каждый день — через ${FC_NEED} дней он станет личным.</div>`);
+  card.innerHTML=`<div class="label">Прогноз на завтра для вас</div>
+    <div class="lvl"><span class="e">${lic(L.e)}</span><div><b>${L.t}</b>${main?`<small>${main.t}</small>`:""}</div></div>${prog}
+    <button class="mlink fcmore" data-fcmore aria-expanded="${FC_OPEN}">${FC_OPEN?"скрыть":"подробнее"} ›</button>
+    <div class="fcdet"${FC_OPEN?"":" hidden"}>${det}</div>`;
   fcPlanSoon();
 }
-$("fcStrip").addEventListener("click",()=>{ showTab("health"); const c=$("fcCard"); c.scrollIntoView({block:"start",behavior:"smooth"}); c.classList.remove("hl"); void c.offsetWidth; c.classList.add("hl"); });
-$("fcCard").addEventListener("click",e=>{ if(e.target.closest("[data-fcrep]")) showTab("rep"); });
+$("fcCard").addEventListener("click",e=>{
+  if(e.target.closest("[data-fcrep]")){ showTab("rep"); return; }
+  if(e.target.closest("[data-fcmore]")){ FC_OPEN=!FC_OPEN; const c=$("fcCard"); c.querySelector(".fcdet").hidden=!FC_OPEN;
+    const b=c.querySelector("[data-fcmore]"); b.textContent=FC_OPEN?"скрыть ›":"подробнее ›"; b.setAttribute("aria-expanded",FC_OPEN); }
+});
+/* «Погода подробнее»: the weather cards fold away; the app remembers whether they are open */
+function wxMoreSet(open){ $("wxMore").hidden=!open; $("wxBtn").setAttribute("aria-expanded",open); $("wxBtn").classList.toggle("open",open);
+  $("wxBtn").firstElementChild.textContent=open?"Свернуть погоду":"Погода подробнее";
+  if(open) requestAnimationFrame(()=>{ try{ if(mapSmall.home) mapSmall.setHome(...mapSmall.home); else mapSmall.draw(); }catch(e){} }); }
+wxMoreSet(store.get("wxMore")==="1");
+$("wxBtn").addEventListener("click",()=>{ const o=$("wxMore").hidden; store.set("wxMore",o?"1":"0"); wxMoreSet(o); });
 /* the evening warning (native, build 67+): the app leaves the next two evenings' texts, Android shows them on time */
 var FCN = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.FcNotify||null) : null, fcTimer=0;
 const fcOn=()=>store.get("fcOn")!=="0", fcTime=()=>/^\d\d:\d\d$/.test(store.get("fcTime")||"")?store.get("fcTime"):"20:00";
