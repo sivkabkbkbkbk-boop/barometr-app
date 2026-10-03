@@ -775,6 +775,16 @@ header{position:relative}
 .mchead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .mchead .mlink{margin:0;padding:0}
 #cardMood .mtoday{margin-top:8px}
+#cardMood{border-color:rgb(var(--inkc) / .28);padding:16px 14px 14px}
+#cardMood .mq{font-family:var(--f-disp);font-weight:300;font-size:19px;letter-spacing:-.01em;line-height:1.2}
+#cardMood .kgrid.k3{gap:10px;margin-top:4px}
+#cardMood .kbtn{gap:8px}
+#cardMood .kbtn .e{width:84px;height:84px;border-radius:50%;border:1px solid var(--glass-line);transition:border-color .2s,opacity .2s}
+#cardMood .kgrid.k3 .kbtn .e .kf{width:60px;height:60px}
+#cardMood .kbtn .l{font-size:13px;color:var(--ink);opacity:.8}
+#cardMood.done .kbtn:not(.on) .e,#cardMood.done .kbtn:not(.on) .l{opacity:.4}
+#cardMood .kbtn.on .e{border-color:var(--ink)}
+@media (max-width:360px){#cardMood .kbtn .e{width:72px;height:72px}#cardMood .kgrid.k3 .kbtn .e .kf{width:52px;height:52px}}
 #cardMood .mtoday:empty{display:none}
 /* 5-day strip is tappable */
 .d5 .dd{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
@@ -1296,13 +1306,13 @@ header{position:relative}
 
   <div class="notice" id="pendingNote" hidden></div>
 
-  <section class="card fade fcc" id="fcCard" hidden></section>
-
   <section class="card fade" id="cardMood" style="animation-delay:.02s" aria-label="Самочувствие">
-    <div class="mchead"><div class="label">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
+    <div class="mchead"><div class="mq">Как вы себя чувствуете?</div><span class="mcr"><button class="mlink" id="cmOpen">дневник ›</button></span></div>
     <div class="kgrid k3" id="kgMain"></div>
     <div class="mtoday" id="mtMain"></div>
   </section>
+
+  <section class="card fade fcc" id="fcCard" hidden></section>
 
   <section class="hero fade tap" id="heroTap" role="button" tabindex="0" aria-label="Погода: подробный прогноз на сегодня">
     <div>
@@ -3222,6 +3232,8 @@ function renderMood(){
   const list=rec?rec.marks:[];
   $("mtoday").innerHTML = list.length ? `<span class="mnote" style="width:100%;text-align:center">Сегодня:</span>`+list.map(m=>`<span class="tm"><span class="e">${kf(m.k)}</span>${fmtHM(new Date(m.t))}<button data-rm="${m.id}" aria-label="Удалить отметку ${fmtHM(new Date(m.t))}">×</button></span>`).join("") : "";
   $("mtMain").innerHTML = $("mtoday").innerHTML;
+  { const pk=new Set(KPICK.map(x=>x.k)), lk=[...list].reverse().find(m=>pk.has(m.k))?.k;
+    $("cardMood").classList.toggle("done",!!lk); for(const b of kg.children) b.classList.toggle("on",b.dataset.k===lk); }
   const n=Object.keys(S.mood).length;
   $("mstreak").textContent = n ? `дней: ${n}` : "";
   const chip=$("moodChip"), last=list[list.length-1];
@@ -5751,7 +5763,7 @@ cyNav();
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
   {id:"2026-10-04b", t:[
-    ["📊","<b>Главный экран проще.</b> Наверху — прогноз самочувствия на завтра и главная причина, остальное под «подробнее». Карточки погоды свернуты под кнопку «Погода подробнее»."]]},
+    ["📊","<b>Главный экран проще.</b> Наверху — крупные смайлики для отметки, под ними прогноз на завтра с главной причиной. Карточки погоды свернуты под кнопку «Погода подробнее»."]]},
   {id:"2026-10-04", t:[
     ["🔔","<b>Новые смайлики и проще отметка.</b> Теперь три лица: Отлично, Нормально, Плохо — одно касание. После «Нормально» или «Плохо» можно отметить, что не так: голова, сердце, упадок сил, суставы, головокружение. Можно и пропустить — оценка уже записана."],
     ["📊","<b>В шторке так же:</b> нажали «Плохо» — уведомление само спросит, что беспокоит. Все прежние отметки сохранились и учитываются в анализе."]]},
