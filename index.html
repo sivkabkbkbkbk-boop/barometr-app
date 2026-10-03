@@ -581,6 +581,7 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .ginv .ibtns{display:flex;gap:8px;align-self:stretch}.ginv .ibtns .btn{flex:1;text-align:center}
 .gleave{align-self:center;margin:14px 0 4px;font-size:12.5px}
 .cl .pv.inv{color:var(--press)}
+#nnCv{display:block;width:100%;height:150px;margin-top:4px;touch-action:pan-y;-webkit-tap-highlight-color:transparent}
 .nnb{text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted);margin-left:6px}
 #nnB{display:flex;flex-direction:column;gap:12px;margin-top:10px}
 .nnt{display:flex;align-items:baseline;gap:10px}.nnt b{font-size:34px;font-weight:200;font-family:var(--f-disp)}.nnt span{font-size:14px;line-height:1.3}
@@ -1302,7 +1303,7 @@ header{position:relative}
   <div class="kpis" id="repKpi"></div>
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
   <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="facs" id="mfacs"></div><div class="fhm" style="margin-top:10px">Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем (коэффициент корреляции). Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div></div>
-  <div class="card" id="nnC"><div class="label">Нейросеть <span class="nnb">учится на ваших отметках</span></div><div id="nnB"></div></div>
+  <div class="card" id="nnC"><div class="label">Нейросеть <span class="nnb">учится на ваших отметках</span></div><canvas id="nnCv" aria-hidden="true"></canvas><div id="nnB"></div></div>
   <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
@@ -5602,12 +5603,14 @@ let NN_CACHE=null;
 function nnRender(){
   const box=$("nnB"); if(!box) return;
   const D=nnData(), N=D.X.length, bad=D.Y.reduce((a,b)=>a+b,0);
+  nnVizSize(); nnVizSet(N, 0);
   if(N<NN_NEED||bad<3||N-bad<3){
     const left=Math.max(NN_NEED-N,0);
     box.innerHTML=`<div class="nnq">Нейросеть ищет, какая погода влияет именно на вас, и учится на каждой отметке. ${left?`Ей нужно ещё <b>${left} ${fcDays(left)}</b> с отметками и погодой.`:"Нужны и хорошие, и плохие дни — хотя бы по три."}</div><div class="nnp"><i style="width:${Math.min(100,Math.round(N/NN_NEED*100))}%"></i></div><div class="nnq">${N} из ${NN_NEED}</div>`;
     return; }
   const key=JSON.stringify([D.X,D.Y]).length+":"+N+":"+bad+":"+D.X.flat().reduce((a,v)=>a+(v||0),0).toFixed(2);
   if(!NN_CACHE||NN_CACHE.key!==key){ const M=nnTrain(D.X,D.Y); NN_CACHE={key, M, chk:nnCheck(D.X,D.Y), imp:nnWeight(M,D.X,D.Y)}; }
+  nnVizSet(N, Math.max(0,(NN_CACHE.chk.ok-NN_CACHE.chk.base)/Math.max(1,NN_CACHE.chk.n))*4);
   const {M,chk,imp}=NN_CACHE, tm=isoDay(new Date(Date.now()+DAY)), w=fcDayWx(tm);
   let tom="";
   if(w){ const f=S.feed[S.slug], hs=(f?.hours||[]).filter(h=>isoDay(new Date(h.t))===tm), avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
@@ -5620,6 +5623,51 @@ function nnRender(){
     (top.length&&better?`<div class="nnf">${top.map(o=>`<span>${o.l[0].toUpperCase()+o.l.slice(1)} <span class="fhm">· ${o.dir>0?"хуже, когда выше":"хуже, когда ниже"}</span></span><i style="width:${Math.max(12,Math.round(o.imp/mx*90))}px"></i>`).join("")}<small>на что нейросеть опирается сильнее всего</small></div>`
       :`<div class="nnq">Пока нейросеть не нашла в погоде ничего, что заметно влияло бы на ваше самочувствие. Чем больше отметок, тем точнее выводы.</div>`)+
     `<div class="nnq">Обучена на <b>${N} ${N%10===1&&N%100!==11?"дне":"днях"}</b>, переучивается с каждой отметкой. Проверка на днях, которых она не видела: угадывает <b>${r10(chk.ok)} из 10</b>${better?"":" — не лучше, чем просто считать каждый день обычным"}. Всё считается на телефоне и никуда не отправляется. Это подсказка, а не диагноз.</div>`;
+}
+/* the network as a living cloud: points drift at random, link up when close, run from the finger and sway when
+   the page scrolls; the more days it has learned from, the denser the cloud */
+const NNV={pts:[], want:24, raf:0, on:false, w:0, h:0, dpr:1, ink:"#fff", touch:null, lastY:scrollY, pulses:[], t:0};
+function nnVizSize(){ const c=$("nnCv"); if(!c) return; const r=c.getBoundingClientRect(); NNV.dpr=Math.min(2,devicePixelRatio||1);
+  NNV.w=r.width; NNV.h=r.height; c.width=Math.round(r.width*NNV.dpr); c.height=Math.round(r.height*NNV.dpr);
+  NNV.ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim()||"#ececec"; }
+function nnVizSet(days, acc){
+  NNV.want=Math.round(Math.min(90, 30+days*.9)); NNV.acc=acc||0;
+  while(NNV.pts.length<NNV.want){ const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random());
+    NNV.pts.push({x:NNV.w/2+Math.cos(a)*r*NNV.w*.38, y:NNV.h/2+Math.sin(a)*r*NNV.h*.36, vx:0, vy:0, r:Math.random()<.12?2.6:1.2+Math.random()*.8, ph:Math.random()*6}); }
+  NNV.pts.length=Math.min(NNV.pts.length,NNV.want);
+}
+function nnVizFrame(){
+  const c=$("nnCv"); if(!c||!NNV.on){ NNV.raf=0; return; }
+  const g=c.getContext("2d"), P=NNV.pts, W=NNV.w, H=NNV.h, cx=W/2, cy=H/2; NNV.t++;
+  for(const p of P){
+    p.vx+=(Math.random()-.5)*.09; p.vy+=(Math.random()-.5)*.09;                       // a random walk, never the same twice
+    const dx=(p.x-cx)/(W*.42), dy=(p.y-cy)/(H*.40), d=dx*dx+dy*dy; if(d>1){ p.vx-=dx*.05*(d-1); p.vy-=dy*.05*(d-1); }   // keep the cloud shape
+    if(NNV.touch){ const tx=p.x-NNV.touch.x, ty=p.y-NNV.touch.y, td=Math.hypot(tx,ty); if(td<70&&td>.1){ const f=(70-td)/70*1.2; p.vx+=tx/td*f; p.vy+=ty/td*f; } }
+    p.vx*=.95; p.vy*=.95; p.x+=p.vx; p.y+=p.vy; }
+  g.setTransform(NNV.dpr,0,0,NNV.dpr,0,0); g.clearRect(0,0,W,H); g.strokeStyle=NNV.ink; g.fillStyle=NNV.ink;
+  const L=40+NNV.acc*14, links=[];
+  for(let i=0;i<P.length;i++) for(let j=i+1;j<P.length;j++){ const a=P[i], b=P[j], d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d<L){ g.globalAlpha=(1-d/L)*.45; g.lineWidth=.6; g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke(); links.push([a,b]); } }
+  for(const p of P){ const big=p.r>2; g.globalAlpha=big?.95:.55+.35*Math.sin(NNV.t*.03+p.ph);
+    g.beginPath(); g.arc(p.x,p.y,p.r,0,7); big?(g.lineWidth=1,g.stroke()):g.fill(); }
+  // signals running along the links, as if it were thinking
+  if(links.length&&Math.random()<.08) NNV.pulses.push({l:links[Math.floor(Math.random()*links.length)], k:0});
+  for(const q of NNV.pulses){ q.k+=.06; const [a,b]=q.l; g.globalAlpha=1-q.k*.6; g.beginPath(); g.arc(a.x+(b.x-a.x)*q.k, a.y+(b.y-a.y)*q.k, 1.4, 0, 7); g.fill(); }
+  NNV.pulses=NNV.pulses.filter(q=>q.k<1); g.globalAlpha=1;
+  NNV.raf=requestAnimationFrame(nnVizFrame);
+}
+function nnVizRun(on){ NNV.on=on&&!matchMedia("(prefers-reduced-motion: reduce)").matches; if(NNV.on&&!NNV.raf){ nnVizSize(); NNV.raf=requestAnimationFrame(nnVizFrame); } }
+{ const c=$("nnCv");
+  if(c&&"IntersectionObserver" in window) new IntersectionObserver(es=>{ for(const e of es) nnVizRun(e.isIntersecting&&!document.hidden); }).observe(c);
+  const at=e=>{ const r=c.getBoundingClientRect(); NNV.touch={x:e.clientX-r.left, y:e.clientY-r.top}; };
+  c?.addEventListener("pointerdown",e=>{ at(e); for(const p of NNV.pts){ const d=Math.hypot(p.x-NNV.touch.x,p.y-NNV.touch.y); if(d<90){ p.vx+=(p.x-NNV.touch.x)/(d+1)*3; p.vy+=(p.y-NNV.touch.y)/(d+1)*3; } } });   // a tap scatters the points
+  c?.addEventListener("pointermove",at);
+  for(const ev of ["pointerup","pointercancel","pointerleave"]) c?.addEventListener(ev,()=>{ NNV.touch=null; });
+  // scrolling shakes the cloud like jelly
+  addEventListener("scroll",()=>{ const dy=scrollY-NNV.lastY; NNV.lastY=scrollY; if(!NNV.on) return; const k=Math.max(-6,Math.min(6,dy*.08));
+    for(const p of NNV.pts){ p.vy-=k*(.6+Math.random()*.8); p.vx+=(Math.random()-.5)*Math.abs(k)*.6; } },{passive:true});
+  addEventListener("resize",()=>{ if(NNV.on) nnVizSize(); });
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) nnVizRun(false); });
 }
 window.NN_READY=true;
 
