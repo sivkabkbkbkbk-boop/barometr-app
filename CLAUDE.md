@@ -35,7 +35,7 @@
   marked day) that grows from a small round seed over 14 marked days; points drift, react to touch and scroll. «Что связано…» = tiles with a
   5-step scale (`facLevel`), details in `#facSheet`.
   «Симптомы и погода» = the same tiles (`symLevel`, `symOpen`), same `#facSheet`.
-- First run: `introSheet`, steps 0–5 (greeting, «вы женщина/мужчина» + last period date for women, location,
+- First run: `introSheet`, steps 0–6 (greeting, «Вы… женщина/мужчина», for women «Самочувствие и цикл» + last period date, location,
   first mark, reminders, «Приятного пользования» + «Начать»); live smiley scenes `masGo(n)` (`masWho`: bow / moustache).
 - Cycle (women only, `SEX=="f"`, `cycOn()`): tab «Цикл» `#pgCycle`, data `CY={list:[{id,s,e}],del,len,plen}` synced
   in the Disk copy (never to friends); `cyStats()` own averages, `cyAt(d)` day + phase (mens/after/mid/pms/late),
