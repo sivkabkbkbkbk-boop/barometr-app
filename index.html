@@ -145,7 +145,6 @@ footer{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:1
 footer a{color:var(--muted)}
 .fade{animation:fadeup .7s ease both}
 @keyframes fadeup{from{opacity:.001;transform:translateY(8px)}}
-
 /* sheets */
 .scrim{position:fixed;inset:0;background:rgba(3,8,15,.55);z-index:20;opacity:0;transition:opacity .25s}
 .scrim.open{opacity:1}
@@ -247,7 +246,6 @@ footer a{color:var(--muted)}
 .wlist::-webkit-scrollbar{display:none}
 .witem{height:40px;line-height:40px;text-align:center;scroll-snap-align:center;font-size:19px;color:var(--ink);cursor:pointer;user-select:none;-webkit-user-select:none;transform-origin:50% 50%;backface-visibility:hidden}
 .witem.on{font-weight:600}
-
 .remrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
 .remrow[hidden]{display:none}
 .remrow input{background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:10px;color:var(--ink);padding:6px 8px;font-family:var(--f-mono);font-size:14px}
@@ -394,17 +392,14 @@ footer{padding-bottom:64px}
 /* friends & chats */
 .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:18px;color:#0d1726;flex:none;position:relative}
 .av em{position:absolute;right:-5px;bottom:-5px;font-style:normal;font-size:18px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
-.av.grp{background:linear-gradient(135deg,#ffb86b,#8be38f);font-size:22px}
 .fcard{display:flex;flex-direction:column;gap:10px}
 .fcard .fr{display:flex;align-items:center;gap:11px}
 .fcard .fn{flex:1;display:flex;flex-direction:column;min-width:0}
 .fcard .fn b{font-size:16px}
 .fcard .x{border:0;background:none;color:var(--muted);font-size:17px;cursor:pointer;padding:4px}
-.chatb.big{font-size:19px;padding:6px 10px;border-radius:12px}
 .ftiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .ftile{background:rgb(var(--inkc) / .05);border:1px solid var(--glass-line);border-radius:12px;padding:7px 9px;display:flex;flex-direction:column;gap:3px;min-width:0;align-items:flex-start}
 .ftile .kl{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.ftile .fv{font-family:var(--f-mono);font-size:17px}
 .wk4{font-size:14px;letter-spacing:1px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
 .ftile .hp{font-size:10.5px;padding:1px 7px}
 .flast{border:0;text-align:left;background:var(--sheet-2);border-radius:12px;padding:8px 10px;font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -415,38 +410,16 @@ footer{padding-bottom:64px}
 .cl .pv{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cl .r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:11px;color:var(--muted);flex:none}
 .cnt{background:var(--press);color:var(--on-acc);font-weight:700;font-size:11px;border-radius:9px;padding:1px 7px}
-.newg{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink);font-size:14px;cursor:pointer;border-style:dashed!important}
-.newg small{font-size:11.5px;color:var(--muted)}
-.newg:disabled{opacity:.55;cursor:default}
-.gplist{display:flex;flex-direction:column;gap:4px}
-.gpick{display:flex;align-items:center;gap:10px;background:var(--sheet-2);border-radius:12px;padding:8px 10px;font-size:15px}
-.gpick input{width:20px;height:20px;accent-color:#7fd6c8}
 .msg .who{font-size:11.5px;font-weight:700}
 .msg.card{background:none;padding:0;border-radius:0;max-width:86%}
 .msg.card .tm{padding-right:6px}
-.stc{background:linear-gradient(135deg,rgba(127,214,200,.18),var(--sheet-2));border:1px solid rgba(127,214,200,.3);border-radius:16px;padding:9px 12px;min-width:220px}
-.msg.me .stc{background:linear-gradient(135deg,rgba(120,173,255,.25),#23406a)}
-.sth{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.stb{display:flex;gap:10px;align-items:center;margin-top:4px}
-.ste{font-size:32px;font-family:"Noto Color Emoji","Apple Color Emoji",sans-serif}
-.stv{display:flex;flex-direction:column;gap:2px;font-size:13px}
-.stv .mono{font-family:var(--f-mono);font-size:17px}
-.stl{font-weight:600}
 /* connection check */
 .chk{display:flex;flex-direction:column;gap:6px}
-.fsb{gap:14px!important}
-#fsGo{width:100%}
-.fstep{display:flex;gap:12px;align-items:flex-start;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:16px;padding:12px 14px}
-.fstep b{font-weight:600}
-.fstep.done{opacity:.75}.fstep.done .fsn{background:#8be38f;color:#0d1726}
-.fsn{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--on-ink);font-weight:700;font-size:14px}
-#fsName{background:var(--sheet);border:1px solid var(--glass-line);border-radius:12px;color:var(--ink);padding:10px 12px;font-size:16px}
 .welc{display:flex;flex-direction:column;gap:12px}.welc .wl{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}.welc .wl b{font-weight:600}.welc .wi{font-size:22px;flex:0 0 28px;text-align:center}.welc .btn{width:100%;box-sizing:border-box;text-align:center}.welc .note{font-size:13px;opacity:.7;line-height:1.4}
 .ck{display:flex;gap:10px;align-items:flex-start;background:var(--sheet-2);border-radius:12px;padding:9px 11px}
 .ck b{font-size:17px;line-height:1.2}
 .ck>span{display:flex;flex-direction:column;gap:2px}
 .ck .ct{font-weight:600;font-size:14px}
-.ck .cd{font-size:12.5px;color:var(--muted);line-height:1.35}
 .ck.bad{box-shadow:inset 3px 0 0 #ff7a6b}.ck.warn{box-shadow:inset 3px 0 0 #f2c94c}.ck.ok{box-shadow:inset 3px 0 0 #8be38f}
 /* map summary + time strip */
 .rsum{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;min-height:22px}
@@ -459,7 +432,6 @@ footer{padding-bottom:64px}
 .rsi{font-size:20px}
 /* rearranging cards */
 #pgToday > .card, #pgToday > #grid2{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-
 .lifted{animation:none!important;transform:scale(1.03);box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 2px rgba(127,214,200,.7);border-radius:20px;opacity:.97;pointer-events:none}
 .dragph{border:2px dashed rgba(127,214,200,.55);border-radius:20px;background:rgba(127,214,200,.06)}
 body.reordering{overflow-anchor:none}
@@ -472,17 +444,8 @@ body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2
 .dtip b{font-weight:600}
 .dtip button{flex:none;background:none;border:1px solid currentColor;color:inherit;border-radius:10px;padding:7px 12px;font:inherit;font-size:13.5px}
 /* new friend popup */
-.frpop{position:fixed;inset:0;z-index:45;background:rgba(3,8,15,.6);display:flex;align-items:center;justify-content:center;padding:24px}
-.frcard{position:relative;width:100%;max-width:340px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:24px;padding:26px 20px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation:frIn .45s cubic-bezier(.2,1.4,.4,1)}
 @keyframes frIn{from{transform:scale(.7);opacity:0}}
-.frconf{position:absolute;top:-26px;font-size:46px;animation:frC 1.2s ease-out}
 @keyframes frC{0%{transform:scale(.3) rotate(-30deg)}60%{transform:scale(1.25) rotate(10deg)}100%{transform:none}}
-.frav{display:flex;align-items:center;gap:0;margin-top:14px}
-.frav .av{width:58px;height:58px;font-size:24px;border:3px solid var(--sheet)}
-.frav .av+.av{margin-left:-12px}
-.frcard h3{margin:6px 0 0;font-size:19px;font-family:var(--f-disp);font-weight:500}
-.frcard p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.4}
-.frbtn{display:flex;gap:8px;margin-top:10px;width:100%}.frbtn .btn{flex:1}
 /* one combined chart */
 .seg3.mini{width:auto;grid-template-columns:auto auto;padding:2px}
 .seg3.mini button{padding:5px 10px;font-size:12px}
@@ -505,25 +468,9 @@ body.reordering #pgToday > .card:not(.lifted), body.reordering #pgToday > #grid2
 .app.page{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}
 .mchip{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}
 /* floating "Chats" button: quiet glass when all is read, fills with the theme accent when something is new */
-.cfab{position:fixed;left:0;top:0;z-index:13;width:56px;height:56px;border-radius:50%;padding:0;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;display:grid;place-items:center;color:var(--press);background:rgb(var(--shc) / .72);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgb(var(--pressc) / .35);box-shadow:0 8px 22px rgb(0 0 0 / .28),inset 0 1px 0 rgb(255 255 255 / .06);transition:left .28s cubic-bezier(.3,1.4,.5,1),top .28s,background .3s,color .3s,box-shadow .3s,transform .15s}
-.cfab svg{width:26px;height:26px}
-.cfab.unread{background:linear-gradient(145deg,rgb(var(--pressc) / .78),var(--press));color:var(--on-acc);border-color:transparent;box-shadow:0 8px 24px rgb(var(--pressc) / .45),0 0 0 6px rgb(var(--pressc) / .12)}
-.cfab.unread::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgb(var(--pressc) / .5);animation:cfRing 2.4s ease-out infinite;pointer-events:none}
-.cfab.drag{transition:none;transform:scale(1.1)}
-.cfab:active:not(.drag){transform:scale(.93)}
-.cfab:focus-visible{outline:2px solid var(--press);outline-offset:3px}
-.cfab.bump{animation:cfBump .5s cubic-bezier(.3,1.6,.5,1)}
-.cfab .n{position:absolute;top:-4px;right:-4px;min-width:21px;height:21px;padding:0 6px;border-radius:11px;background:var(--kp-hi);color:#fff;font:700 11.5px/21px var(--f-body);text-align:center;box-shadow:0 0 0 2.5px var(--sky-top)}
-.cfab .ava{position:absolute;bottom:-3px;left:-3px;width:22px;height:22px;border-radius:50%;font:700 10.5px/22px var(--f-body);color:#15171b;text-align:center;box-shadow:0 0 0 2.5px var(--sky-top)}
-.cfab:not(.unread) .n,.cfab:not(.unread) .ava{display:none}
 @keyframes cfRing{0%{transform:scale(.9);opacity:.9}80%,100%{transform:scale(1.35);opacity:0}}
 @keyframes cfBump{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-8deg)}70%{transform:scale(.96) rotate(4deg)}100%{transform:scale(1)}}
-.cpeek{position:fixed;z-index:13;width:200px;background:var(--sheet);color:var(--ink);border:1px solid var(--glass-line);border-radius:16px;padding:9px 11px;font-size:13px;line-height:1.35;box-shadow:0 10px 26px rgb(0 0 0 / .28);opacity:0;transform:scale(.96);pointer-events:none;transition:opacity .22s,transform .22s}
-.cpeek.on{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
-.cpeek b{display:flex;align-items:center;gap:6px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cpeek b::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--kp-ok)}
-.cpeek span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted)}
-@media (prefers-reduced-motion: reduce){.cfab,.cpeek{transition:none}.cfab.unread::after,.cfab.bump{animation:none}}
+@media (prefers-reduced-motion: reduce){}
 .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
 .ptitle{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
 .ptitle h1{margin:0;font-family:var(--f-disp);font-weight:500;font-size:24px}
@@ -573,26 +520,9 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .rps b{color:var(--ink)}
 /* chat */
 .fhm{font-size:11.5px;color:var(--muted)}
-.hmsw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
-.chatb{position:relative;border:1px solid var(--glass-line);background:rgb(var(--inkc) / .06);border-radius:10px;font-size:15px;padding:3px 8px;cursor:pointer;color:var(--ink)}
-.chatb i{position:absolute;top:-6px;right:-6px;background:#ff6b5e;color:#fff;font-style:normal;font-size:10px;font-weight:700;min-width:16px;height:16px;line-height:16px;border-radius:8px;padding:0 4px;text-align:center}
 .mcr{display:flex;align-items:center;gap:8px;flex:none}
 .mcr .mlink{white-space:nowrap}
-#chatSheet{height:calc(100% - 28px - env(safe-area-inset-top,0px))}
-#chatSheet .sbody{flex:1}
 .clist{display:flex;flex-direction:column;gap:6px;padding-top:4px}
-.csys{align-self:center;text-align:center;font-size:12px;color:var(--muted);margin:4px 0}
-.ginv{align-self:stretch;text-align:center;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:18px;padding:18px 16px;margin:14px 0;display:flex;flex-direction:column;gap:12px;align-items:center}
-.ginv .gi{width:52px;height:52px;border-radius:50%;border:1px solid var(--glass-line);display:grid;place-items:center}.ginv .gi .li{width:26px;height:26px}
-.ginv h3{margin:0;font-size:18px;font-weight:400;line-height:1.3}
-.ginv .gm{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-.ginv .gm span{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--sheet);border:1px solid var(--glass-line);border-radius:99px;padding:3px 10px 3px 3px}
-.ginv .gm i{width:20px;height:20px;border-radius:50%;font:700 10px/20px var(--f-body);color:#15171b;font-style:normal;text-align:center}
-.ginv .gm small{color:var(--muted)}
-.ginv .fhm{font-size:12.5px;color:var(--muted);line-height:1.4}
-.ginv .ibtns{display:flex;gap:8px;align-self:stretch}.ginv .ibtns .btn{flex:1;text-align:center}
-.gleave{align-self:center;margin:14px 0 4px;font-size:12.5px}
-.cl .pv.inv{color:var(--press)}
 #nnCv{display:block;width:100%;height:230px;margin-top:4px;touch-action:pan-y;-webkit-tap-highlight-color:transparent}
 .nnb{text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted);margin-left:6px}
 #nnB{display:flex;flex-direction:column;gap:12px;margin-top:10px}
@@ -602,12 +532,10 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 .nnf small{grid-column:1/-1;color:var(--muted);font-size:12px;margin-top:-4px}
 .nnq{font-size:12.5px;color:var(--muted);line-height:1.4}
 .nnp{height:3px;background:var(--glass-line);border-radius:2px;overflow:hidden}.nnp i{display:block;height:100%;background:var(--ink)}
-.cday{align-self:center;font-size:11px;color:var(--muted);background:var(--sheet-2);border-radius:99px;padding:2px 10px;margin:6px 0 2px}
 .msg .tx{white-space:pre-wrap}
 .msg{max-width:80%;align-self:flex-start;background:var(--sheet-2);border-radius:16px 16px 16px 4px;padding:7px 11px 5px;display:flex;flex-direction:column;gap:2px;font-size:14.5px;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere}
 .msg.me{align-self:flex-end;background:#2c5c8f;border-radius:16px 16px 4px 16px}
 .msg .tm{align-self:flex-end;font-size:10px;color:rgb(var(--inkc) / .6);font-family:var(--f-mono)}
-.msg .er{color:#ff8b7e;cursor:pointer;padding:0 3px}
 /* "what to track": tiles on the welcome sheet */
 .trgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tropt{position:relative;border:1.5px solid var(--glass-line);border-radius:16px;padding:10px;background:var(--sheet-2);color:var(--ink);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -665,55 +593,19 @@ body[data-tab]:not([data-tab="today"]) #sky{opacity:.35}
 @media (prefers-reduced-motion: reduce){.fcc.hl{animation:none}}
 .msg.me{color:#fff}
 .msg.me .tm{color:rgb(255 255 255 / .65);display:inline-flex;align-items:center;gap:3px}
-.mst{display:inline-flex;width:17px;height:11px;align-items:center}
-.mst svg{width:17px;height:11px;overflow:visible}
-.mst path{fill:none;stroke:rgb(255 255 255 / .6);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:stroke .35s}
-.mst .t2{transition:opacity .25s,transform .25s}
-.mst.sent .t2{opacity:0;transform:translateX(-3px)}
-.mst.read path{stroke:var(--rd)}
-.mst.pop{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
-.mst.wait svg{display:none}
-.mst.wait::before{content:"";width:9px;height:9px;border:1.6px solid rgb(255 255 255 / .6);border-radius:50%;border-top-color:transparent;animation:mstSpin 1s linear infinite}
 @keyframes mstSpin{to{transform:rotate(360deg)}}
-.msg.me.gi{cursor:pointer}
-.rinfo{align-self:flex-end;max-width:84%;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:12px;padding:7px 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
-.rinfo div{display:flex;justify-content:space-between;gap:10px}
-.rinfo b{color:var(--ink);font-weight:600}
-@media (prefers-reduced-motion: reduce){.mst.pop{animation:none}}
-.cnote{align-self:center;text-align:center;font-size:13px;color:var(--muted);background:var(--sheet-2);border-radius:14px;padding:12px 14px;margin:10px 0;display:flex;flex-direction:column;gap:8px;align-items:center}
-.cfoot{flex:none;padding:6px 12px 10px;border-top:1px solid var(--glass-line);display:flex;flex-direction:column;gap:8px;background:var(--sheet)}
-.cquick .chip{font-size:12.5px}
-.cin{display:flex;gap:8px;align-items:flex-end}
-.cin textarea{flex:1;min-width:0;background:var(--sheet-2);border:1px solid var(--glass-line);border-radius:22px;padding:11px 14px;color:var(--ink);font:inherit;font-size:15px;line-height:20px;height:44px;max-height:124px;resize:none;overflow-y:hidden;box-sizing:border-box;display:block}   /* grows with the text up to 5 lines, like in Telegram */
-.csend{width:44px;height:44px;border-radius:50%;border:0;background:var(--press);color:var(--on-acc);font-size:18px;cursor:pointer;flex:none}
-.csend:disabled,.cin textarea:disabled{opacity:.4}
+@media (prefers-reduced-motion: reduce){}
+   /* grows with the text up to 5 lines, like in Telegram */
 /* friends */
 .friends{display:flex;flex-direction:column;gap:10px}
-.fbox{background:var(--sheet-2);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
-.fbox .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.fbox input{flex:1;min-width:0;background:var(--sheet);border:1px solid var(--glass-line);border-radius:10px;padding:9px 10px;color:var(--ink);font-size:13.5px}
-.fbox .hint{margin:0}
 .fgrid{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.fgrid.fgv{overflow:auto;max-height:160px;overscroll-behavior:contain;position:relative}   /* me + 5 friends, the rest scroll inside */
-.fgrid.fgv thead th{position:sticky;top:0;background:var(--sheet-2);z-index:2}
-#pgFriends .fgrid th.nm,#pgFriends .fgrid.fgv thead th{background:var(--sky-top)}
-.fgrid.fgv thead th:first-child{left:0;z-index:3}
+   /* me + 5 friends, the rest scroll inside */
 .fvals{display:flex;gap:9px;flex-wrap:nowrap;margin-top:4px;font-size:12.5px;overflow:hidden}
 .fvals span{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .fvals b{font-family:var(--f-mono);font-weight:400}
 .fvals .li{width:14px;height:14px;opacity:.7;flex:none}
-#pgFriends .fcard .fr{gap:9px}#pgFriends .fcard .x{padding:4px 2px}
 .fvals .no b{color:var(--muted)}
-.flist{padding:6px 10px}
-.flh,.flr{display:grid;grid-template-columns:minmax(0,1fr) 66px 36px 46px 28px;gap:6px;align-items:center}
-.flh{height:24px;color:var(--muted);border-bottom:1px solid var(--glass-line)}.flh span{display:grid;place-items:center}.flh .li{width:15px;height:15px;opacity:.75}
-.flb{max-height:160px;overflow-y:auto;overscroll-behavior:contain}   /* 5 friends in view */
-.flr{height:32px;cursor:pointer;border-bottom:1px solid var(--glass-line)}.flr:last-child{border-bottom:0}
-.flr .av{width:30px;height:30px;font-size:13px}.flr .av em{width:15px;height:15px;right:-4px;bottom:-4px}
-.flr .fnm{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.flr .fw{font-style:normal;color:var(--kp-hi);font-weight:700}
-.flr .fv{font-family:var(--f-mono);font-size:12.5px;text-align:center;white-space:nowrap}.flr .fv.no{color:var(--muted)}
-.flr .chatb{padding:2px;justify-self:end;border:0}.flr .chatb .li{width:17px;height:17px}.flh{height:20px}
+   /* 5 friends in view */
 .fgrid table{border-collapse:separate;border-spacing:2px;font-size:12px}
 .fgrid th{font-family:var(--f-mono);font-weight:400;color:var(--muted);font-size:9.5px;padding:0 1px;min-width:20px}
 .fgrid th.nm{text-align:left;min-width:0;font-family:var(--f-body);font-size:12px;color:var(--ink);font-weight:600;padding-right:6px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sheet-2);z-index:1}
@@ -835,7 +727,6 @@ header{position:relative}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}.refresh[data-state="done"] .ico-c{stroke-dashoffset:0}}
 @media (max-width:360px){.temp{font-size:76px}.big{font-size:24px}}
-
 /* ---- themes: SVG charts and small details ---- */
 [fill="#eef3f8"]{fill:var(--ink)} [stroke="#eef3f8"]{stroke:var(--ink)}
 [fill="#9fb1c5"]{fill:var(--muted)} [stroke="#9fb1c5"]{stroke:var(--muted)}
@@ -855,7 +746,6 @@ header{position:relative}
 .thpick button[aria-pressed="true"]{border-color:var(--press);box-shadow:0 0 0 2px var(--press) inset}
 .thpick .sw{width:44px;height:30px;border-radius:8px;border:1px solid rgba(0,0,0,.15);overflow:hidden;display:flex}
 .thpick .sw i{flex:1}
-
 /* the answer above the map and the time "throttle" on the map */
 .rans{display:flex;gap:10px;align-items:center;margin:6px 0 0}.rans .rsi{font-size:22px;line-height:1}.rans .prnote{margin-top:0}
 .rat{font-size:12px;color:var(--muted);margin-top:2px}.rat b{color:var(--ink);font-family:var(--f-mono);font-weight:300}
@@ -907,7 +797,6 @@ header{position:relative}
 .facts .fi{display:inline-flex;width:1.35em;height:1.35em;color:var(--ink);opacity:.85;filter:drop-shadow(0 1px 2px rgb(var(--shc) / .6))}.facts .fi svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .facts .fx b small{font-size:.85em;color:var(--muted);font-family:var(--f-body);font-weight:400}
 .facts .par{font-style:normal;font-weight:700;margin-left:1px;font-family:var(--f-body)}
-
 /* tablets and wide screens: two columns of cards; the header, the weather, the map and wide charts span both */
 @media (min-width:760px){
   .app{max-width:1080px;padding-inline:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-content:start;align-items:stretch}
@@ -920,12 +809,10 @@ header{position:relative}
   #mfacs,#msymp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:stretch}   /* long lists: two columns inside a full-width card */
   #hBody{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
   #hBody>.card:only-child,#hBody>.hempty{grid-column:1/-1}
-  #pgFriends{display:flex;max-width:760px}
   #pgToday{grid-auto-flow:row dense}
   #grid2{grid-column:auto}
   #pgToday,#repData.rsec,#hBody{align-items:stretch}   /* cards side by side are the same height */
   #pgToday>.card,#grid2>.card,#repData>.card,#hBody>.card{height:100%;box-sizing:border-box}
-
   #repData>.kpis:has(.kpi[style*="grid-column:1/-1"]){grid-column:1/-1}
   .rmap{height:300px}
   .sheet{max-width:680px}
@@ -1131,56 +1018,23 @@ header{position:relative}
 .mkf *{vector-effect:non-scaling-stroke;stroke-width:1.1px}
 #pgRep .rpan{background:none;border-top:1px solid var(--glass-line);border-radius:0;padding:14px 0 4px}
 /* the friends screen, the chats and the floating buttons */
-#pgFriends .ptitle h1{font-weight:200;font-size:30px}
-#pgFriends .chip{background:none;font-weight:300}
-#pgFriends .chip.on{border-color:var(--ink);color:var(--ink);background:none}
-#pgFriends .seg3{background:none;border-bottom:1px solid var(--glass-line);border-radius:0;padding:0;gap:0}
-#pgFriends .seg3 button{border-radius:0;padding:9px 2px;font-weight:300}
-#pgFriends .seg3 button[aria-pressed="true"]{background:none;color:var(--ink);font-weight:400;box-shadow:inset 0 -1px 0 var(--ink)}
-#pgFriends .card{background:none;border:0;border-top:1px solid var(--glass-line);border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:16px 2px;animation:none}
-#pgFriends .label{font-weight:400;letter-spacing:.16em}
-#pgFriends .friends{gap:0}
 .av{background:none!important;border:1px solid var(--glass-line);color:var(--ink);font-weight:300}
 .av em{right:-6px;bottom:-6px;display:grid;background:var(--sky-top);border-radius:50%}
 .av em .kf{width:18px;height:18px}
-.av.grp .li{width:20px;height:20px}
-#pgFriends .fcard .fn b{font-weight:400}
-#pgFriends .fhm,#pgFriends .hint,#pgFriends .src{font-weight:300}
 .wxi{display:inline-block;width:16px;height:16px;vertical-align:-3px;color:var(--ink)}.wxi svg{width:100%;height:100%}
-.chatb{background:none;display:inline-grid;place-items:center}
-.chatb .li{width:18px;height:18px}.chatb.big .li{width:20px;height:20px}
-#pgFriends .ftiles{gap:0}
-#pgFriends .ftile{background:none;border:0;border-left:1px solid var(--glass-line);border-radius:0;padding:2px 10px}
-#pgFriends .ftile:first-child{border-left:0;padding-left:0}
-#pgFriends .ftile .fv{font-weight:300}
-#pgFriends .ftile .hp{background:none;padding:0;font-weight:400}
 .wk4{display:inline-flex;gap:2px;align-items:center;font-family:inherit;color:var(--muted)}.wk4 .kf{width:16px;height:16px;color:var(--ink)}
-#pgFriends .flast{background:none;border:1px solid var(--glass-line);font-weight:300}
-#pgFriends .fbox{background:none;border-top:1px solid var(--glass-line);border-radius:0;padding:14px 2px}
-#pgFriends .fbox input{background:none}
-#pgFriends .btn{background:none;color:var(--ink);border:1px solid var(--ink);font-weight:400}
-#pgFriends .btn.ghost{border-color:var(--glass-line);font-weight:300}
-#pgFriends .fgrid td{background:none;font-family:inherit;border:1px solid transparent}
-#pgFriends .fgrid td .kf{width:18px;height:18px;margin:auto}
-#pgFriends .fgrid td.today{outline:0;border-color:var(--glass-line)}
-#pgFriends .fgrid th.nm{font-weight:400}
-#pgFriends .rsw .knob,.rsw .knob{background:none;border:1px solid var(--glass-line)}
+.rsw .knob{background:none;border:1px solid var(--glass-line)}
 .rsw .knob::after{top:1px;left:1px;width:16px;height:16px;background:none;border:1px solid var(--muted);box-sizing:border-box}
 .rsw input:checked+.knob{background:none;border-color:var(--ink)}
 .rsw input:checked+.knob::after{border-color:var(--ink);background:var(--ink)}
 .cl .t b{font-weight:400}
-.newg{background:none!important;font-weight:300}
-#pgFriends .hei .li{width:40px;height:40px;stroke-width:1.1;color:var(--ink)}
 /* chat bubbles: outlines, yours in the text colour */
 .msg{background:none;border:1px solid var(--glass-line);font-weight:300}
 .msg.me{background:none;border-color:rgb(var(--inkc) / .55);color:var(--ink)}
 .msg.me .tm{color:var(--muted)}
-.msg.me .stc{background:none}
 /* the floating mood and chat buttons */
 .mchip{background:var(--sky-top);box-shadow:none}
 .mchip .e{display:grid;place-items:center;color:var(--ink)}.mchip .e .kf{width:30px;height:30px}
-.cfab{background:var(--sky-top)!important;color:var(--ink)!important;border:1px solid rgb(var(--inkc) / .4)!important;box-shadow:none!important}
-.cfab svg{stroke-width:1.4}
 /* the pop-up sheets (settings first of all) */
 .sheet{background:var(--sky-top);border-top:1px solid var(--glass-line)}
 .sheet .shead h2{font-weight:300;font-size:19px}
@@ -1398,28 +1252,16 @@ header{position:relative}
     <div class="cyleg"><span><i></i>месячные</span><span><i class="p"></i>ожидаются</span><span><i class="d"></i>середина цикла</span><span><i class="u"></i>перед месячными</span></div>
     <div class="fhm" style="margin-top:8px;text-align:center">нажмите на день — отметить начало или конец месячных</div></section>
   <section class="card" id="cyStatC"></section>
-  <div class="src">Календарь считает дни и фазы по вашим отметкам, прогноз приблизительный. Это не способ предохранения от беременности и не диагноз: если цикл заметно изменился, месячные стали очень болезненными или задержка больше недели — обратитесь к врачу. Данные цикла хранятся только на телефоне и в вашей папке на Яндекс Диске, друзьям они не показываются.</div>
-</main>
-<main class="app page" id="pgFriends" hidden>
-  <div class="ptitle"><h1>Друзья</h1><button class="chip on" id="frInvite">＋ Пригласить</button></div>
-  <div class="seg3 two" id="fSeg"><button data-fs="friends">Друзья</button><button data-fs="chats">Чаты <i id="fSegN"></i></button></div>
-  <div class="friends" id="friends"></div>
-  <div class="friends" id="chats" hidden></div>
+  <div class="src">Календарь считает дни и фазы по вашим отметкам, прогноз приблизительный. Это не способ предохранения от беременности и не диагноз: если цикл заметно изменился, месячные стали очень болезненными или задержка больше недели — обратитесь к врачу. Данные цикла хранятся только на телефоне и в вашей папке на Яндекс Диске.</div>
 </main>
 <nav class="bnav" id="bnav" aria-label="Разделы">
   <button data-tab="health" aria-current="page"><b><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.3A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></b>Здоровье</button>
   <button data-tab="today"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.3M2.5 9h1.3M4.4 4.4l.9.9M13.6 4.4l-.9.9"/><path d="M8 20h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.4 1.4A2.8 2.8 0 0 0 8 20z"/></svg></b>Погода</button>
   <button data-tab="cycle" id="navCy" hidden><b><svg viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 1-6 2.5"/><path d="M6 3.2V6h2.8"/><path d="M12 8.6c1.6 2 2.5 3.3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.3.9-2.6 2.5-4.6z"/></svg></b>Цикл</button>
   <button data-tab="rep"><b><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></svg></b>Отчёты</button>
-  <button data-tab="friends"><b><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5.5M18 20a5 5 0 0 0-3-4.6"/></svg></b>Друзья<i id="navN"></i></button>
   <button data-act="settings" id="navSet"><b><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></b>Настройки</button>
 </nav>
 
-<div class="frpop" id="frPop" hidden><div class="frcard" role="dialog" aria-modal="true" aria-labelledby="frT">
-  <div class="frconf" aria-hidden="true">🎉</div><div class="frav" id="frAv"></div>
-  <h3 id="frT"></h3><p id="frP"></p>
-  <div class="frbtn"><button class="btn" id="frChat">💬 Написать</button><button class="btn ghost" id="frOk">Отлично</button></div>
-</div></div>
 <div class="mpop" id="moodPop" hidden>
   <div class="mcard" id="moodCardPop" role="dialog" aria-modal="true" aria-labelledby="mq">
     <div class="mhead"><div class="mq" id="mq">Как вы себя чувствуете?</div></div>
@@ -1429,8 +1271,6 @@ header{position:relative}
   </div>
 </div>
 <button class="mchip" id="moodChip" hidden aria-label="Самочувствие сегодня"><span class="e" id="moodChipE">🙂</span></button>
-<button class="cfab" id="chatFab" hidden aria-label="Чаты"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/><path d="M9 10.5h6M9 13.5h3.5"/></svg><span class="n" id="chatFabN"></span><span class="ava" id="chatFabA"></span></button>
-<div class="cpeek" id="chatPeek" role="status"><b id="chatPeekW"></b><span id="chatPeekX"></span></div>
 
 <div class="scrim" id="scrim" hidden></div>
 
@@ -1492,7 +1332,7 @@ header{position:relative}
     <details class="smore" id="setMore"><summary>Дополнительно</summary><div class="smb">
       <div class="ctitle">О приложении</div>
       <div class="src">«Не18мнеуже» — личный дневник самочувствия и погоды, а не медицинское изделие. Цветные пометки («норма», «повышенное») и выводы — справочные подсказки для взрослых, они не ставят диагноз и не заменяют врача. Если показатели вас беспокоят — обратитесь к врачу.</div>
-      <div class="src">Данные о здоровье, включая календарь цикла, хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает, друзьям цикл не показывается. Календарь цикла считает прогноз приблизительно и не является способом предохранения от беременности. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
+      <div class="src">Данные о здоровье, включая календарь цикла, хранятся на вашем телефоне и в папке приложения на вашем Яндекс Диске. Разработчик их не получает. Календарь цикла считает прогноз приблизительно и не является способом предохранения от беременности. Погода: Open-Meteo, геомагнитный фон: NOAA и GFZ, название места по координатам: OpenStreetMap и BigDataCloud — эти сервисы получают только координаты выбранного города.</div>
       <label class="rsw" id="statW" hidden style="justify-content:space-between"><span>Анонимная статистика<br><span class="fhm">раз в день приложение отмечает «открыто сегодня», а при первом запуске — «установлено». Без имени, номера телефона, города и данных о здоровье. Так разработчик видит, сколько людей пользуются приложением</span></span><input type="checkbox" id="statOn"><span class="knob" aria-hidden="true"></span></label>
       <a class="btn ghost" href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Политика конфиденциальности</a>
       <div class="src" id="appVer" style="text-align:center;opacity:.8"></div>
@@ -1502,7 +1342,7 @@ header{position:relative}
         <button class="btn ghost" id="devHide">Скрыть это меню</button></div>
       <button class="btn ghost" id="appShare">Поделиться приложением</button>
       <button class="btn ghost" id="updCheck" hidden>Проверить обновления</button>
-      <div class="src">Отметки самочувствия, города и друзья хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
+      <div class="src">Отметки самочувствия, давление, сахар и города хранятся в папке приложения на вашем Яндекс Диске — так они не потеряются при смене телефона и совпадут в приложении и на сайте.</div>
     </div></details>
   </div>
 </section>
@@ -1543,11 +1383,6 @@ header{position:relative}
   </div>
 </section>
 
-<section class="sheet" id="chkSheet" role="dialog" aria-modal="true" aria-labelledby="chkTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead"><div><h2 id="chkTitle">Проверка связи с друзьями</h2><div class="sc">по шагам: что работает, а что нет</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
-  <div class="sbody"><div class="chk" id="chkOut"></div><button class="btn ghost" id="chkCopy">📋 Скопировать результат</button></div>
-</section>
 
 <section class="sheet" id="introSheet" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
   <div class="grab"></div>
@@ -1643,7 +1478,6 @@ header{position:relative}
     <div class="ctitle" style="margin-top:4px">Яндекс Диск</div>
     <div class="wl"><span class="wi"></span><span><b>Ничего не потеряется.</b> Отметки самочувствия, давление и сахар сохраняются копией на вашем Диске.</span></div>
     <div class="wl"><span class="wi"></span><span><b>Новый телефон — те же данные.</b> Войдите тем же Яндекс ID, и всё вернётся.</span></div>
-    <div class="wl"><span class="wi"></span><span><b>Друзья и чат</b> работают только через Диск.</span></div>
     <a class="btn" id="welGo" href="#" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">Войти через Яндекс</a>
     <button class="btn ghost" id="welLater">Позже</button>
     <div class="note">«Не18мнеуже» — дневник самочувствия, а не медицинское изделие: подсказки не ставят диагноз и не заменяют врача. Пользуясь приложением, вы соглашаетесь с <a href="https://sivkabkbkbkbk-boop.github.io/barometr/privacy.html" target="_blank" rel="noopener" style="color:inherit">политикой конфиденциальности</a>.</div>
@@ -1652,50 +1486,8 @@ header{position:relative}
   </div>
 </section>
 
-<section class="sheet" id="fsSheet" role="dialog" aria-modal="true" aria-labelledby="fsTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead"><div><h2 id="fsTitle">Пригласить друга</h2><div class="sc" id="fsSub"></div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
-  <div class="sbody fsb">
-    <div class="fstep" id="fsS1"><span class="fsn">1</span><div><b>Войдите через Яндекс</b><div class="fhm">Там хранится то, что видят друзья: имя, город и отметки.</div>
-      <a class="btn" id="fsLogin" href="#" target="_blank" rel="noopener" style="text-align:center;text-decoration:none;margin-top:8px">Войти через Яндекс</a></div></div>
-    <div class="fstep" id="fsS2"><span class="fsn">2</span><div style="flex:1;min-width:0"><b>Как вас зовут?</b><div class="fhm">Это имя увидит друг.</div>
-      <input id="fsName" maxlength="40" autocomplete="off" placeholder="Например, Света" aria-label="Ваше имя для друзей" style="margin-top:8px;width:100%;box-sizing:border-box"></div></div>
-    <button class="btn" id="fsGo">📨 Отправить приглашение</button>
-    <div class="src" id="fsNote">Откроется список мессенджеров — выберите чат с другом.</div>
-  </div>
-</section>
 
-<section class="sheet" id="grpSheet" role="dialog" aria-modal="true" aria-labelledby="grpTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead"><div><h2 id="grpTitle">Общий чат</h2><div class="sc">все участники увидят сообщения друг друга, если они друзья между собой</div></div><button class="xbtn" data-close aria-label="Закрыть">×</button></div>
-  <div class="sbody">
-    <input class="search" id="grpName" placeholder="Название, например «Семья»" maxlength="40" autocomplete="off">
-    <div class="ctitle" style="margin:0">Кто в чате</div>
-    <div class="gplist" id="grpList"></div>
-    <button class="btn" id="grpCreate">Создать чат</button>
-  </div>
-</section>
 
-<section class="sheet" id="chatsSheet" role="dialog" aria-modal="true" aria-labelledby="chatsTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead">
-    <div><h2 id="chatsTitle">Чаты</h2></div>
-    <button class="xbtn" data-close aria-label="Закрыть">×</button>
-  </div>
-  <div class="sbody" id="chatsAll"></div>
-</section>
-<section class="sheet" id="chatSheet" role="dialog" aria-modal="true" aria-labelledby="chatTitle" hidden>
-  <div class="grab"></div>
-  <div class="shead">
-    <div><h2 id="chatTitle">Чат</h2><div class="sc" id="chatSub"></div></div>
-    <button class="xbtn" data-close aria-label="Закрыть">×</button>
-  </div>
-  <div class="sbody"><div class="clist" id="chatList"></div></div>
-  <div class="cfoot">
-    <div class="chips cquick" id="chatQuick"></div>
-    <div class="cin"><textarea id="chatIn" rows="1" placeholder="Сообщение" maxlength="1000" autocomplete="off" aria-label="Сообщение"></textarea><button class="csend" id="chatSend" aria-label="Отправить">➤</button></div>
-  </div>
-</section>
 
 <section class="sheet" id="daySheet" role="dialog" aria-modal="true" aria-labelledby="dayTitle" hidden>
   <div class="grab"></div>
@@ -1742,7 +1534,7 @@ const H = 3600e3, DAY = 24*H;
 /* In the Android app the important keys are also written to the app's system storage
    (SharedPreferences), which Android backs up to the user's Google account. */
 const PREF = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? window.Capacitor.Plugins?.Preferences : null;
-const BACKUP_KEYS = ["track","layout","marks","marksDel","cities","city","remind","gpsDone","yandex","friends","share","meas","measDel","order","welcomeY","remind2"];
+const BACKUP_KEYS = ["track","layout","marks","marksDel","cities","city","remind","gpsDone","yandex","meas","measDel","order","welcomeY","remind2"];
 const store = {
   get(k){ try{return localStorage.getItem(k)}catch(e){return null} },
   set(k,v){ try{localStorage.setItem(k,v)}catch(e){} if(PREF && BACKUP_KEYS.includes(k)) PREF.set({key:k, value:String(v)}).catch(()=>{}); }
@@ -2263,7 +2055,6 @@ function showSheet(id){
   setTimeout(()=>{const f=sh.querySelector(".search")||sh.querySelector(".xbtn"); f&&f.focus({preventScroll:true});},300);
 }
 function closeSheetView(instant){
-  if(openSheet&&openSheet.id==="fsSheet") store.set("fsPending","");   // closed on purpose: do not reopen it later
   document.getElementById("navSet")?.classList.remove("open");
   if(!openSheet) return;
   const sh=openSheet, sc=$("scrim"); openSheet=null;
@@ -3514,7 +3305,7 @@ renderMood();
 
 /* ---------- blood pressure and blood sugar diary (synced with Yandex Disk like the smileys) ---------- */
 const HM = {list: loadJSON("meas",[])||[], del: loadJSON("measDel",{})||{}, tab:"bp", ctx:"fast"};
-function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet){ ySyncSoon(); if(SH.on) shareSoon(); } }
+function saveHM(quiet){ HM.list=HM.list.filter(m=>!HM.del[m.id]).sort((a,b)=>a.t<b.t?-1:1); store.set("meas",JSON.stringify(HM.list)); store.set("measDel",JSON.stringify(HM.del)); if(!quiet) ySyncSoon(); }
 const GCTX={fast:"натощак",before:"до еды",after:"после еды",night:"перед сном",other:"в другое время"};
 /* what the person tracks; installs from before this choice keep everything that existed then */
 var TRACK = Object.assign({bp:true, glu:true, steps:true}, loadJSON("track",{})||{});
@@ -3608,7 +3399,6 @@ $("cardHealth").addEventListener("click",e=>{
   if(e.target.closest("#hRep")) openReport();
 });
 renderHealth();
-let shareTimer=0; function shareSoon(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>shareUpload().catch(()=>{}), 4000); }
 
 /* ---------- report: any combination of indicators on one time axis ---------- */
 const REP_SERIES=[["bp","А/Д","#d55181"],["glu","Сахар","#c98500"],["mood","Самочувствие","#eef3f8"],["press","Атм. давление","#199e70"],["temp","Температура","#d95926"],["kp","Магнитный фон","#008300"],["rain","Осадки","#3987e5"],["hum","Влажность","#1aa3c4"],["wind","Ветер","#8792a6"]];
@@ -4135,35 +3925,6 @@ $("hBody").addEventListener("click",e=>{
   if(a.dataset.hact==="rep"){ REP.per="30"; openReport(HSEG==="bp"?["bp","mood","press"]:["glu","mood"]); }
 });
 
-/* ---------- "you are friends now": shown on both phones ---------- */
-const FRQ=[];
-function friendWelcome(f, how){
-  FRQ.push([f,how]); if(FRQ.length>1) return; showFriendPop();
-}
-function showFriendPop(){
-  const [f,how]=FRQ[0]; const nm=esc(f.name||"Друг");
-  $("frAv").innerHTML=`<span class="av" style="background:${colorOf(SH.key||"me")}">${esc((SH.name||"Я")[0].toUpperCase())}</span><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}</span>`;
-  $("frT").innerHTML = how==="invite" ? `${nm} приглашает вас в друзья` : how==="accepted" ? `${nm} принял(а) ваше приглашение!` : how==="reply" ? `${nm} у вас в друзьях!` : how==="sent" ? `${nm} у вас в друзьях!` : `Вы и ${nm} теперь друзья!`;
-  $("frP").innerHTML = how==="invite" ? `Вы будете видеть самочувствие друг друга и сможете переписываться.` : how==="accepted" ? `Теперь вы видите самочувствие, давление и сахар друг друга и можете переписываться.`
-    : how==="wait" ? `Отправьте ${nm} ответ, чтобы и он(а) увидел(а) вас.`
-    : how==="sent" ? `Ответ отправлен. Когда ${nm} нажмёт на ссылку в сообщении, вы будете видеть друг друга. Если отправили не туда — нажмите на имя во вкладке «Друзья» и отправьте ответ ещё раз.`
-    : how==="reply" ? `Остался один шаг, чтобы и ${nm} увидел(а) вас: нажмите «Отправить ответ» и выберите ваш чат с ${nm}. Когда ${nm} нажмёт на ссылку — вы станете друзьями у обоих.`
-    : `Теперь вы видите состояние друг друга и можете переписываться.`;
-  $("frChat").textContent = how==="invite" ? "🤝 Принять" : how==="reply" ? "📨 Отправить ответ" : "💬 Написать"; $("frChat").dataset.act=how;
-  $("frOk").textContent = how==="invite" ? "Не сейчас" : how==="reply" ? "Позже" : "Отлично";
-  $("frChat").hidden=how!=="reply"&&how!=="invite"&&!f.s; $("frPop").hidden=false;
-  try{ navigator.vibrate&&navigator.vibrate([30,60,30]); }catch(e){}
-  const ln=window.Capacitor?.Plugins?.LocalNotifications;
-  if(document.hidden&&ln) ln.schedule({notifications:[{id:900+Math.floor(Math.random()*90),title:"Не18мнеуже",body:$("frT").textContent,channelId:"mood"}]}).catch(()=>{});
-}
-function closeFriendPop(){ $("frPop").hidden=true; FRQ.shift(); if(FRQ.length) setTimeout(showFriendPop,300); }
-$("frOk").addEventListener("click",()=>{ const f=FRQ[0]?.[0]; closeFriendPop(); if(f){ FSEG="friends"; showTab("friends"); } });
-$("frChat").addEventListener("click",()=>{ const f=FRQ[0]?.[0];
-  if($("frChat").dataset.act==="reply"){ closeFriendPop(); shareSend(true); return; }
-  if($("frChat").dataset.act==="invite"){ closeFriendPop(); if(PENDING_CLIP) addFriendFromLink(PENDING_CLIP); PENDING_CLIP=""; return; }
-  closeFriendPop(); if(f){ FSEG="chats"; showTab("friends"); setTimeout(()=>openChat(f.k),250); } });
-$("frPop").addEventListener("click",e=>{ if(e.target.id==="frPop") closeFriendPop(); });
-
 /* ---------- rearrange the cards on the main screen: long press, then drag ---------- */
 const ORDER_DEF=["cardRisk","cardMood","cardHealth","card5","grid2","cardRain"];
 const DRAG_ON=true;
@@ -4236,37 +3997,6 @@ addEventListener("mouseup",dragEnd);
 addEventListener("click",e=>{ if(Date.now()-DRAG.suppress<400){ e.stopPropagation(); e.preventDefault(); } },true);
 addEventListener("contextmenu",e=>{ if(DRAG.on||DRAG.timer) e.preventDefault(); });
 
-/* ---------- friends: step-by-step connection check ---------- */
-async function friendCheck(){
-  const out=$("chkOut"), rows=[]; showSheet("chkSheet");
-  const draw=()=>{ out.innerHTML=rows.map(r=>`<div class="ck ${r.s}"><b>${r.s==="ok"?"✅":r.s==="bad"?"❌":r.s==="warn"?"⚠️":"⏳"}</b><span><span class="ct">${r.t}</span>${r.d?`<span class="cd">${r.d}</span>`:""}</span></div>`).join(""); };
-  const add=(t)=>{ const r={t,s:"wait",d:""}; rows.push(r); draw(); return (s,d)=>{ r.s=s; r.d=d||""; draw(); }; };
-  add("Версия приложения")("ok", typeof APP_VER!=="undefined"?APP_VER:"");
-  let done=add("Яндекс Диск подключён");
-  if(!Y.token){ done("bad","Не подключён. ⚙ Настройки → «Войти через Яндекс». Без Диска друзья вас не увидят."); }
-  else { try{ const r=await yReq("GET",`${YD}?path=${encodeURIComponent("app:/")}&limit=1`);
-      if(r.status===200) done("ok","вход действует, папка приложения доступна");
-      else if(r.status===404){ await yReq("PUT",`${YD}?path=${encodeURIComponent("app:/share")}`).catch(()=>{}); done("ok","вход действует (папка приложения создаётся)"); }
-      else if(r.status===401) done("bad","вход устарел — ⚙ Настройки → «Отключить», затем «Войти через Яндекс»");
-      else done("bad","Яндекс ответил кодом "+r.status+(r.data?.message?": "+esc(r.data.message):"")); }catch(e){ done("bad","нет связи с Яндексом"); } }
-  done=add("Вы делитесь состоянием с друзьями");
-  if(!SH.on) done("bad","Не включено. Вкладка «Друзья» → введите имя → «Поделиться».");
-  else done("ok",`имя «${esc(SH.name||"")}», ключ для чата ${SH.secret?"есть":"нет"}`);
-  if(SH.on){ done=add("Друзья могут прочитать ваши данные");
-    try{ await shareUpload(); const r=await yReq("GET",`https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(SH.key)}&path=${encodeURIComponent("/mood.json")}`,null,false);
-      done(r.status===200?"ok":"bad", r.status===200?"публичная папка открыта":"папка не открывается ("+r.status+"). Нажмите «Перестать делиться», затем «Поделиться» снова."); }catch(e){ done("bad","не удалось проверить: "+esc(e.message||"сеть")); } }
-  const fl=Object.values(FR.list);
-  if(!fl.length) add("Друзья")("warn","пока никого нет. Отправьте приглашение кнопкой «＋ Пригласить».");
-  for(const f of fl){ done=add(`Друг: ${esc(f.name||"?")}`);
-    await fetchFriend(f).catch(()=>{});
-    const probs=[]; if(!f.s) probs.push("старое приглашение без ключа чата — нужно новое"); if(f.gone) probs.push("закрыл(а) доступ"); if(!f.data) probs.push("его данные не читаются");
-    if(SH.on&&f.s&&f.data&&!f.acked) probs.push("у него вы ещё не в друзьях — отправьте ему приглашение кнопкой «＋ Пригласить»");
-    done(probs.length?"warn":"ok", probs.length?probs.join("; "):"всё в порядке: видите друг друга, чат работает"); }
-  if(FR.replyTo) add("Ожидает")("warn",`вы приняли приглашение от ${esc(FR.replyTo)}, но ещё не нажали «Поделиться»`);
-}
-$("chkCopy").addEventListener("click",()=>{ const t=[...$("chkOut").querySelectorAll(".ck")].map(r=>`${r.querySelector("b").textContent} ${r.querySelector(".ct").textContent}${r.querySelector(".cd")?": "+r.querySelector(".cd").textContent:""}`).join("\n");
-  shareText("Проверка связи — Не18мнеуже", t); });
-
 /* ---------- what the rain means at home: the line above the big map ---------- */
 function gridValueAt(fld, lat, lon){
   if(!fld||RAD.lats.length<2) return null;
@@ -4292,7 +4022,7 @@ $("mapInfo").addEventListener("click",()=>toast("Прогноз численно
 
 /* ---------- bottom tabs ---------- */
 let TAB="health";
-const PAGES={today:"pgToday",health:"pgHealth",cycle:"pgCycle",rep:"pgRep",friends:"pgFriends"};
+const PAGES={today:"pgToday",health:"pgHealth",cycle:"pgCycle",rep:"pgRep"};
 function showTab(t, sub){
   if(!PAGES[t]||t==="cycle"&&!cycOn()) t="today";
   const changed=TAB!==t; TAB=t;
@@ -4303,7 +4033,6 @@ function showTab(t, sub){
   if(t==="health") renderHealthPage();
   if(t==="rep") renderRepSeg();
   if(t==="cycle") renderCycle();
-  if(t==="friends"){ if(sub) FSEG=sub; renderFriendsPage(); fetchFriends(false); }
   if(t==="today"){ render(); drawRadar(); }
   if($("hFab")) $("hFab").hidden=t!=="health"||!hmOpen()||HSEG==="steps";
   if(t==="today") requestAnimationFrame(()=>{ try{ if(mapSmall.home) mapSmall.setHome(...mapSmall.home); else mapSmall.draw(); }catch(e){} });
@@ -4358,9 +4087,7 @@ async function ySync(loud){
       renderMood(); if(moodShown()) renderMoodSheet(); }
     // 3) write the merged copy back
     const cities={}; for(const [id,c] of Object.entries(S.cities)) cities[id]={id,name:c.name,region:c.region||"",lat:c.lat,lon:c.lon,order:c.order};
-    if(remote&&remote.friends) for(const [k,f] of Object.entries(remote.friends)){ if(!FR.list[k]&&!FR.removed[k]) FR.list[k]=f; else if(FR.list[k]&&!FR.list[k].s&&f.s) FR.list[k].s=f.s; }
-    const friends={}; for(const [k,f] of Object.entries(FR.list)) friends[k]={k,name:f.name,added:f.added,s:f.s||""};
-    const body=JSON.stringify({app:"Не18мнеуже",v:3,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,meas:HM.list,measDel:HM.del,cities,friends,
+    const body=JSON.stringify({app:"Не18мнеуже",v:3,updated:new Date().toISOString(),marks:S.marks,marksDel:S.marksDel,meas:HM.list,measDel:HM.del,cities,
       cycle:{list:CY.list,del:CY.del,len:CY.len,plen:CY.plen,at:CY.at||0}, sex:SEX, sexT:+(store.get("sexT")||0)});
     if(!remote || JSON.stringify(remote.meas||[])!==JSON.stringify(HM.list) || JSON.stringify(remote.measDel||{})!==JSON.stringify(HM.del) || JSON.stringify(remote.marks||null)!==JSON.stringify(S.marks) || JSON.stringify(remote.marksDel||{})!==JSON.stringify(S.marksDel) || Object.keys(remote.cities||{}).length!==Object.keys(cities).length || Object.keys(remote.friends||{}).length!==Object.keys(friends).length || JSON.stringify(remote.cycle||null)!==JSON.stringify({list:CY.list,del:CY.del,len:CY.len,plen:CY.plen,at:CY.at||0}) || (remote.sex||"")!==SEX){
       const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent(YFILE)}&overwrite=true`);
@@ -4370,8 +4097,6 @@ async function ySync(loud){
       if(put.status>=300) throw new Error("net");
     }
     Y.last=new Date().toISOString(); saveY();
-    saveFriends();
-    if(SH.on) await shareUpload().catch(()=>{});
     if(loud) toast("Синхронизировано с Яндекс Диском");
   }catch(e){
     Y.err = e.message==="auth" ? "Доступ к Диску истёк или отозван — войдите заново." : "Нет связи с Яндекс Диском, попробую позже.";
@@ -4386,15 +4111,12 @@ function yAuthUrl(manual){
                 : base+"&redirect_uri="+encodeURIComponent(Y_REDIRECT)+"&state="+(PREF?"app":"web");
 }
 function openLink(url){ if(/^barometr:\/\/update/.test(url)){ setTimeout(()=>checkUpdate(true), 600); return; }
-  if(/^barometr:\/\/chat/.test(url)){ const m=url.match(/[?&]k=([^&#]+)/), mg=url.match(/[?&]g=([^&#]+)/); const k=m?decodeURIComponent(m[1]):"", g=mg?decodeURIComponent(mg[1]):"";
-    setTimeout(()=>{ if(openSheet) hideSheet(true); FSEG="chats"; showTab("friends"); fetchFriends(true);
-      setTimeout(async()=>{ if(g&&!CHAT.groups[g]&&FR.list[k]) await chatFetch(FR.list[k]).catch(()=>{}); if(g&&CHAT.groups[g]) openGroup(g); else if(k&&FR.list[k]) openChat(k); },300); }, 400); return; }   /* tapped a chat notification */
-  if(/[?&#]k=/.test(url) && /friend/.test(url)) addFriendFromLink(url); else yTakeToken(url); }   // barometr://update comes from the "new version" notification
+  yTakeToken(url); }   // barometr://update comes from the "new version" notification
 // the login page sends the user back with barometr://auth?access_token=…
 function yTakeToken(url){
   const m=String(url||"").match(/access_token=([^&#\s]+)/); if(!m) return false;
   Y.token=decodeURIComponent(m[1]); Y.err=""; saveY();
-  toast("Яндекс Диск подключён"); renderY(); ySync(true); if($("fsSheet")&&!$("fsSheet").hidden) fsRender(); else if(typeof fsResume==="function") fsResume(); return true;
+  toast("Яндекс Диск подключён"); renderY(); ySync(true); return true;
 }
 {
   const AppU = PREF ? window.Capacitor.Plugins?.App : null;
@@ -4673,690 +4395,6 @@ $("welGo").addEventListener("click",()=>{ store.set("welcomeY","1"); setTimeout(
 $("welSheet").querySelector(".xbtn").addEventListener("click",()=>store.set("welcomeY","1"));
 $("welLater").addEventListener("click",()=>{ store.set("welcomeY","1"); hideSheet(); toast("Подключить Диск можно в ⚙ Настройках"); });
 
-/* ---------- friends: a public folder on each person's Disk with only name, city and smileys ---------- */
-const SH = Object.assign({on:false, key:"", name:"", url:"", secret:""}, loadJSON("share",{})||{});
-function newSecret(){ const b=new Uint8Array(16); crypto.getRandomValues(b); return btoa(String.fromCharCode(...b)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
-if(!SH.secret){ try{ SH.secret=newSecret(); store.set("share",JSON.stringify(SH)); }catch(e){} }
-const FR = {list: loadJSON("friends",{})||{}, removed: loadJSON("friendsRemoved",{})||{}, busy:false, lastFetch:0};
-const saveShare=()=>store.set("share",JSON.stringify(SH));
-function saveFriends(){ const out={}; for(const [k,f] of Object.entries(FR.list)) out[k]={k,name:f.name,added:f.added,data:f.data,fetched:f.fetched,s:f.s||"",acked:!!f.acked,notified:f.notified||0}; store.set("friends",JSON.stringify(out)); store.set("friendsRemoved",JSON.stringify(FR.removed)); }
-const FRIEND_PAGE="https://sivkabkbkbkbk-boop.github.io/barometr/friend.html";
-function shareLink(reply){ return `${FRIEND_PAGE}#k=${encodeURIComponent(SH.key)}&n=${encodeURIComponent(SH.name||"")}&s=${encodeURIComponent(SH.secret||"")}${reply?"&r=1":""}`; }
-async function shareUpload(){
-  // only what friends need: name, city and the last 120 days of smileys
-  const since=isoDay(new Date(Date.now()-120*DAY)), mood={};
-  for(const [d,r] of Object.entries(S.mood)) if(d>=since) mood[d]={e:r.e, s:+r.v.toFixed(2), k:r.kinds};
-  const ack=[]; for(const k of Object.keys(FR.list)) ack.push(await boxId(k));
-  let hm=null;
-  if(SH.hm!==false && SH.secret){ const since2=new Date(Date.now()-120*DAY).toISOString();
-    const rows=HM.list.filter(m=>!HM.del[m.id]&&m.t>=since2).map(m=>m.type==="bp"?{t:m.t,type:"bp",sys:m.sys,dia:m.dia}:{t:m.t,type:"glu",v:m.v,ctx:m.ctx});
-    try{ for(let i=6;i>=0;i--){ const d=isoDay(new Date(Date.now()-i*DAY)), v=stepsOf(d); if(v!=null) rows.push({t:d+"T12:00:00",type:"steps",d,v}); } }catch(e){}   // steps of the last week
-    try{ hm=await aesSeal(await shareKey(SH.secret), rows); }catch(e){} }
-  let wx=null; try{ const fd=S.feed[S.slug], h=fd?.hours?.[nearestIdx(fd.hours,Date.now())]; if(h) wx={t:Math.round(h.temp),k:cond(h.sym).kind,p:h.p!=null?Math.round(h.p*HPA2MM):null,at:new Date().toISOString()}; }catch(e){}
-  const body=JSON.stringify({app:"Не18мнеуже",v:2,name:SH.name||"Друг",city:cityOf(S.slug).name,updated:new Date().toISOString(),mood,ack,hm,wx});
-  const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/mood.json")}&overwrite=true`);
-  if(up.status!==200||!up.data?.href) throw new Error(up.status===401||up.status===403?"auth":"net");
-  const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
-}
-async function shareStart(opt={}){
-  if(!Y.token){ toast("Сначала подключите Яндекс Диск — выше в этом окне."); return; }
-  const nm=($("shName")?.value||SH.name||"").trim(); if(!nm){ toast("Напишите имя — его увидят друзья."); $("shName")?.focus(); return; }
-  SH.name=nm.slice(0,40); renderFriends("busy");
-  try{
-    await yReq("PUT", `${YD}?path=${encodeURIComponent("app:/share")}`);                       // folder (409 if it exists — fine)
-    await shareUpload();
-    const pub=await yReq("PUT", `${YD}/publish?path=${encodeURIComponent("app:/share")}`);
-    if(pub.status>=300) throw new Error(pub.status===401||pub.status===403?"auth":"net");
-    const info=await yReq("GET", `${YD}?path=${encodeURIComponent("app:/share")}&fields=public_key,public_url`);
-    if(!info.data?.public_key) throw new Error("net");
-    SH.on=true; SH.key=info.data.public_key; SH.url=info.data.public_url||""; saveShare(); renderFriends();
-    let told=0; for(const f of Object.values(FR.list)) if(f.s&&!f.notified&&!f.acked){ if(await notifyInviter(f).catch(()=>false)){ told++; friendWelcome(f,"wait"); } }
-    await shareUpload().catch(()=>{});
-    if(opt.direct) shareSend(!!opt.reply);
-    else if(FR.replyTo){ if(!told){ const rf=Object.values(FR.list).find(x=>x.name===FR.replyTo)||{k:"x",name:FR.replyTo}; friendWelcome(rf,"reply"); } }
-    else shareSend();
-    FR.replyTo=null; renderFriends(); pollHello();
-  }catch(e){ renderFriends(); toast(e.message==="auth"?"Яндекс не дал открыть доступ к папке. Отключите и снова подключите Диск.":"Не получилось открыть доступ — нет связи с Яндекс Диском."); }
-}
-/* one guided window for both sides: sign in -> name -> send (an invite, or a reply to the friend who invited us) */
-const FSW={mode:"invite", to:""};
-function fsSave(){ store.set("fsPending", JSON.stringify(FSW)); }
-function fsOpen(mode, to){
-  FSW.mode=mode||"invite"; FSW.to=to||""; fsSave();
-  $("fsTitle").textContent = FSW.mode==="reply" ? `${FSW.to} в друзьях 🎉` : "Пригласить друга";
-  $("fsSub").textContent = FSW.mode==="reply" ? `Ещё пара шагов, чтобы и ${FSW.to} видел(а) вас` : "Друг получит ссылку в мессенджере";
-  $("fsGo").textContent = FSW.mode==="reply" ? "📨 Отправить ответ" : "📨 Отправить приглашение";
-  $("fsNote").textContent = FSW.mode==="reply" ? `Откроется список мессенджеров — выберите тот чат, откуда пришло приглашение. Когда ${FSW.to} нажмёт на ссылку, вы будете видеть друг друга.` : "Откроется список мессенджеров — выберите чат с другом. Если у друга ещё нет приложения, ссылка поможет его установить.";
-  $("fsName").value=SH.name||$("fsName").value||"";
-  fsRender(); if(openSheet) hideSheet(true); setTimeout(()=>showSheet("fsSheet"), openSheet?250:0);
-}
-function fsRender(){
-  const ok=!!Y.token;
-  $("fsS1").classList.toggle("done", ok);
-  $("fsS1").querySelector("b").textContent = ok ? "Яндекс Диск подключён ✓" : "Войдите через Яндекс";
-  $("fsLogin").hidden=ok; $("fsLogin").href=yAuthUrl(false);
-  $("fsGo").disabled=!ok; $("fsGo").style.opacity=ok?"":".5";
-}
-$("fsLogin").addEventListener("click",()=>fsSave());
-$("fsGo").addEventListener("click",async()=>{
-  if(!Y.token){ toast("Сначала войдите через Яндекс — шаг 1."); return; }
-  const nm=$("fsName").value.trim(); if(!nm){ toast("Напишите своё имя — шаг 2."); $("fsName").focus(); return; }
-  SH.name=nm.slice(0,40); saveShare(); store.set("fsPending","");
-  const reply=FSW.mode==="reply"; hideSheet(true);
-  if(!SH.on){ FR.replyTo=null; await shareStart({direct:true, reply}); }
-  else { await shareUpload().catch(()=>{}); shareSend(reply); }
-});
-// back from the Yandex sign-in page: carry on where the person was
-// a friend opened the invite before the app was installed: the invite page copied the link; offer it once
-async function clipInvite(){
-  const CB=NATIVE?window.Capacitor.Plugins?.Clipboard:null; if(!CB) return false;
-  try{
-    const r=await CB.read(); const t=String(r&&r.value||""); const m=t.match(/https:\/\/\S*friend\.html#\S+/); if(!m) return false;
-    const f=parseFriendLink(m[0]); if(!f||f.k===SH.key||FR.list[f.k]) return false;
-    const seen=loadJSON("clipSeen",[])||[]; if(seen.includes(f.k)) return false;
-    seen.push(f.k); store.set("clipSeen",JSON.stringify(seen.slice(-20))); store.set("welcomeY","1");
-    FRQ.push([{k:f.k,name:f.name||"Друг"},"invite"]); if(FRQ.length===1) showFriendPop(); PENDING_CLIP=m[0];
-    return true;
-  }catch(e){ return false; }
-}
-let PENDING_CLIP="";
-function fsResume(){ const p=loadJSON("fsPending",null); if(p&&p.mode&&Y.token) setTimeout(()=>fsOpen(p.mode,p.to), 600); }
-
-async function shareSend(reply, to){
-  const nm=SH.name||"Друг";
-  const text = reply
-    ? `${nm} принял(а) твоё приглашение в «Не18мнеуже» 🌦 Нажми на ссылку, чтобы видеть состояние друг друга и переписываться:\n${shareLink(true)}`
-    : `${nm} хочет с тобой подружиться и обмениваться своим состоянием в «Не18мнеуже» 🌦\nНажми на ссылку, чтобы принять приглашение:\n${shareLink()}\n\nЕщё нет приложения? Скачать: ${GET_URL}`;
-  const Sh=window.Capacitor?.Plugins?.Share;
-  const title=`${nm} приглашает в «Не18мнеуже»`;
-  const dialogTitle=reply&&to?`Ответ для ${to}: выберите ваш чат`:"Отправить приглашение";
-  try{ if(Sh){ await Sh.share({title, text, dialogTitle}); return true; } }catch(e){ if(String(e).includes("cancel")) return false; }
-  try{ if(navigator.share){ await navigator.share({title, text}); return true; } }catch(e){ return false; }
-  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение другу."); return true; }catch(e){ toast(shareLink()); return false; }
-}
-const GET_URL="https://sivkabkbkbkbk-boop.github.io/barometr/get.html";   // for RuStore this becomes the store page
-$("hShare").addEventListener("click",()=>$("appShare").click());
-$("appShare").addEventListener("click",async()=>{
-  const title="«Не18мнеуже» — погода и самочувствие", text=`Попробуй «Не18мнеуже» 🌦 — дневник самочувствия с погодой, давлением и магнитными бурями. Скачать для Android:\n${GET_URL}`;
-  const Sh=window.Capacitor?.Plugins?.Share;
-  try{ if(Sh){ await Sh.share({title, text, dialogTitle:"Поделиться приложением"}); return; } }catch(e){ if(String(e).includes("cancel")) return; }
-  try{ if(navigator.share){ await navigator.share({title, text}); return; } }catch(e){ return; }
-  try{ await navigator.clipboard.writeText(text); toast("Ссылка скопирована — вставьте её в сообщение."); }catch(e){ toast(GET_URL); }
-});
-async function shareStop(){
-  renderFriends("busy");
-  try{ await yReq("PUT", `${YD}/unpublish?path=${encodeURIComponent("app:/share")}`); }catch(e){}
-  SH.on=false; SH.key=""; SH.url=""; saveShare(); renderFriends(); toast("Доступ закрыт: старая ссылка больше не работает.");
-}
-function parseFriendLink(url){
-  const s=String(url||""); const m=s.match(/[?&#]k=([^&#\s]+)/); if(!m) return null;
-  const n=s.match(/[?&#]n=([^&#\s]*)/), sc=s.match(/[?&#]s=([A-Za-z0-9_-]+)/);
-  return {k:decodeURIComponent(m[1]), name:n?decodeURIComponent(n[1]).slice(0,40):"", s:sc?sc[1]:"", reply:/[?&#]r=1/.test(s)};
-}
-async function addFriendFromLink(url){
-  const f=parseFriendLink(url); if(!f){ toast("Это не похоже на ссылку «Не18мнеуже»."); return; }
-  if(f.k===SH.key){ toast("Это ваша собственная ссылка."); return; }
-  const had=!!FR.list[f.k];
-  FR.list[f.k]=Object.assign({k:f.k,name:f.name||"Друг",added:new Date().toISOString()}, FR.list[f.k]||{}); delete FR.removed[f.k];
-  if(f.s) FR.list[f.k].s=f.s;
-  saveFriends();
-  await fetchFriend(FR.list[f.k]);
-  const nm=FR.list[f.k].name;
-  ySyncSoon();
-  $("moodPop").hidden=true; if(openSheet) hideSheet(true); showTab("friends","friends");
-  if(had){ toast(`${nm} уже в друзьях — обновил отметки.`); return; }
-  if(f.reply){ friendWelcome(FR.list[f.k],"accepted"); return; }
-  // the inviter adds us automatically: the friend confirms with a reply link
-  if(SH.on){
-    const ok=await notifyInviter(FR.list[f.k]).catch(()=>false);
-    if(ok) friendWelcome(FR.list[f.k],"wait");
-    else {   // no server: the answer goes back through the messenger right away, the chat list opens by itself
-      toast("Выберите чат, откуда пришло приглашение, — так вы появитесь в друзьях и там");
-      await shareUpload().catch(()=>{});
-      const sent=await new Promise(r=>setTimeout(()=>shareSend(true, nm).then(r,()=>r(false)),900));
-      friendWelcome(FR.list[f.k], sent?"sent":"reply");
-    }
-  } else {
-    FR.replyTo=null; renderFriends(); fsOpen("reply", nm);
-  }
-}
-async function fetchFriend(f){
-  try{
-    const dl=await yReq("GET", `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(f.k)}&path=${encodeURIComponent("/mood.json")}`, null, false);
-    if(dl.status===404||dl.status===403){ f.gone=true; return; }
-    if(dl.status!==200||!dl.data?.href) return;
-    const r=await yReq("GET", dl.data.href, null, false); if(r.status!==200) return;
-    const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
-    if(data&&data.mood){ f.data={name:data.name, city:data.city, mood:data.mood, updated:data.updated, wx:data.wx||null}; f.fetched=new Date().toISOString(); f.gone=false; if(data.name) f.name=data.name;
-      if(SH.key) f.acked=Array.isArray(data.ack)&&data.ack.includes(await boxId(SH.key));
-      if(data.hm&&f.s){ try{ f.data.hm=await aesOpen(await shareKey(f.s), data.hm); }catch(e){} }
-
-    }
-  }catch(e){}
-  await chatFetch(f).catch(()=>{});
-}
-async function fetchFriends(force){
-  if(FR.busy) return; if(!force && Date.now()-FR.lastFetch<10*60*1000) return;
-  const list=Object.values(FR.list); if(!list.length) return;
-  FR.busy=true; FR.lastFetch=Date.now();
-  await Promise.all(list.map(fetchFriend)); FR.busy=false; saveFriends();
-  if(TAB==="friends") renderFriends();
-}
-function renderFriends(state){
-  const box=$("friends"); if(!box) return;
-  const esc2=esc; let h="";
-  // sharing controls
-  if(state==="busy") h+=`<div class="fbox"><div class="hint">Подождите…</div></div>`;
-  else if(!SH.on){ const lastF=Object.values(FR.list).sort((a,b)=>(b.added||"")<(a.added||"")?-1:1)[0];
-    h+=`<div class="fbox"><div class="hint">Друзья увидят ваше имя, город, отметки самочувствия, давление и сахар — а вы их. Всё настраивается в одном окне за пару шагов.</div>
-      ${lastF?`<button class="btn" data-f="fsreply" data-n="${esc2(lastF.name||"Друг")}">Отправить ответ: ${esc2(lastF.name||"Друг")}</button>`:""}
-      <button class="btn${lastF?" ghost":""}" data-f="fsinvite">＋ Пригласить друга</button></div>`; }
-  const fl=Object.values(FR.list);
-  if(!fl.length&&SH.on) h+=`<div class="card hempty"><div class="hei">${lic("🤝")}</div><div>Пригласите друзей или родных — вы будете видеть самочувствие, давление и сахар друг друга и сможете переписываться.</div><button class="btn" data-f="send">Пригласить друга</button></div>`;
-  const today=isoDay(new Date());
-  // all friends in one compact list, like the wellbeing table: a row each, 5 in view, the rest scroll inside
-  if(fl.length){
-    h+=`<div class="card flist"><div class="flh"><span></span><span title="Давление">${lic("🩺")}</span><span title="Сахар">${lic("🩸")}</span><span title="Шаги">${lic("👣")}</span><span></span></div><div class="flb">`;
-    for(const f of fl){
-      const d=f.data||{}, hmv=d.hm||[];
-      const lb=[...hmv].reverse().find(m=>m.type==="bp"), lg=[...hmv].reverse().find(m=>m.type==="glu");
-      const ls=[...hmv].reverse().find(m=>m.type==="steps"&&m.d>=isoDay(new Date(Date.now()-DAY)));
-      const un=chatUnread(f), warn=!f.s||f.gone||(SH.on&&f.s&&f.data&&!f.acked);
-      const cell=(v,title,c)=>`<span class="fv${v==null?" no":""}" title="${title}"${c?` style="color:${c}"`:""}>${v==null?"—":v}</span>`;
-      h+=`<div class="flr" data-chat="${esc2(f.k)}" title="${esc2(f.gone?"закрыл(а) доступ":d.city||"")}">
-        <span class="fnm">${esc2(f.name||"Друг")}${warn?' <i class="fw">!</i>':""}</span>
-        ${cell(lb?`${lb.sys}/${lb.dia}`:null,lb?`Давление, ${shortWhen(lb.t)}`:"Давление: нет данных",lb?bpCat(lb.sys,lb.dia).c:"")}
-        ${cell(lg?fmtNum(lg.v):null,lg?`Сахар, ${shortWhen(lg.t)}`:"Сахар: нет данных",lg?gluCat(lg.v,lg.ctx).c:"")}
-        ${cell(ls?(ls.v>=10000?(ls.v/1000).toFixed(1).replace(".",",")+"т":ls.v.toLocaleString("ru-RU")):null,ls?`Шаги, ${ls.d===isoDay(new Date())?"сегодня":"вчера"}: ${ls.v}`:"Шаги: нет данных")}
-        <button class="chatb" data-chat="${esc2(f.k)}" aria-label="Написать ${esc2(f.name)}"><svg class="li" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4.5 19.5l1.3-4.2A7.5 7.5 0 1 1 20 11.5Z"/></svg>${un?`<i>${un}</i>`:""}</button></div>`;
-    }
-    h+=`</div></div>`;
-  }
-  // two weeks of smileys side by side
-  if(fl.length){
-    const days=[]; for(let i=13;i>=0;i--) days.push(isoDay(new Date(Date.now()-i*DAY)));
-    const emo=v=>v==null?"":ekf(typeof v==="number"?(MOOD[v]?.e||""):(v.e||""));
-    const rows=[[`Я`, d=>S.mood[d]]].concat(fl.map(f=>[f.name||"Друг", d=>f.data?.mood?.[d]]));
-    h+=`<div class="card"><div class="label">Самочувствие за 2 недели</div>
-      <div class="fgrid fgv" style="margin-top:10px"><table><thead><tr><th></th>${days.map(d=>`<th>${+d.slice(8)}</th>`).join("")}</tr></thead><tbody>`+
-      rows.map(([n,get])=>`<tr><th class="nm">${esc2(n)}</th>${days.map(d=>`<td class="${d===days[13]?"today":""}">${emo(get(d))}</td>`).join("")}</tr>`).join("")+`</tbody></table></div></div>`;
-  }
-  if(SH.on) h+=`<div class="fbox"><label class="rsw hmsw"><input type="checkbox" data-f="hm" ${SH.hm!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Показывать друзьям давление и сахар</label>
-    <label class="rsw hmsw"><input type="checkbox" data-f="rr" ${SH.rr!==false?"checked":""}><span class="knob" aria-hidden="true"></span>Отчёты о прочтении</label>
-    <div class="hint">Выключите, и друзья не увидят, что вы прочитали их сообщения, а вы не увидите, что прочитали они. «Получено» видно всегда.</div>
-    <div class="hint">Вы делитесь как <b>${esc2(SH.name)}</b>. «＋ Пригласить» наверху откроет «Поделиться» — друг получит приглашение с вашим именем.</div><button class="btn ghost" data-f="stop">Перестать делиться</button></div>`;
-  h+=`<button class="btn ghost" data-f="check">Не получается добавить друга? Проверить связь</button>`;
-  h+=`<div class="fbox"><div class="row"><input id="frLink" placeholder="Или вставьте ссылку от друга" autocomplete="off" aria-label="Ссылка от друга"><button class="btn ghost" data-f="add">Добавить</button></div></div>`;
-  box.innerHTML=h;
-  box.querySelectorAll(".fgrid").forEach(g=>g.scrollLeft=g.scrollWidth);
-  // exactly me + 5 friends in view; more rows scroll inside the table
-  const fg=box.querySelector(".fgv"), tr=fg?.querySelectorAll("tbody tr");
-  if(tr?.length>6&&tr[6].offsetTop) fg.style.maxHeight=tr[6].offsetTop+"px"; else if(fg&&tr?.length<=6) fg.style.maxHeight="none";
-}
-$("friends").addEventListener("change",e=>{ const rr=e.target.closest('[data-f="rr"]'); if(rr){ SH.rr=rr.checked; saveShare(); chatRcSoon(); toast(rr.checked?"Отчёты о прочтении включены.":"Отчёты о прочтении выключены."); return; }
-  const c=e.target.closest('[data-f="hm"]'); if(!c) return; SH.hm=c.checked; saveShare(); shareSoon(); toast(c.checked?"Друзья будут видеть ваше давление и сахар.":"Давление и сахар больше не видны друзьям."); });
-$("friends").addEventListener("click",e=>{
-  const fb=e.target.closest('[data-f="fsinvite"],[data-f="fsreply"]'); if(fb){ fb.dataset.f==="fsreply"?fsOpen("reply",fb.dataset.n):fsOpen("invite"); return; }
-  const del=e.target.closest("[data-del]"); if(del){ const k=del.dataset.del; FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); renderFriends(); return; }
-  const ch=e.target.closest("[data-chat]"); if(ch){ openChat(ch.dataset.chat); return; }
-  const b=e.target.closest("[data-f]"); if(!b) return;
-  const a=b.dataset.f;
-  if(a==="start") shareStart();
-  if(a==="check") friendCheck();
-  if(a==="yandex"){ $("gearBtn").click(); }
-  if(a==="send") shareSend();
-  if(a==="stop") shareStop();
-  if(a==="add"){ const v=$("frLink").value.trim(); if(v) addFriendFromLink(v); }
-});
-
-/* ---------- chat between friends: each person keeps an outbox in the public folder (app:/share/chat.json),
-   messages are encrypted with a key only the two friends have (both secrets from the invitation links) ---------- */
-const CHAT = Object.assign({out:{}, inb:{}, read:{}, groups:{}, gin:{}, gout:{}}, loadJSON("chat",{})||{});
-for(const k of ["groups","gin","gout","rc"]) if(!CHAT[k]) CHAT[k]={};
-/* message statuses: each side publishes, per friend, up to which of the friend's messages it has
-   received (d) and read (r, and per group chat g), sealed with the pair key next to the mailboxes */
-const RC={sent:"", timer:0, changed:false, open:null, prev:{}};
-const rcptOn=()=>SH.rr!==false;
-function rcptAll(){
-  const out={};
-  for(const f of Object.values(FR.list)){ if(!f.s) continue;
-    const dm=dmIn(f.k), gm=Object.entries(CHAT.gin).flatMap(([g,l])=>l.filter(m=>m.from===f.k).map(m=>({t:m.t,g})));
-    const all=[...dm,...gm]; if(!all.length) continue;
-    const o={d:all.reduce((a,m)=>m.t>a?m.t:a,"")};
-    if(rcptOn()){
-      const rd=CHAT.read[f.k]||""; o.r=dm.filter(m=>m.t<=rd).reduce((a,m)=>m.t>a?m.t:a,"");
-      o.g={}; for(const m of gm){ const r=CHAT.read["g:"+m.g]||""; if(m.t<=r&&m.t>(o.g[m.g]||"")) o.g[m.g]=m.t; }
-    }
-    out[f.k]=o;
-  }
-  return out;
-}
-// publish the note soon after something was received or read, only when it actually changed
-function chatRcSoon(){ clearTimeout(RC.timer); RC.timer=setTimeout(()=>{ if(!SH.on||!Y.token) return; if(JSON.stringify(rcptAll())===RC.sent) return; chatUpload().catch(()=>{}); },2500); }
-// status of one of my messages: wait / err / sent / deliv / read
-function msgStatus(m, isG, g){
-  if(m.st==="err") return "err"; if(m.st!=="ok") return "wait";
-  const G=isG?CHAT.groups[g]:null, to=isG?(G?.members||[]).filter(x=>x.k!==SH.key&&FR.list[x.k]?.s&&gStatus(G,x.k)!=="out").map(x=>x.k):[CH_OPEN];
-  if(!to.length) return "sent";
-  const rcs=to.map(k=>CHAT.rc[k]||{});
-  if(rcptOn()&&rcs.every(r=>(isG?(r.g||{})[g]||"":r.r||"")>=m.t)) return "read";
-  if(rcs.every(r=>(r.d||"")>=m.t)) return "deliv";
-  return "sent";
-}
-const MST_SVG='<svg viewBox="0 0 17 11" aria-hidden="true"><path d="M1 6l3.2 3.2L10.5 2.2"/><path class="t2" d="M6.5 9.2L15.5 2.2"/></svg>';
-const MST_L={wait:"отправляется",sent:"отправлено",deliv:"получено",read:"прочитано"};
-const saveChat=()=>{ for(const o of [CHAT.out,CHAT.inb,CHAT.gin,CHAT.gout]) for(const k of Object.keys(o)) o[k]=o[k].slice(-300); store.set("chat",JSON.stringify(CHAT)); };
-const QUICK=["Как ты? 🙂","У меня всё хорошо 😄","Голова болит 🤕","Давление скачет, держись 💪","Магнитная буря — береги себя 🧲","Обнимаю 🤗"];
-const enc=new TextEncoder(), dec=new TextDecoder();
-const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))), unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function sha(s){ return new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s))); }
-const hex=u=>[...u].map(x=>x.toString(16).padStart(2,"0")).join("");
-async function boxId(k){ return hex(await sha("mtd-box|"+k)).slice(0,20); }          // mailbox name, not the friend's folder key
-const KEYS={};
-async function pairKey(f){
-  if(!f.s||!SH.secret) return null; const id=[SH.secret,f.s].sort().join("|");
-  if(!KEYS[id]) KEYS[id]=await crypto.subtle.importKey("raw", await sha("mtd-chat|"+id), "AES-GCM", false, ["encrypt","decrypt"]);
-  return KEYS[id];
-}
-async function aesKey(label, secret){ const id=label+"|"+secret; if(!KEYS[id]) KEYS[id]=await crypto.subtle.importKey("raw", await sha(id), "AES-GCM", false, ["encrypt","decrypt"]); return KEYS[id]; }
-const shareKey=sec=>aesKey("mtd-share",sec), helloKey=sec=>aesKey("mtd-hello",sec);
-async function aesSeal(key,obj){ const iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
-async function aesOpen(key,m){ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
-/* optional relay for "I accepted your invitation" (switched off) */
-const RELAY=null;   // no foreign relay: the friend confirms with a reply link
-async function relayTopic(sec){ return "mtd"+hex(await sha("mtd-topic|"+sec)).slice(0,30); }
-async function textReq(method,url,body){
-  const Hc=window.Capacitor?.Plugins?.CapacitorHttp;
-  if(PREF&&Hc){ const r=await Hc.request({method,url,headers:body!=null?{"Content-Type":"text/plain"}:{},data:body??undefined,responseType:"text",connectTimeout:12000,readTimeout:15000}); return {status:r.status,text:typeof r.data==="string"?r.data:JSON.stringify(r.data)}; }
-  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),15000);
-  try{ const r=await fetch(url,{method,body:body??undefined,signal:ac.signal}); return {status:r.status,text:await r.text()}; } finally{ clearTimeout(to); }
-}
-async function notifyInviter(f){
-  if(!RELAY) return false;
-  if(!SH.on||!SH.key||!f||!f.s) return false;
-  const note=await aesSeal(await helloKey(f.s), {k:SH.key, n:SH.name||"Друг", s:SH.secret, t:new Date().toISOString()});
-  const r=await textReq("POST", RELAY+await relayTopic(f.s), JSON.stringify(note));
-  let ok=false; try{ const j=JSON.parse(r.text); ok=r.status<300&&!!j.id&&j.event==="message"; }catch(e){}
-  if(!ok) return false;
-  f.notified=Date.now(); saveFriends(); return true;
-}
-let helloBusy=false;
-async function pollHello(){
-  if(!RELAY||!SH.on||!SH.secret||helloBusy) return; helloBusy=true;
-  try{
-    const r=await textReq("GET", `${RELAY}${await relayTopic(SH.secret)}/json?poll=1&since=${encodeURIComponent(SH.hsince||"12h")}`);
-    if(r.status!==200) return;
-    let added=[];
-    for(const line of String(r.text||"").split("\n")){
-      let ev; try{ ev=JSON.parse(line); }catch(e){ continue; }
-      if(ev.event!=="message") continue; SH.hsince=ev.id;
-      let o; try{ o=await aesOpen(await helloKey(SH.secret), JSON.parse(ev.message)); }catch(e){ continue; }
-      if(!o||!o.k||o.k===SH.key) continue;
-      const had=FR.list[o.k];
-      if(had){ if(o.s&&!had.s) had.s=o.s; continue; }
-      if(FR.removed[o.k]&&FR.removed[o.k]>(o.t||"")) continue;
-      delete FR.removed[o.k];
-      FR.list[o.k]={k:o.k,name:String(o.n||"Друг").slice(0,40),s:o.s||"",added:new Date().toISOString(),acked:true}; added.push(FR.list[o.k]);
-    }
-    saveShare();
-    if(added.length){
-      saveFriends(); await Promise.all(added.map(fetchFriend)); saveFriends(); shareUpload().catch(()=>{}); ySyncSoon();
-      for(const f of added) friendWelcome(f,"accepted");
-      renderChatBadge(); if(TAB==="friends") renderFriends();
-    }
-  }catch(e){} finally{ helloBusy=false; }
-}
-setTimeout(pollHello, 3000);
-setInterval(()=>{ if(!document.hidden) pollHello(); }, 40*1000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(pollHello,800); });
-async function seal(f, obj){ const key=await pairKey(f), iv=crypto.getRandomValues(new Uint8Array(12)); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, enc.encode(JSON.stringify(obj))); return {iv:b64(iv), c:b64(ct)}; }
-async function unseal(f, m){ const key=await pairKey(f); const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(m.iv)}, key, unb64(m.c)); return JSON.parse(dec.decode(pt)); }
-/* one-to-one threads skip group messages; a group thread = my copies + what each member sent */
-const dmIn=k=>(CHAT.inb[k]||[]).filter(m=>!m.g), dmOut=k=>(CHAT.out[k]||[]).filter(m=>!m.g);
-function chatUnread(f){ const r=CHAT.read[f.k]||""; return dmIn(f.k).filter(m=>m.t>r).length; }
-function groupUnread(g){ const G=CHAT.groups[g]; if(!G||G.st==="out") return 0; if(G.st==="inv") return 1;
-  const r=CHAT.read["g:"+g]||""; return (CHAT.gin[g]||[]).filter(m=>m.t>r).length; }
-/* group invitations: someone is in a chat only after pressing "Join"; G.st is my own answer, G.ms the others' */
-const G_TXT={inv:"пригласил(а) в общий чат", join:"вступил(а) в чат", decline:"отказался(ась) от участия", leave:"вышел(а) из чата"};
-const gStatus=(G,k)=>k===SH.key?(G.st||"in"):(G.ms?.[k]||"in");
-const gActive=G=>G.members.filter(m=>gStatus(G,m.k)!=="out");
-function chatUnreadAll(){ return Object.values(FR.list).reduce((a,f)=>a+chatUnread(f),0)+Object.keys(CHAT.groups).reduce((a,g)=>a+groupUnread(g),0); }
-async function chatUpload(){
-  const boxes={};
-  for(const [k,list] of Object.entries(CHAT.out)){ const f=FR.list[k]; if(!f||!f.s||!list.length) continue; boxes[await boxId(k)]=list.slice(-120).map(m=>m.box).filter(Boolean); }
-  const rc={}, plain=rcptAll();
-  for(const [k,o] of Object.entries(plain)){ try{ rc[await boxId(k)]=await seal(FR.list[k],o); }catch(e){} }
-  const body=JSON.stringify({app:"Не18мнеуже",v:2,updated:new Date().toISOString(),boxes,rc});
-  const up=await yReq("GET", `${YD}/upload?path=${encodeURIComponent("app:/share/chat.json")}&overwrite=true`);
-  if(up.status!==200||!up.data?.href) throw new Error("net");
-  const put=await yReq("PUT", up.data.href, body, false); if(put.status>=300) throw new Error("net");
-  RC.sent=JSON.stringify(plain);
-}
-function memberName(k, g){ if(k===SH.key) return "Вы"; return FR.list[k]?.name || (g&&CHAT.groups[g]?.members?.find(m=>m.k===k)?.n) || "Участник"; }
-async function chatFetch(f){
-  if(!f.s||!SH.key) return 0;
-  const dl=await yReq("GET", `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(f.k)}&path=${encodeURIComponent("/chat.json")}`, null, false);
-  if(dl.status!==200||!dl.data?.href) return 0;
-  const r=await yReq("GET", dl.data.href+(dl.data.href.includes("?")?"&":"?")+"_="+Date.now(), null, false); if(r.status!==200) return 0;
-  const data=typeof r.data==="string"?JSON.parse(r.data):r.data;
-  const box=data?.boxes?.[await boxId(SH.key)]||[];
-  const rcm=data?.rc?.[await boxId(SH.key)];
-  if(rcm){ try{ const o=await unseal(f,rcm), was=JSON.stringify(CHAT.rc[f.k]||null);
-    CHAT.rc[f.k]={d:String(o.d||""), r:String(o.r||""), g:o.g&&typeof o.g==="object"?o.g:{}};
-    if(JSON.stringify(CHAT.rc[f.k])!==was){ saveChat(); RC.changed=true; } }catch(e){} }
-  const have=new Set([...(CHAT.inb[f.k]||[]).map(m=>m.id), ...Object.values(CHAT.gin).flat().filter(m=>m.from===f.k).map(m=>m.id)]);
-  const added=[];
-  for(const m of box){ let o; try{ o=await unseal(f,m); }catch(e){ continue; } if(!o||!o.id||have.has(o.id)) continue; have.add(o.id);
-    const msg={id:o.id,t:o.t,x:String(o.x||"").slice(0,1000)}; if(o.c&&typeof o.c==="object") msg.c=o.c;
-    if(o.g){
-      const g=String(o.g).slice(0,40);
-      // a chat I have not seen yet is an invitation: nothing from it shows up until I press "Join"
-      if(!CHAT.groups[g]&&o.gm) CHAT.groups[g]={id:g,name:String(o.gm.name||"Общий чат").slice(0,40),members:(o.gm.members||[]).slice(0,20).map(x=>({k:String(x.k),n:String(x.n||"").slice(0,40)})),by:f.k,created:o.t,st:"inv",ms:{}};
-      else if(CHAT.groups[g]&&o.gm){ const G=CHAT.groups[g]; for(const x of o.gm.members||[]) if(!G.members.some(y=>y.k===x.k)) G.members.push({k:String(x.k),n:String(x.n||"").slice(0,40)}); if(o.gm.name) G.name=String(o.gm.name).slice(0,40); }
-      const G=CHAT.groups[g]; if(!G) continue;
-      if(G.st==="out"){ if(o.sys!=="inv") continue; G.st="inv"; G.by=f.k; G.created=o.t; }   // declined or left: only a new invitation gets through
-      G.ms=G.ms||{};
-      if(o.gm?.ms) for(const [k,v] of Object.entries(o.gm.ms)) if(k!==SH.key&&k!==f.k&&["inv","in","out"].includes(v)&&!G.msOwn?.[k]) G.ms[k]=v;
-      G.ms[f.k]=o.sys==="decline"||o.sys==="leave"?"out":"in"; (G.msOwn=G.msOwn||{})[f.k]=1;   // what a member says about themselves wins
-      if(o.sys&&G_TXT[o.sys]) msg.sys=o.sys;
-      msg.from=f.k; (CHAT.gin[g]=CHAT.gin[g]||[]).push(msg); added.push({...msg,g});
-    } else { (CHAT.inb[f.k]=CHAT.inb[f.k]||[]).push(msg); added.push(msg); }
-  }
-  if(added.length){
-    for(const o of [CHAT.inb,CHAT.gin]) for(const k of Object.keys(o)) o[k].sort((a,b)=>a.t<b.t?-1:1);
-    saveChat();
-    const open=added.filter(m=>(m.g?"g:"+m.g:f.k)===CH_OPEN);
-    if(open.length){ CHAT.read[CH_OPEN]=open[open.length-1].t; saveChat(); renderChat(); }
-    const other=added.filter(m=>(m.g?"g:"+m.g:f.k)!==CH_OPEN), last=other[other.length-1];
-    const LG=last?.g?CHAT.groups[last.g]:null;
-    if(LG?.st==="inv") toast(`💬 ${memberName(LG.by,LG.id)} приглашает вас в общий чат «${LG.name}»`);
-    else if(last&&last.t>(CHAT.read[last.g?"g:"+last.g:f.k]||"")) toast(`💬 ${last.g?`${CHAT.groups[last.g].name} · `:""}${f.name}: ${(last.sys?G_TXT[last.sys]:last.c?"📋 состояние":last.x).slice(0,60)}`);
-    renderChatBadge(); if(TAB==="friends") renderFriendsPage();
-    chatRcSoon();
-  }
-  if(RC.changed&&CH_OPEN){ RC.changed=false; renderChat(); }
-  return added.length;
-}
-let CH_OPEN=null, chatTimer=0;
-// the app is on screen: look for new messages every minute (the open chat itself refreshes every 15 s)
-setInterval(()=>{ if(document.hidden||!SH.key) return; for(const f of Object.values(FR.list)) if(f.s&&f.k!==CH_OPEN) chatFetch(f).catch(()=>{}); }, 60000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&SH.key) for(const f of Object.values(FR.list)) if(f.s) chatFetch(f).catch(()=>{}); });
-function chatPollStart(list){
-  clearInterval(chatTimer); list.forEach(f=>chatFetch(f).catch(()=>{}));
-  chatTimer=setInterval(()=>{ if($("chatSheet").hidden){ clearInterval(chatTimer); CH_OPEN=null; if(TAB==="friends") renderFriendsPage(); return; } if(!document.hidden) list.forEach(f=>chatFetch(f).catch(()=>{})); }, 15000);
-}
-function openChat(k){
-  try{ CW?.clear({k}); }catch(e){}
-  const f=FR.list[k]; if(!f) return;
-  CH_OPEN=k; $("chatTitle").textContent=f.name||"Друг";
-  const today=f.data?.mood?.[isoDay(new Date())];
-  $("chatSub").textContent=[f.data?.city, today?`сегодня ${today.e||""}`:""].filter(Boolean).join(" · ");
-  CHAT.read[k]=(dmIn(k).slice(-1)[0]||{}).t||CHAT.read[k]||""; saveChat();
-  RC.open=null; renderChat(); showSheet("chatSheet"); renderChatBadge(); chatPollStart([f]); chatRcSoon();
-}
-function openGroup(g){
-  const G=CHAT.groups[g]; if(!G) return;
-  CH_OPEN="g:"+g; $("chatTitle").textContent=G.name;
-  const names=gActive(G).filter(m=>m.k!==SH.key).map(m=>memberName(m.k,g)+(gStatus(G,m.k)==="inv"?" (приглашён(а))":""));
-  $("chatSub").textContent=G.st==="inv"?"приглашение":`${names.join(", ")} и вы`;
-  if(G.st!=="inv") CHAT.read[CH_OPEN]=((CHAT.gin[g]||[]).slice(-1)[0]||{}).t||CHAT.read[CH_OPEN]||""; saveChat();
-  RC.open=null; renderChat(); showSheet("chatSheet"); renderChatBadge();
-  chatPollStart(G.members.map(m=>FR.list[m.k]).filter(Boolean)); chatRcSoon();
-}
-const MCOL=["#ffb86b","#8be38f","#c9b6ff","#78adff","#7fd6c8","#f2c94c","#ff8a7a"];
-const colorOf=k=>{ let h=0; for(const ch of String(k)) h=(h*31+ch.charCodeAt(0))>>>0; return MCOL[h%MCOL.length]; };
-function stateCard(c){
-  const bp=c.bp?`<span class="mono">${esc(c.bp)}</span>${c.bpl?` <span class="hp" style="--c:${esc(c.bpc||"#9fb1c5")}">${esc(c.bpl)}</span>`:""}`:"";
-  const gl=c.glu?`<span class="mono" style="font-size:14px">🩸 ${esc(c.glu)}</span>`:"";
-  return `<div class="stc"><div class="sth">📋 Состояние</div><div class="stb"><span class="ste">${esc(c.e||"🙂")}</span><div class="stv"><span class="stl">${esc(c.l||"")}</span>${bp||gl?`<span>${bp} ${gl}</span>`:""}<span class="fhm">${esc([c.city, c.t!=null?c.t+"°":"", c.p?c.p+" мм":""].filter(Boolean).join(" · "))}</span></div></div></div>`;
-}
-function renderChat(){
-  const isG=String(CH_OPEN||"").startsWith("g:"), g=isG?CH_OPEN.slice(2):null, f=isG?null:FR.list[CH_OPEN];
-  if(!isG&&!f) return; if(isG&&!CHAT.groups[g]) return;
-  const box=$("chatList"); let h=""; $("chatSheet").querySelector(".cfoot").hidden=false;
-  if(!Y.token||!SH.on) h+=`<div class="cnote">Чтобы переписываться, подключите Яндекс Диск в ⚙ Настройках и нажмите «Поделиться» во вкладке «Друзья».</div>`;
-  else if(f&&!f.s) h+=`<div class="cnote">У ${esc(f.name)} старое приглашение, без чата. Попросите ${esc(f.name)} прислать новое — или отправьте своё, кнопкой ниже.<br><button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
-  let all;
-  if(isG){
-    const G=CHAT.groups[g], miss=gActive(G).filter(m=>m.k!==SH.key&&!FR.list[m.k]?.s);
-    $("chatSheet").querySelector(".cfoot").hidden=G.st==="inv";
-    if(G.st==="inv"){
-      const mem=gActive(G).filter(m=>m.k!==SH.key).map(m=>`<span><i style="background:${colorOf(m.k)}">${esc((memberName(m.k,g)||"?")[0].toUpperCase())}</i>${esc(memberName(m.k,g))}${gStatus(G,m.k)==="inv"?" <small>приглашён(а)</small>":""}</span>`).join("");
-      box.innerHTML=`<div class="ginv"><div class="gi">${lic("🤝")}</div><h3><b>${esc(memberName(G.by,g))}</b> приглашает вас<br>в общий чат «${esc(G.name)}»</h3><div class="gm">${mem}</div>
-        <div class="fhm">Пока вы не вступите, сообщения из этого чата не приходят, а ваше состояние туда не отправляется.</div>
-        <div class="ibtns"><button class="btn" data-gjoin>Вступить</button><button class="btn ghost" data-gdecl>Отказаться</button></div></div>`;
-      return;
-    }
-    if(miss.length) h+=`<div class="cnote">${miss.map(m=>esc(m.n||"Участник")).join(", ")} ${miss.length>1?"не у вас в друзьях":"не у вас в друзьях"} — ${miss.length>1?"их":"его/её"} сообщения здесь не видны. Попросите прислать приглашение.</div>`;
-    all=[...(CHAT.gout[g]||[]).map(m=>({...m,me:1})), ...(CHAT.gin[g]||[])];
-  } else all=[...dmOut(f.k).map(m=>({...m,me:1})), ...dmIn(f.k)];
-  all.sort((a,b)=>a.t<b.t?-1:1);
-  let lastDay="";
-  for(const m of all){
-    const d=isoDay(new Date(m.t)); if(d!==lastDay){ lastDay=d; h+=`<div class="cday">${d===isoDay(new Date())?"сегодня":fmtDM(new Date(m.t))}</div>`; }
-    if(m.sys){ h+=`<div class="csys">${m.me?"Вы":esc(memberName(m.from,g))} ${m.me&&m.sys==="inv"?"пригласили участников":G_TXT[m.sys]} · ${fmtHM(new Date(m.t))}</div>`; continue; }
-    const who=isG&&!m.me?`<span class="who" style="color:${colorOf(m.from)}">${esc(memberName(m.from,g))}</span>`:"";
-    const ms=m.me?msgStatus(m,isG,g):"";
-    const st=!m.me?"":ms==="err"?' <b class="er" data-retry>!</b>':`<span class="mst ${ms==="deliv"?"":ms}${RC.prev[m.id]&&RC.prev[m.id]!==ms?" pop":""}" title="${MST_L[ms]}" aria-label="${MST_L[ms]}">${MST_SVG}</span>`;
-    if(m.me) RC.prev[m.id]=ms;
-    h+=`<div class="msg${m.me?" me":""}${m.c?" card":""}${m.me&&isG?" gi":""}"${m.me&&isG?` data-mid="${esc(m.id)}"`:""}>${who}${m.c?stateCard(m.c):`<span class="tx">${esc(m.x)}</span>`}<span class="tm">${fmtHM(new Date(m.t))}${st}</span></div>`;
-    if(m.me&&isG&&RC.open===m.id){
-      const mem=gActive(CHAT.groups[g]).filter(x=>x.k!==SH.key&&FR.list[x.k]?.s);
-      h+=`<div class="rinfo">${mem.map(x=>{ const r=CHAT.rc[x.k]||{}, rd=rcptOn()&&((r.g||{})[g]||"")>=m.t, dl=(r.d||"")>=m.t;
-        return `<div><span>${rd?"✓✓ прочитал(а)":dl?"✓✓ получил(а)":"✓ ещё не получил(а)"}</span><b>${esc(memberName(x.k,g))}</b></div>`; }).join("")||"<div>В чате пока нет друзей</div>"}</div>`;
-    }
-  }
-  if(isG&&all.length) h+=`<button class="mlink gleave" data-gleave>Выйти из общего чата</button>`;
-  if(!isG){ if(SH.on&&f.s&&f.data&&!f.acked) h+=`<div class="cnote">У ${esc(f.name)} вас пока нет в друзьях.<button class="btn ghost" data-cinv>📨 Отправить приглашение</button></div>`;
- }
-  if(!all.length&&SH.on) h+=`<div class="cnote">${isG?`Это общий чат «${esc(CHAT.groups[g].name)}». Напишите первым 👋`:`Напишите ${esc(f.name)} первым 👋`}<br>Сообщения шифруются: прочитать их могут только участники.</div>`;
-  if(!isG) h+=`<button class="mlink gleave" data-fdel>Убрать из друзей</button>`;
-  box.innerHTML=h;
-  $("chatQuick").innerHTML=["__me",...QUICK].map(q=>q==="__me"?`<button class="chip" data-q="__me">📋 Моё состояние</button>`:`<button class="chip" data-q="${esc(q)}">${esc(q)}</button>`).join("");
-  const can=!!(SH.on&&Y.token&&(isG||f.s)); $("chatIn").disabled=!can; $("chatSend").disabled=!can; $("chatQuick").hidden=!can;
-  const sc=$("chatSheet").querySelector(".sbody"); requestAnimationFrame(()=>{ sc.scrollTop=sc.scrollHeight; });
-}
-function myState(){
-  const rec=S.mood[isoDay(new Date())], last=rec?.marks?.slice(-1)[0];
-  const c=cityOf(S.slug), f=S.feed[S.slug], h=f?.hours?.[nearestIdx(f.hours,Date.now())];
-  const b=lastOf("bp"), gl=lastOf("glu"), fresh=m=>m&&Date.now()-+new Date(m.t)<18*H;
-  const st={e:last?KIND[last.k].e:"🙂", l:last?`${KIND[last.k].l} · ${fmtHM(new Date(last.t))}`:"самочувствие не отмечено", city:c.name};
-  if(fresh(b)){ const cat=bpCat(b.sys,b.dia); st.bp=`${b.sys}/${b.dia}`; st.bpl=cat.l; st.bpc=cat.c; }
-  if(fresh(gl)) st.glu=fmtNum(gl.v);
-  if(h){ st.t=Math.round(h.temp); if(h.p!=null) st.p=Math.round(h.p*HPA2MM); }
-  const x=`Моё состояние: ${st.e} ${st.l}${st.bp?`, А/Д ${st.bp}`:""}${st.glu?`, сахар ${st.glu}`:""} · ${st.city}${st.t!=null?` ${st.t}°`:""}`;
-  return {x, c:st};
-}
-async function chatSend(text, card, sys, gid){
-  text=String(text||"").trim().slice(0,1000); if(!text) return;
-  const isG=!!gid||String(CH_OPEN||"").startsWith("g:"), id=Date.now().toString(36)+Math.random().toString(36).slice(2,6), t=new Date().toISOString();
-  const payload={id,t,x:text}; if(card) payload.c=card; if(sys) payload.sys=sys;
-  if(isG){
-    const g=gid||CH_OPEN.slice(2), G=CHAT.groups[g]; if(!G) return;
-    if(!sys&&G.st&&G.st!=="in") return;
-    const ms={}; for(const m of G.members) ms[m.k]=gStatus(G,m.k);
-    payload.g=g; payload.gm={name:G.name,members:G.members,ms};
-    const to=G.members.filter(m=>m.k!==SH.key&&FR.list[m.k]?.s&&gStatus(G,m.k)!=="out");
-    if(!to.length){ if(!sys) toast("В этом чате пока нет друзей, которым можно отправить сообщение."); return; }
-    for(const m of to){ try{ const box=await seal(FR.list[m.k],payload); (CHAT.out[m.k]=CHAT.out[m.k]||[]).push({id,t,x:text,g,st:"send",box}); }catch(e){} }
-    const mine={id,t,x:text,c:card,st:"send"}; if(sys) mine.sys=sys;
-    (CHAT.gout[g]=CHAT.gout[g]||[]).push(mine);
-  } else {
-    const f=FR.list[CH_OPEN]; if(!f) return;
-    const m={id,t,x:text,st:"send"}; if(card) m.c=card;
-    try{ m.box=await seal(f,payload); }catch(e){ toast("Не получилось зашифровать сообщение."); return; }
-    (CHAT.out[f.k]=CHAT.out[f.k]||[]).push(m);
-  }
-  saveChat(); if(!gid||CH_OPEN==="g:"+gid) renderChat(); await chatPush();
-}
-async function chatPush(){
-  const pend=Object.values(CHAT.out).flat().filter(m=>m.st!=="ok"); if(!pend.length) return;
-  const ids=new Set(pend.map(m=>m.id)), gp=Object.values(CHAT.gout).flat().filter(m=>ids.has(m.id));
-  try{ await chatUpload(); pend.forEach(m=>m.st="ok"); gp.forEach(m=>m.st="ok"); }
-  catch(e){ pend.forEach(m=>m.st="err"); gp.forEach(m=>m.st="err"); toast("Сообщение не отправилось — нет связи с Яндекс Диском. Нажмите «!», чтобы повторить."); }
-  saveChat(); if(CH_OPEN) renderChat(); if(TAB==="friends") renderFriendsPage();
-}
-/* chat notifications while the app is closed (build 29+): the native part checks friends' mailboxes
-   every ~15 minutes; here we tell it whom to watch, with which key, and what the app has already shown */
-const CW = (window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) ? (window.Capacitor.Plugins?.ChatWatch||null) : null;
-let cwTimer=0;
-function chatWatchSoon(){ if(!CW) return; clearTimeout(cwTimer); cwTimer=setTimeout(chatWatchSync,1500); }
-async function chatWatchSync(){
-  if(!CW) return;
-  try{
-    const friends=[]; const box=SH.key?await boxId(SH.key):"";
-    if(SH.key&&SH.secret) for(const f of Object.values(FR.list)){ if(!f.s) continue;
-      const ts=[...(CHAT.inb[f.k]||[]), ...Object.values(CHAT.gin).flat().filter(m=>m.from===f.k)].map(m=>m.t).sort();
-      friends.push({k:f.k, n:f.name||"Друг", box, key:b64(await sha("mtd-chat|"+[SH.secret,f.s].sort().join("|"))), since:ts[ts.length-1]||"", mute:Object.values(CHAT.groups).filter(G=>G.st==="inv"||G.st==="out").map(G=>G.id)}); }
-    await CW.configure({friends, on:true});
-  }catch(e){}
-}
-function renderChatBadge(){
-  chatWatchSoon();
-  const n=chatUnreadAll();
-  if($("navN")) $("navN").textContent=n?String(n):""; if($("fSegN")) $("fSegN").textContent=n?String(n):"";
-  chatFabRender(n);
-}
-
-/* ---------- floating "Chats" button: on every tab, draggable, sticks to an edge ---------- */
-const CFAB={last:null, drag:null, peekT:0};
-// the newest message nobody has read yet: who wrote it and a short line for the preview
-function chatLatestUnread(){
-  let best=null;
-  for(const f of Object.values(FR.list)){ const r=CHAT.read[f.k]||"";
-    for(const m of dmIn(f.k)) if(m.t>r&&(!best||m.t>best.t)) best={t:m.t, key:f.k, who:f.name||"Друг", ck:f.k, x:m.c?"📋 поделился(ась) состоянием":m.x}; }
-  for(const G of Object.values(CHAT.groups)){ const r=CHAT.read["g:"+G.id]||"";
-    if(G.st==="out") continue;
-    if(G.st==="inv"){ if(!best||(G.created||"")>best.t) best={t:G.created||"", key:"g:"+G.id, who:`${memberName(G.by,G.id)} · ${G.name}`, ck:G.by, x:"приглашает вас в общий чат"}; continue; }
-    for(const m of CHAT.gin[G.id]||[]) if(m.t>r&&(!best||m.t>best.t)) best={t:m.t, key:"g:"+G.id, who:`${memberName(m.from,G.id)} · ${G.name}`, ck:m.from, x:m.c?"📋 поделился(ась) состоянием":m.x}; }
-  return best;
-}
-function chatFabPos(){
-  const b=$("chatFab"), W=innerWidth, H=innerHeight, nav=$("bnav")?.offsetHeight||64;
-  let p; try{ p=JSON.parse(store.get("chatFab")||"null"); }catch(e){}
-  const side=p?.s==="l"?"l":"r", fromBottom=p?.b??(nav+86);
-  b.style.left=(side==="l"?12:W-68)+"px";
-  b.style.top=Math.max(56, Math.min(H-nav-68, H-fromBottom-56))+"px";
-}
-function chatFabRender(n){
-  const b=$("chatFab"); if(!b) return;
-  const on=!!Object.keys(FR.list).length;
-  if(b.hidden===on){ b.hidden=!on; if(on) chatFabPos(); }
-  if(!on) return;
-  b.classList.toggle("unread", n>0);
-  $("chatFabN").textContent=n>99?"99+":String(n);
-  b.setAttribute("aria-label", n?`Чаты, новых сообщений: ${n}`:"Чаты");
-  const L=n?chatLatestUnread():null;
-  if(L){ const a=$("chatFabA"); a.textContent=(L.who||"?")[0].toUpperCase(); a.style.background=colorOf(L.ck); }
-  // something new since the last look: nod and show who wrote what
-  if(L&&CFAB.last!==null&&L.t>CFAB.last&&!openSheet) chatPeek(L);
-  CFAB.last=L?L.t:(CFAB.last===null?"":CFAB.last);
-  if(openSheet?.id==="chatsSheet") renderChats("chatsAll");
-}
-function chatPeek(L){
-  const b=$("chatFab"), p=$("chatPeek");
-  $("chatPeekW").textContent=L.who; $("chatPeekX").textContent=L.x||""; p.dataset.k=L.key;
-  const x=parseFloat(b.style.left), y=parseFloat(b.style.top);
-  p.style.top=(y+2)+"px"; p.style.left=(x>innerWidth/2?x-210:x+66)+"px";
-  p.classList.add("on"); clearTimeout(CFAB.peekT); CFAB.peekT=setTimeout(()=>p.classList.remove("on"),3500);
-  b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
-  try{ navigator.vibrate?.(30); }catch(e){}
-}
-function openChatsSheet(){ $("chatPeek").classList.remove("on"); renderChats("chatsAll"); showSheet("chatsSheet"); }
-$("chatPeek").addEventListener("click",e=>{ const k=e.currentTarget.dataset.k; e.currentTarget.classList.remove("on"); if(!k) return; if(k.startsWith("g:")) openGroup(k.slice(2)); else openChat(k); });
-$("chatFab").addEventListener("pointerdown",e=>{ const b=e.currentTarget;
-  CFAB.drag={x:e.clientX, y:e.clientY, l:parseFloat(b.style.left), t:parseFloat(b.style.top), moved:false};
-  try{ b.setPointerCapture(e.pointerId); }catch(err){} });
-$("chatFab").addEventListener("pointermove",e=>{ const d=CFAB.drag, b=e.currentTarget; if(!d) return;
-  const dx=e.clientX-d.x, dy=e.clientY-d.y;
-  if(!d.moved&&Math.abs(dx)+Math.abs(dy)>8){ d.moved=true; b.classList.add("drag"); $("chatPeek").classList.remove("on"); }
-  if(d.moved){ b.style.left=Math.max(4, Math.min(innerWidth-60, d.l+dx))+"px"; b.style.top=Math.max(40, Math.min(innerHeight-60, d.t+dy))+"px"; } });
-function chatFabUp(e){ const d=CFAB.drag, b=$("chatFab"); CFAB.drag=null; if(!d) return;
-  b.classList.remove("drag");
-  if(!d.moved) return;   // a tap: the "click" below opens the chats
-  CFAB.dragged=true; setTimeout(()=>CFAB.dragged=false,400);
-  const x=parseFloat(b.style.left), y=parseFloat(b.style.top);
-  store.set("chatFab", JSON.stringify({s:x+28<innerWidth/2?"l":"r", b:Math.round(innerHeight-y-56)}));
-  chatFabPos(); }
-$("chatFab").addEventListener("pointerup",chatFabUp);
-$("chatFab").addEventListener("pointercancel",chatFabUp);
-$("chatFab").addEventListener("click",()=>{ if(CFAB.dragged){ CFAB.dragged=false; return; } openChatsSheet(); });
-addEventListener("resize",()=>{ if(!$("chatFab").hidden) chatFabPos(); });
-function chatInFit(){ const i=$("chatIn"); i.style.height="44px"; const h=Math.min(i.scrollHeight+2,124); i.style.height=h+"px"; i.style.overflowY=i.scrollHeight+2>124?"auto":"hidden"; }
-$("chatIn").addEventListener("input",chatInFit);
-$("chatSend").addEventListener("click",()=>{ const i=$("chatIn"); const v=i.value; i.value=""; chatInFit(); chatSend(v); i.focus(); });
-// Enter sends on a computer; on a phone it starts a new line and the button sends, as in Telegram
-$("chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&matchMedia("(pointer:fine)").matches){ e.preventDefault(); $("chatSend").click(); } });
-$("chatQuick").addEventListener("click",e=>{ const b=e.target.closest("[data-q]"); if(!b) return; if(b.dataset.q==="__me"){ const st=myState(); chatSend(st.x, st.c); } else chatSend(b.dataset.q); });
-async function groupAnswer(g, how){
-  const G=CHAT.groups[g]; if(!G) return;
-  if(how==="join"){ G.st="in"; CHAT.read["g:"+g]=((CHAT.gin[g]||[]).slice(-1)[0]||{}).t||""; saveChat(); openGroup(g); await chatSend("вступил(а) в чат", null, "join", g); }
-  else { G.st="out"; saveChat(); await chatSend(how==="leave"?"вышел(а) из чата":"отказался(ась) от участия", null, how, g); hideSheet(); toast(how==="leave"?`Вы вышли из «${G.name}»`:`Приглашение в «${G.name}» отклонено`); }
-  renderChatBadge(); if(TAB==="friends") renderFriendsPage(); chatWatchSoon();
-}
-$("chatList").addEventListener("click",e=>{
-  const g=String(CH_OPEN||"").startsWith("g:")?CH_OPEN.slice(2):null;
-  if(g&&e.target.closest("[data-gjoin]")) return groupAnswer(g,"join");
-  if(g&&e.target.closest("[data-gdecl]")) return groupAnswer(g,"decline");
-  if(!g&&e.target.closest("[data-fdel]")){ const k=CH_OPEN, f=FR.list[k]; if(!f||!confirm(`Убрать ${f.name} из друзей? Вы перестанете видеть друг друга.`)) return;
-    FR.removed[k]=new Date().toISOString(); delete FR.list[k]; saveFriends(); ySyncSoon(); hideSheet(); renderFriends(); renderChatBadge(); toast(`${f.name} больше не в друзьях`); return; }
-  if(g&&e.target.closest("[data-gleave]")){ if(confirm(`Выйти из общего чата «${CHAT.groups[g]?.name}»? Сообщения из него больше не будут приходить.`)) groupAnswer(g,"leave"); return; } const gi=e.target.closest("[data-mid]"); if(gi&&!e.target.closest("[data-retry]")){ RC.open=RC.open===gi.dataset.mid?null:gi.dataset.mid; renderChat(); return; }
-  if(e.target.closest("[data-retry]")) chatPush(); if(e.target.closest("[data-cinv]")){ const f=FR.list[CH_OPEN]; shareSend(!!f, f?.name); } });   // a reply link: opening it adds us on their side at once
-
-/* ---------- friends tab: people and chats ---------- */
-let FSEG="friends";
-const WXS={clear:"clearsky_day",fair:"fair_day",partly:"partlycloudy_day",cloud:"cloudy",rain:"rain",snow:"snow",thunder:"rainandthunder",fog:"fog"};   // a friend's weather kind as a symbol for the line icons
-function renderFriendsPage(){
-  document.querySelectorAll("#fSeg [data-fs]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.fs===FSEG));
-  $("friends").hidden=FSEG!=="friends"; $("chats").hidden=FSEG!=="chats";
-  if(FSEG==="friends") renderFriends(); else renderChats();
-  renderChatBadge();
-}
-function threadLast(key){
-  if(key.startsWith("g:")){ const g=key.slice(2); const a=[...(CHAT.gout[g]||[]).map(m=>({...m,me:1})),...(CHAT.gin[g]||[])].sort((x,y)=>x.t<y.t?-1:1); return a[a.length-1]; }
-  const a=[...dmOut(key).map(m=>({...m,me:1})),...dmIn(key)].sort((x,y)=>x.t<y.t?-1:1); return a[a.length-1];
-}
-const shortWhen=t=>{ const d=new Date(t), dd=isoDay(d); return dd===isoDay(new Date())?fmtHM(d):dd===isoDay(new Date(Date.now()-DAY))?"вчера":fmtDM(d); };
-function renderChats(to="chats"){
-  const rows=[];
-  for(const G of Object.values(CHAT.groups)){ if(G.st==="out") continue; const L=threadLast("g:"+G.id); rows.push({key:"g:"+G.id,t:G.st==="inv"?(G.created||""):L?.t||G.created||"",html:(()=>{ const un=groupUnread(G.id), n=gActive(G).length;
-    const prev=G.st==="inv"?`<span class="pv inv">${esc(memberName(G.by,G.id))} приглашает вас · ответить</span>`:`<span class="pv">${L?(L.sys?`${L.me?"Вы":esc(memberName(L.from,G.id))} ${G_TXT[L.sys]}`:`${L.me?"Вы":esc(memberName(L.from,G.id))}: ${L.c?"состояние":esc(L.x)}`):`${n} участника · напишите первым`}</span>`;
-    return `<button class="cl" data-open="g:${esc(G.id)}"><span class="av grp">${lic("🤝")}</span><span class="t"><span><b>${esc(G.name)}</b> <small>· ${n} уч.</small></span>${prev}</span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:""}</span></button>`; })()}); }
-  for(const f of Object.values(FR.list)){ const L=threadLast(f.k), un=chatUnread(f), today=f.data?.mood?.[isoDay(new Date())];
-    rows.push({key:f.k,t:L?.t||"",html:`<button class="cl" data-open="${esc(f.k)}"><span class="av" style="background:${colorOf(f.k)}">${esc((f.name||"?")[0].toUpperCase())}${today?`<em>${ekf(today.e)}</em>`:""}</span><span class="t"><b>${esc(f.name)}</b><span class="pv">${L?`${L.me?"Вы: ":""}${L.c?"состояние":esc(L.x)}`:f.s?"Нет сообщений":"нужно новое приглашение для чата"}</span></span><span class="r">${L?shortWhen(L.t):""}${un?`<span class="cnt">${un}</span>`:L&&L.me?(L.st==="ok"?"✓":""):""}</span></button>`}); }
-  rows.sort((a,b)=>(b.t||"").localeCompare(a.t||""));
-  let h=rows.length?`<div class="card" style="padding:2px 12px">${rows.map(r=>r.html).join("")}</div>`:`<div class="card hempty"><div class="hei">${lic("💬")}</div><div>Здесь будут переписки с друзьями. Пригласите друга кнопкой «＋ Пригласить».</div></div>`;
-  const ok=Object.values(FR.list).filter(f=>f.s).length;
-  h+=`<button class="card newg" data-newg ${ok<2?"disabled":""}>＋ Создать общий чат<small>${ok<2?"нужно хотя бы двое друзей с новым приглашением":"например, со всей семьёй"}</small></button>`;
-  $(to).innerHTML=h;
-}
-function chatsClick(e){
-  const o=e.target.closest("[data-open]"); if(o){ const k=o.dataset.open; if(k.startsWith("g:")) openGroup(k.slice(2)); else openChat(k); return; }
-  if(e.target.closest("[data-newg]")){ openGroupSheet(); }
-}
-$("chats").addEventListener("click",chatsClick);
-$("chatsAll").addEventListener("click",chatsClick);
-$("fSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-fs]"); if(!b) return; FSEG=b.dataset.fs; renderFriendsPage(); });
-$("frInvite").addEventListener("click",()=>{ if(SH.on&&Y.token) shareSend(); else fsOpen("invite"); });
-function openGroupSheet(){
-  const list=Object.values(FR.list).filter(f=>f.s);
-  $("grpList").innerHTML=list.map(f=>`<label class="gpick"><input type="checkbox" value="${esc(f.k)}" checked><span class="av" style="background:${colorOf(f.k)};width:34px;height:34px;font-size:14px">${esc((f.name||"?")[0].toUpperCase())}</span><span>${esc(f.name)}</span></label>`).join("");
-  $("grpName").value=""; showSheet("grpSheet"); setTimeout(()=>$("grpName").focus(),300);
-}
-$("grpCreate").addEventListener("click",()=>{
-  const name=($("grpName").value||"").trim().slice(0,40)||"Общий чат";
-  const ks=[...$("grpList").querySelectorAll("input:checked")].map(i=>i.value);
-  if(ks.length<1){ toast("Отметьте хотя бы одного друга."); return; }
-  const id="g"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  CHAT.groups[id]={id,name,members:[{k:SH.key,n:SH.name||"Я"},...ks.map(k=>({k,n:FR.list[k].name}))],by:SH.key,created:new Date().toISOString(),st:"in",ms:Object.fromEntries(ks.map(k=>[k,"inv"]))};
-  saveChat(); hideSheet(true); setTimeout(()=>{ openGroup(id); chatSend(`👋 Приглашаю вас в общий чат «${name}»`, null, "inv", id); }, 350);
-});
-renderChatBadge();
-setInterval(()=>{ if(!document.hidden&&!CH_OPEN&&Object.values(FR.list).some(f=>f.s)) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 3*60*1000);
-setTimeout(()=>{ if(SH.on) Object.values(FR.list).forEach(f=>chatFetch(f).catch(()=>{})); }, 4000);
-// website version: friend.html leaves the link here
-try{ const pend=localStorage.getItem("pendingFriend"); if(pend){ localStorage.removeItem("pendingFriend"); setTimeout(()=>addFriendFromLink(pend), 1500); } }catch(e){}
-
 /* ---------- gestures: pull down to refresh, swipe a sheet down to close ---------- */
 const ptr=$("ptr"), PULL=70;
 const G={y0:0,x0:0,t0:0,dy:0,mode:null,sheet:null};
@@ -5364,8 +4402,8 @@ function ptrHide(){ ptr.classList.remove("drag","ready","busy","done"); ptr.styl
 function ptrSet(d){ ptr.style.transform=`translate(-50%, ${d-50}px)`; ptr.style.opacity=Math.min(1,d/50); ptr.querySelector(".ic").style.transform=`rotate(${d*4}deg)`; ptr.classList.toggle("ready",d>=PULL); }
 async function pullRefresh(){
   ptr.classList.remove("drag","ready"); ptr.classList.add("busy"); ptr.style.transform="translate(-50%, 14px)"; ptr.style.opacity=1;
-  // messages and a new version are checked at the same time, without waiting for the usual intervals
-  fetchFriends(true).catch(()=>{}); if(typeof checkUpdate==="function") checkUpdate(false,true).catch?.(()=>{});
+  // a new version is checked at the same time, without waiting for the usual interval
+  if(typeof checkUpdate==="function") checkUpdate(false,true).catch?.(()=>{});
   const ok=await refreshNow();
   if(!ok) ptrHide();
 }
@@ -5771,7 +4809,8 @@ cyNav();
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
   {id:"2026-10-04b", t:[
-    ["📊","<b>Две вкладки: Здоровье и Погода.</b> Здоровье открывается первым: крупные смайлики и прогноз самочувствия на завтра. Давление, сахар и шаги свернуты внизу, отметки — в дневнике. Во вкладке Погода — всё погодное."]]},
+    ["📊","<b>Две вкладки: Здоровье и Погода.</b> Здоровье открывается первым: крупные смайлики и прогноз самочувствия на завтра. Давление, сахар и шаги свернуты внизу, отметки — в дневнике. Во вкладке Погода — всё погодное."],
+    ["🤝","<b>Друзья и чат убраны.</b> Ваши отметки, давление и сахар остаются на телефоне и на Яндекс Диске."]]},
   {id:"2026-10-04", t:[
     ["🔔","<b>Новые смайлики и проще отметка.</b> Теперь три лица: Отлично, Нормально, Плохо — одно касание. После «Нормально» или «Плохо» можно отметить, что не так: голова, сердце, упадок сил, суставы, головокружение. Можно и пропустить — оценка уже записана."],
     ["📊","<b>В шторке так же:</b> нажали «Плохо» — уведомление само спросит, что беспокоит. Все прежние отметки сохранились и учитываются в анализе."]]},
@@ -6538,13 +5577,10 @@ $("updCheck").addEventListener("click",()=>checkUpdate(true));
   if(introNeeded()) setTimeout(showIntro, 900);             // a new install: the city is found from the window, where it is clear why
   else { if(!store.get("introDone")) introDone(); if(!store.get("gpsDone") && !store.get("cities")){ saveCities(); setTimeout(locate, 1200); } }
   if(Y.token) setTimeout(()=>ySync(false), 1500);
-  setTimeout(()=>clipInvite(), 1500);
-  fsResume();
   if(!Y.token && !store.get("welcomeY")) setTimeout(showWelcome, 2600);
   scheduleReminders();
   renderMood();
   setTimeout(()=>checkUpdate(false), 4000);
-  setTimeout(chatWatchSync, 3000);
   try{ APKU?.autoCheck?.({on:UPDATE_FROM_GITHUB})?.catch?.(()=>{}); }catch(e){}   // daily background check with a notification (build 25+)
   if(!LAYOUT.cardMood && !S.mood[isoDay(new Date())] && store.get("moodLater")!==isoDay(new Date())) setTimeout(showMoodPop, 900);
 })();

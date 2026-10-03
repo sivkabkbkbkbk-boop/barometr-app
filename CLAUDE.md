@@ -36,6 +36,8 @@
 ## How things work (short)
 
 - Marks: `addMark(k)` → `S.marks` (saved) → `rebuildMood()` → `S.mood[day] = {v, kinds, city…}`.
+- Tabs: «Здоровье» first (`pgHealth`: smileys `cardMood`, `fcCard` tomorrow, `cardRisk` general weather until 14 days,
+  «Давление, сахар и шаги» folded `hmMore`), «Погода» (`pgToday`), Цикл, Отчёты. Marks diary = `diarySheet`. Friends and chat removed.
 - Weather of past days: `dayFeatures(day, city)`; personal forecast: `fcFor()`, needs 14 marked days.
 - Reports: «Нейросеть» card — on-device models (`nnTrain`: 5 small MLPs 15 inputs → 6 → 1 averaged, or a plain
   logistic regression `lrTrain`, whichever guesses later days better in `nnCheck`, a time-ordered check); inputs include the
@@ -48,13 +50,9 @@
 - First run: `introSheet`, steps 0–6 (greeting, «Вы… женщина/мужчина», for women «Самочувствие и цикл» + last period date, location,
   first mark, reminders, «Приятного пользования» + «Начать»); live smiley scenes `masGo(n)` (`masWho`: bow / moustache).
 - Cycle (women only, `SEX=="f"`, `cycOn()`): tab «Цикл» `#pgCycle`, data `CY={list:[{id,s,e}],del,len,plen}` synced
-  in the Disk copy (never to friends); `cyStats()` own averages, `cyAt(d)` day + phase (mens/after/mid/pms/late),
+  in the Disk copy; `cyStats()` own averages, `cyAt(d)` day + phase (mens/after/mid/pms/late),
   no fertile window. Analysis: `cycFeat(d)` adds mens/pms to «Что связано…», symptoms, the network (`NN_IN`) and
   `fcFor`; weather factors use marks with the phase average taken out. PDF option «Менструальный цикл». Developer menu: tap the version line in Settings 7 times.
-- Friends: no server. Data lives on each person's Yandex Disk public folder; invite link carries the key and
-  secret; accepting opens the messenger with a reply link at once (`shareSend(true)`). Friends list = compact
-  table (pressure, sugar, steps), two-week smiley table below. Group chats need «Вступить» (invitation state
-  `G.st`, members `G.ms`).
 - Notifications: one line in reliable mode (MoodKeep), faces `kf_<k>` drawables; widget = line-style frames.
 - Launcher icons: the owner's cat by weather, whole rounded pictures on a transparent square: `icon-calm.png`
   sun, `icon-mid.png` clouds, `icon-192.png`/`icon-512.png` tornado (default, «bad»); switched by `IconSwitch`.
@@ -63,6 +61,5 @@
 
 ## Not done yet / ideas the owner has not decided on
 
-- Automatic friend adding needs a small relay (Yandex Cloud suggested, owner chose the serverless reply).
-- Ideas: alert when a friend suddenly feels worse; evening warning before personal-trigger weather;
+- Ideas: evening warning before personal-trigger weather;
   first-run question «На что вы реагируете?».
