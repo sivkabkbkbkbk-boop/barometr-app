@@ -3276,12 +3276,12 @@ function facOpen(i){
   const o=(window.FAC_OUT||[])[i]; if(!o) return;
   const a=Math.abs(o.r), L=facLevel(o);
   $("facT").innerHTML=`${lic(FAC_IC[o.k]||"🧭")} ${o.name}`;
-  const big=!o.enough?`Пока мало данных: ${o.pts.length} из 7 дней с отметкой и погодой. Отмечайтесь чаще — вывод появится сам.`
+  const big=!o.enough?`Пока мало данных: ${o.pts.length} из 10 дней с отметкой и погодой. Отмечайтесь чаще — вывод появится сам.`
     : a<.1?"Связи с самочувствием не видно"
     : `Самочувствие ${["","чуть","немного","заметно","сильно","очень сильно"][L]} хуже, когда ${(FAC_WHEN[o.k]||["показатель выше","показатель ниже"])[o.r<0?0:1]}`;
   $("facB").innerHTML=`<div class="fbig">${big}</div>
     ${o.mg!=null||o.mb!=null?`<div class="fcmp"><div style="color:var(--kp-ok)">${kf("great")}<b>${o.fmt(o.mg)}</b><span class="fhm">в хорошие дни</span></div><div style="color:var(--kp-hi)">${kf("bad")}<b>${o.fmt(o.mb)}</b><span class="fhm">в плохие дни</span></div></div>`:""}
-    <div class="fhm" style="line-height:1.45">${o.enough?`Сила связи: ${FAC_W[L]||"нет"} (r = ${o.r.toFixed(2).replace(".",",")}) по ${o.pts.length} ${o.pts.length%10===1&&o.pts.length%100!==11?"дню":"дням"}. `:""}${o.cyc?"Сравнивается, насколько чаще плохое самочувствие приходится на эти дни цикла (по вашим отметкам месячных во вкладке «Цикл»). Числа — доля таких дней среди хороших и среди плохих дней.":`Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем.${o.adj?" Влияние цикла вычтено из ваших оценок, чтобы не путать его с погодой.":""}`} Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>`;
+    <div class="fhm" style="line-height:1.45">${o.enough?`Сила связи: ${FAC_W[L]||"нет"} (r = ${o.r0.toFixed(2).replace(".",",")}) по ${o.pts.length} ${o.pts.length%10===1&&o.pts.length%100!==11?"дню":"дням"}; чем меньше дней, тем осторожнее оценка. `:""}${o.cyc?"Сравнивается, насколько чаще плохое самочувствие приходится на эти дни цикла (по вашим отметкам месячных во вкладке «Цикл»). Числа — доля таких дней среди хороших и среди плохих дней.":`Для каждого дня с отметкой берутся данные метеостанции и индекс Kp за этот день, затем считается, насколько самочувствие меняется вместе с показателем.${o.adj?" Влияние цикла вычтено из ваших оценок, чтобы не путать его с погодой.":""}`} Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>`;
   showSheet("facSheet");
 }
 document.addEventListener("click",e=>{ const t=e.target.closest("[data-fac]"); if(t) facOpen(+t.dataset.fac); });
@@ -3360,9 +3360,12 @@ function renderMoodSheet(){
     const mean=a=>a.length?a.reduce((x,r)=>x+r.f[k],0)/a.length:null;
     const mg=mean(good), mb=mean(bad);
     const fmt=v=>v==null?"—":v.toFixed(dg).replace(".",",")+(unit?(unit==="%"?"":" ")+unit:"");
-    const enough=pts.length>=7 && new Set(pts.map(p=>Math.round(p.v*2))).size>1 && (!cyc||new Set(pts.map(p=>p.f[k])).size>1);
-    const r=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>cyc||p.va==null?p.v:p.va)):0;
-    return {k,name,pts,mg,mb,fmt,enough,r,hiTxt,loTxt,adj:adj&&!cyc,cyc};
+    const enough=pts.length>=10 && new Set(pts.map(p=>Math.round(p.v*2))).size>1 && (!cyc||new Set(pts.map(p=>p.f[k])).size>1);
+    const r0=enough?pearson(pts.map(p=>p.f[k]),pts.map(p=>cyc||p.va==null?p.v:p.va)):0;
+    // the strength shown is the cautious end of the likely range (95%): with few days even a big r is mostly chance
+    const z=Math.atanh(Math.max(-.999,Math.min(.999,r0))), lo=Math.max(0,Math.abs(z)-1.645/Math.sqrt(Math.max(1,pts.length-3)));
+    const r=Math.sign(r0)*Math.tanh(lo);
+    return {k,name,pts,mg,mb,fmt,enough,r,r0,hiTxt,loTxt,adj:adj&&!cyc,cyc};
   });
   out.sort((a,b)=>(b.enough-a.enough)||Math.abs(b.r)-Math.abs(a.r));
   window.FAC_OUT=out;
@@ -3370,7 +3373,7 @@ function renderMoodSheet(){
     const a=Math.abs(o.r), L=facLevel(o), ic=FAC_IC[o.k]||"🧭";
     return `<button class="ft l${L}${o.enough?"":" nd"}" data-fac="${i}"><span class="top">${lic(ic)}<span class="ar">${!o.enough||a<.1?"–":o.r<0?"↑":"↓"}</span></span><span class="nm">${FAC_SHORT[o.k]||o.name}</span>
       <span class="sc">${[1,2,3,4,5].map(j=>`<i${j<=L?' class="on"':""}></i>`).join("")}</span>
-      <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 7`:a<.1?"не влияет":`${FAC_W[L]} · ${o.cyc?(o.r<0?"хуже в эти дни":"в эти дни лучше"):`хуже при ${o.r<0?"росте":"падении"}`}`}</span></button>`;
+      <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 10`:a<.1?"не влияет":`${FAC_W[L]} · ${o.cyc?(o.r<0?"хуже в эти дни":"в эти дни лучше"):`хуже при ${o.r<0?"росте":"падении"}`}`}</span></button>`;
   }).join("");
   // symptoms: weather on days with the symptom vs. days without it, as tiles like the factors above
   const sout=KPICK.filter(x=>x.sym).map(x=>{
@@ -3381,7 +3384,8 @@ function renderMoodSheet(){
       if(a.length<3||b.length<3) continue;
       const ma=a.reduce((p,q)=>p+q,0)/a.length, mb=b.reduce((p,q)=>p+q,0)/b.length;
       const all=[...a,...b], mu=all.reduce((p,q)=>p+q,0)/all.length, sd=Math.sqrt(all.reduce((p,q)=>p+(q-mu)**2,0)/all.length)||1;
-      diffs.push({k,name,unit,dg,ma,mb,eff:(ma-mb)/sd});
+      const e0=(ma-mb)/sd, lo=Math.max(0,Math.abs(e0)-1.645*Math.sqrt(1/a.length+1/b.length));   // cautious, as above
+      diffs.push({k,name,unit,dg,ma,mb,eff:Math.sign(e0)*lo});
     }
     diffs.sort((p,q)=>Math.abs(q.eff)-Math.abs(p.eff));
     return {x,n:withS.length,diffs,L:symLevel(diffs[0])};
@@ -5676,6 +5680,8 @@ cyNav();
    Every build that changes something people notice adds an entry at the top (newest first, a new unique id).
    The newest entry also becomes the description of the release on GitHub (the build reads it from here). */
 const WHATS_NEW=[
+  {id:"2026-10-03b", t:[
+    ["📊","<b>Анализ стал осторожнее.</b> «Что связано с самочувствием» и «Симптомы и погода» больше не показывают сильную связь, пока дней с отметками мало: случайные совпадения отсеиваются. Первые выводы — после 10 дней, чем больше дней, тем увереннее оценка."]]},
   {id:"2026-10-03", t:[
     ["🌸","<b>Календарь цикла для женщин.</b> Отмечайте начало месячных — календарь сам посчитает фазы и покажет, когда ждать следующие. Включается так: ⚙ Настройки → «Что отслеживать» → Пол: женский. Появится вкладка «Цикл»."],
     ["📊","<b>Анализ учитывает цикл.</b> «Что связано с самочувствием», «Симптомы и погода», нейросеть и прогноз на завтра больше не путают влияние цикла с погодой."],
