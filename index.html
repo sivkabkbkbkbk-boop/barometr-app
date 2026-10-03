@@ -1316,7 +1316,7 @@ header{position:relative}
   <div class="card" id="repInsC"><div class="label">Что на вас влияет</div><div id="repIns" class="ins"></div></div>
   <div class="card" id="moodFacC"><div class="label" style="margin-bottom:10px">Что связано с вашим самочувствием</div><div class="gap" id="mgap" hidden></div><div class="ftg" id="mfacs"></div><div class="fhm" style="margin-top:8px;text-align:center">нажмите на плитку — подробности</div></div>
   <div class="card" id="nnC"><div class="label">Нейросеть <span class="nnb">учится на ваших отметках</span></div><canvas id="nnCv" aria-hidden="true"></canvas><div id="nnB"></div></div>
-  <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="facs" id="msymp"></div></div>
+  <div class="card" id="moodSymC"><div class="label" style="margin-bottom:10px">Симптомы и погода</div><div class="ftg" id="msymp"></div><div class="fhm" style="margin-top:8px;text-align:center">нажмите на плитку — подробности</div></div>
   <div class="src">Проведите пальцем по графику — на всех показателях появятся значения в этот момент. Погода и магнитный фон — для выбранного города. Выводы — статистическая подсказка по вашим записям, а не диагноз: совпадение не доказывает причину. Решения о лечении принимает врач.</div>
   </div>
 </main>
@@ -3204,6 +3204,24 @@ function facOpen(i){
   showSheet("facSheet");
 }
 document.addEventListener("click",e=>{ const t=e.target.closest("[data-fac]"); if(t) facOpen(+t.dataset.fac); });
+// symptoms: strength from the gap between days with and without the symptom (in spreads of the factor)
+const symLevel=d=>{ const a=d?Math.abs(d.eff):0; return a>=1.2?5:a>=.9?4:a>=.65?3:a>=.45?2:a>=.25?1:0; };
+function symOpen(i){
+  const o=(window.SYM_OUT||[])[i]; if(!o) return;
+  const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?" "+d.unit:"");
+  const d=o.diffs[0], L=o.L;
+  $("facT").innerHTML=`${kf(o.x.k).replace('class="kf"','class="kf li"')} ${o.x.l}`;
+  const big=o.n<3?`Пока мало данных: ${o.n} из 3 дней с этим симптомом. Отмечайте его, когда он есть, — вывод появится сам.`
+    : !o.diffs.length?"Подгружаю погоду за эти дни…"
+    : !L?"Связи с погодой пока не видно"
+    : `${o.x.l} ${["","чуть","немного","заметно","намного","намного"][L]} чаще, когда ${(FAC_WHEN[d.k]||["показатель выше","показатель ниже"])[d.eff>0?0:1]}`;
+  const top=o.diffs.filter(d=>symLevel(d)>0).slice(0,3);
+  $("facB").innerHTML=`<div class="fbig">${big}</div>
+    ${top.map(d=>`<div class="fhm" style="margin-top:12px">${lic(FAC_IC[d.k]||"🧭")} ${d.name} · ${FAC_W[symLevel(d)]}</div><div class="fcmp" style="margin-top:6px"><div style="color:var(--kp-hi)">${kf(o.x.k)}<b>${f(d.ma,d)}</b><span class="fhm">в дни с симптомом</span></div><div>${kf("great")}<b>${f(d.mb,d)}</b><span class="fhm">в остальные дни</span></div></div>`).join("")}
+    <div class="fhm" style="line-height:1.45">${o.n>=3?`Дней с симптомом: ${o.n}. `:""}Погода в дни, когда вы отмечали симптом, сравнивается с погодой в остальные дни. Это подсказка, а не диагноз: связь не доказывает причину, а при малом числе дней выводы случайны.</div>`;
+  showSheet("facSheet");
+}
+document.addEventListener("click",e=>{ const t=e.target.closest("[data-sym]"); if(t) symOpen(+t.dataset.sym); });
 const FACTORS=[
   ["press","Давление","мм",0,"при более высоком давлении","при более низком давлении"],
   ["dpress","Перепад давления за сутки","мм",1,"когда давление сильно меняется","когда давление меняется слабо"],
@@ -3264,26 +3282,28 @@ function renderMoodSheet(){
       <span class="sc">${[1,2,3,4,5].map(j=>`<i${j<=L?' class="on"':""}></i>`).join("")}</span>
       <span class="ws">${!o.enough?`мало данных · ${o.pts.length} из 7`:a<.1?"не влияет":`${FAC_W[L]} · хуже при ${o.r<0?"росте":"падении"}`}</span></button>`;
   }).join("");
-  // symptoms: weather on days with the symptom vs. days without it
-  const symHtml=KPICK.filter(x=>x.sym).map(x=>{
+  // symptoms: weather on days with the symptom vs. days without it, as tiles like the factors above
+  const sout=KPICK.filter(x=>x.sym).map(x=>{
     const withS=rows.filter(r=>S.mood[r.d].kinds.includes(x.k)), without=rows.filter(r=>!S.mood[r.d].kinds.includes(x.k));
-    if(withS.length<3) return withS.length?`<div class="fac"><div class="top"><span class="nm">${kf(x.k).replace('class="kf"','class="kf li"')} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">Мало данных: нужно хотя бы 3 дня с этим симптомом.</div></div>`:"";
     const diffs=[];
-    for(const [k,name,unit,dg] of FACTORS){
+    if(withS.length>=3) for(const [k,name,unit,dg] of FACTORS){
       const a=withS.map(r=>r.f[k]).filter(v=>v!=null), b=without.map(r=>r.f[k]).filter(v=>v!=null);
       if(a.length<3||b.length<3) continue;
       const ma=a.reduce((p,q)=>p+q,0)/a.length, mb=b.reduce((p,q)=>p+q,0)/b.length;
       const all=[...a,...b], mu=all.reduce((p,q)=>p+q,0)/all.length, sd=Math.sqrt(all.reduce((p,q)=>p+(q-mu)**2,0)/all.length)||1;
-      diffs.push({name,unit,dg,ma,mb,eff:(ma-mb)/sd});
+      diffs.push({k,name,unit,dg,ma,mb,eff:(ma-mb)/sd});
     }
     diffs.sort((p,q)=>Math.abs(q.eff)-Math.abs(p.eff));
-    const top=diffs.filter(d=>Math.abs(d.eff)>=0.5).slice(0,2);
-    const f=(v,d)=>v.toFixed(d.dg).replace(".",",")+(d.unit?" "+d.unit:"");
-    const txt=top.length ? top.map(d=>`${d.name.toLowerCase()} ${d.eff>0?"выше":"ниже"} обычного: <b>${f(d.ma,d)}</b> против ${f(d.mb,d)}`).join("; ")
-                         : (diffs.length?"Заметной связи с погодой пока не видно.":"Подгружаю погоду за эти дни…");
-    return `<div class="fac${top.length&&Math.abs(top[0].eff)>=0.8?" strong":""}"><div class="top"><span class="nm">${kf(x.k).replace('class="kf"','class="kf li"')} ${x.l}</span><span class="vs">${withS.length} дн.</span></div><div class="vd">В эти дни ${txt}.</div></div>`;
-  }).join("");
-  $("msymp").innerHTML = symHtml || `<div class="fac"><div class="vd">Отмечайте симптомы — 🤕 😵‍💫 💓 🦴 🥴 😴 — и здесь появится, при какой погоде они случаются чаще.</div></div>`;
+    return {x,n:withS.length,diffs,L:symLevel(diffs[0])};
+  }).filter(o=>o.n);
+  sout.sort((a,b)=>((b.n>=3)-(a.n>=3))||b.L-a.L||b.n-a.n);
+  window.SYM_OUT=sout;
+  $("msymp").innerHTML = sout.length ? sout.map((o,i)=>{
+    const d=o.diffs[0], nd=o.n<3||!o.diffs.length;
+    return `<button class="ft l${o.L}${nd?" nd":""}" data-sym="${i}"><span class="top">${kf(o.x.k).replace('class="kf"','class="kf li"')}<span class="ar">${nd||!o.L?"–":d.eff>0?"↑":"↓"}</span></span><span class="nm">${o.x.l}</span>
+      <span class="sc">${[1,2,3,4,5].map(j=>`<i${j<=o.L?' class="on"':""}></i>`).join("")}</span>
+      <span class="ws">${o.n<3?`мало данных · ${o.n} из 3`:!o.diffs.length?"подгружаю погоду…":!o.L?`с погодой не связано · ${o.n} дн.`:`${FAC_W[o.L]} · ${(FAC_WHEN[d.k]||["выше","ниже"])[d.eff>0?0:1]}`}</span></button>`;
+  }).join("") : `<div class="fhm" style="grid-column:1/-1">Отмечайте симптомы — и здесь появится, при какой погоде они случаются чаще.</div>`;
   moodLoadArchive(rows);
 }
 $("mdays")?.addEventListener("click",e=>{ const b=e.target.closest("[data-d]"); if(!b) return; MS.sel = MS.sel===b.dataset.d?null:b.dataset.d; renderMoodSheet(); });
